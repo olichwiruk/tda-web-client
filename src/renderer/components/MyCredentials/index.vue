@@ -50,7 +50,18 @@ export const shared = {
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list":
-    (share, msg) => share.holder_credentials = msg.results
+    (share, msg) => {
+      // share.holder_credentials = msg.results
+      const url = 'http://172.17.0.1:8031/credentials'
+      const req = new XMLHttpRequest();
+      req.open("GET", url, true);
+      req.onreadystatechange = () => {
+        if(req.readyState === XMLHttpRequest.DONE) {
+          share.holder_credentials = JSON.parse(req.responseText).results
+        }
+      }
+      req.send()
+    }
   },
   methods: {
     fetch_holder_credentials: ({send}) => {

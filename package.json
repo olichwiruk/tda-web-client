@@ -54,6 +54,7 @@
     "axios": "^0.18.0",
     "element-ui": "^2.10.1",
     "encryption-envelope-js": "1.1.4",
+    "hashlink": "github:digitalbazaar/hashlink#decode",
     "request-promise": "^4.2.4",
     "tslib": "^1.10.0",
     "uuid": "^3.3.3",
