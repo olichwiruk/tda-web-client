@@ -16,27 +16,9 @@
           :name="get_name(c)"
           :key="c.connection_id">
           <el-row :key="c.connection_id">
-            <p> <b>My DID:</b> {{c.my_info.did}}
-            <el-button
-              type="info"
-              size="mini" circle
-              icon="el-icon-copy-document"
-              @click="copyItem(c.my_info.did, 'DID')"></el-button>
-            </p>
-            <p><b>My VK:</b> {{c.my_info.vk}}
-            <el-button
-              type="info"
-              icon="el-icon-copy-document"
-              size="mini" circle
-              @click="copyItem(c.my_info.vk, 'VK')"></el-button>
-            </p>
-            <p><b>My Endpoint:</b> {{c.my_info.endpoint}}
-            <el-button
-              type="info"
-              icon="el-icon-copy-document"
-              size="mini" circle
-              @click="copyItem(c.my_info.endpoint, 'Endpoint')"></el-button>
-            </p>
+            <p> <b>My DID:</b> {{c.my_info.did}} </p>
+            <p><b>My VK:</b> {{c.my_info.vk}} </p>
+            <p><b>My Endpoint:</b> {{c.my_info.endpoint}} </p>
             <p><b>Remote DID:</b> {{c.their_info.did}}</p>
             <p><b>Remote VK:</b> {{c.their_info.vk}}</p>
             <div>
@@ -76,7 +58,6 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-const { clipboard } = require('electron');
 import share from '@/share.js';
 import message_bus from '@/message_bus.js';
 
@@ -155,15 +136,6 @@ export default {
     },
     get_name: function(c) {
       return c.their_info.label; //i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
-    },
-    copyItem: function(item,title){
-      clipboard.writeText(item);
-      this.$notify({
-        type: 'success',
-        title: 'Copied',
-        message: 'This '+title+' has been copied to the clipboard.',
-        duration: 2000
-      });
     },
   }
 }

@@ -32,7 +32,6 @@
             <p>Their Role: {{i.connection.their_role}}</p>
             <p>Mode: {{i.connection.invitation_mode}}</p>
             <p>Created: {{i.connection.created_at}}</p>
-            <el-button type="primary" @click="copyURL(i.invitation.invitation_url)">Copy URL</el-button>
             <el-button type="primary" @click="presentQR(i.invitation.invitation_url)">Scan QR</el-button>
 
             <div>
@@ -74,7 +73,6 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
@@ -161,15 +159,6 @@ export default {
     },
     get_name: function(i) {
       return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
-    },
-    copyURL: function(url){
-      clipboard.writeText(url);
-      this.$notify({
-          type: 'success',
-          title: 'Copied',
-          message: 'This Invitation has been copied to the clipboard.',
-          duration: 2000
-        });
     },
     presentQR: function(url){
       this.QRDialogURL = url;

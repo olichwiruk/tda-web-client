@@ -4,10 +4,9 @@ const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
 
 class ConnectionDetail {
-    constructor(id, label, host, did_doc, my_key, inbound_processor = null) {
+    constructor(id, label, did_doc, my_key, inbound_processor = null) {
         this.id = id;
         this.label = label;
-        this.host = host;
         this.did_doc = did_doc;
         this.my_key = my_key;
 
@@ -57,7 +56,6 @@ class ConnectionDetail {
         return {
             id: this.id,
             label: this.label,
-            host: this.host,
             did_doc: this.did_doc,
             my_key_b58: {
                 privateKey: this.my_key.privateKey_b58,
@@ -67,11 +65,10 @@ class ConnectionDetail {
     }
 }
 
-function new_connection(label, host, did_doc, my_key, inbound_processor) {
+function new_connection(label, did_doc, my_key, inbound_processor) {
     return new ConnectionDetail(
         (uuidv4().toString()),
         label,
-        host,
         did_doc,
         my_key,
         inbound_processor
@@ -88,7 +85,6 @@ function from_store(obj, inbound_processor) {
     return new ConnectionDetail(
         obj.id,
         obj.label,
-        obj.host,
         obj.did_doc,
         my_key,
         inbound_processor

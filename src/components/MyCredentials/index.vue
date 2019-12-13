@@ -65,7 +65,7 @@ export const shared = {
     }
   },
   methods: {
-    fetch_holder_credentials: ({send}) => {
+    fetch_holder_credentials: function({send}) {
       send({
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list",
       })

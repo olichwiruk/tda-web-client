@@ -13,7 +13,6 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-const { clipboard } = require('electron');
 import Presentation from './Presentation.vue';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';

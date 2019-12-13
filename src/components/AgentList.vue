@@ -39,7 +39,6 @@
 
 
 <script>
-const electron = require('electron');
 const bs58 = require('bs58');
 const rp = require('request-promise');
 const DIDComm = require('encryption-envelope-js');
@@ -58,13 +57,9 @@ export default {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
 
     openConnection: async function(a) {
-      const modalPath = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:9080/#/agent/'+a.id+"/"+a.host
-        : `file://${__dirname}/index.html#agent/`+a.id;
-      let win = new electron.remote.BrowserWindow({ width: 1000, height: 600, webPreferences: {webSecurity: false} })
-      win.on('close', function () { win = null });
-      win.loadURL(modalPath)
-
+      this.$router.push({ name: 'agent', params: { agentid: a.id} })
+      // let win = window.open('http://toolbox.localhost/#/agent/'+a.id, '_blank')
+      // win.focus()
     },
     deleteConnection: async function(a){
       this.delete_agent(a);
@@ -72,6 +67,7 @@ export default {
     async new_agent_invitation_process(){
       //process invite, prepare request
       var vm = this; //hang on to view model reference
+      this.new_agent_invitation = this.new_agent_invitation.replace(' ', '')
       console.log("invite", this.new_agent_invitation);
       //extract c_i param
       function getUrlVars(url) {
@@ -244,13 +240,12 @@ export default {
       var options = {
         method: 'POST',
         uri: invite.serviceEndpoint,
-        body: packedMsg,
+        body: packedMsg
       };
 
       rp(options)
         .then(async function (parsedBody) {
           // POST succeeded...
-          //console.log("request post response", parsedBody);
           const unpackedResponse = await didcomm.unpackMessage(parsedBody, toolbox_did);
           //console.log("unpacked", unpackedResponse);
           const response = JSON.parse(unpackedResponse.message);
@@ -264,7 +259,7 @@ export default {
           console.log("response message", response);
           //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
           // TODO: Clear invite box fter new add.
-          let connection_detail = new_connection(invite.label, vm.new_agent_invitation.split("?")[0].replace('http://', ''), response.connection.DIDDoc, toolbox_did);
+          let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
           console.log("connection detail", connection_detail);
           ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
           vm.add_agent(connection_detail.to_store());

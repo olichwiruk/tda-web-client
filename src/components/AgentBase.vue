@@ -94,7 +94,6 @@
 
 <script>
 const bs58 = require('bs58');
-const rp = require('request-promise');
 
 import Vue from 'vue';
 import { mapState, mapActions } from "vuex";
@@ -180,7 +179,7 @@ export default {
       // This brute forces picking up return route messages
       let msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
-        "response_requested": false,
+        "response_requested": true,
         "~transport": {
           "return_route": "all"
         }

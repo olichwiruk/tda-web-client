@@ -44,9 +44,9 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in offerReceivedStateCredentials"
-          v-bind:title="credential.credential_exchange_id"
-          :name="credential.credential_exchange_id"
-          :key="credential.credential_exchange_id">
+          v-bind:title="credential.cred_def_id"
+          :name="credential.cred_def_id"
+          :key="credential.cred_def_id">
           <el-row>
             <div>
               <vue-json-pretty
@@ -141,7 +141,7 @@ export default {
         comment: '',
         attributes: []
       },
-      formLabelWidth: '200px'
+      formLabelWidth: '200px',
     }
   },
   methods: {
@@ -235,12 +235,15 @@ export default {
       return this.credentials.filter(cred => "state" in cred && cred.state === "request_sent")
     },
     receivedStateCredentials(){
-      return this.credentials.filter(
+      return this.credentials
+      /*
+        .filter(
         cred =>
           "state" in cred &&
           cred.state === "credential_received" ||
           cred.state === "stored"
       )
+      */
     },
     storedStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "stored")

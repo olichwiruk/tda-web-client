@@ -15,10 +15,6 @@
         <div class="value">{{ vue }}</div>
       </div>
       <div class="item">
-        <div class="name">Electron:</div>
-        <div class="value">{{ electron }}</div>
-      </div>
-      <div class="item">
         <div class="name">Node:</div>
         <div class="value">{{ node }}</div>
       </div>
@@ -34,7 +30,6 @@
   export default {
     data () {
       return {
-        electron: process.versions.electron,
         name: this.$route.name,
         node: process.versions.node,
         path: this.$route.path,
