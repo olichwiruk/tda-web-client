@@ -68,6 +68,7 @@ export function share_source(modules) {
                         listener(this.$share, ...data);
                     });
             });
+            this.$share.routeParams = this.$route.params
         },
     }
 }

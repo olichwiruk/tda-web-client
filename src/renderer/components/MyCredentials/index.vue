@@ -52,7 +52,8 @@ export const shared = {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list":
     (share, msg) => {
       // share.holder_credentials = msg.results
-      const url = 'http://172.17.0.1:8031/credentials'
+      const acapy = share.routeParams.acapy.split(":")
+      const url = `http://${acapy[0]}:${Number(acapy[1]) + 1}/credentials`
       const req = new XMLHttpRequest();
       req.open("GET", url, true);
       req.onreadystatechange = () => {

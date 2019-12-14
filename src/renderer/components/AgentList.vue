@@ -59,7 +59,7 @@ export default {
 
     openConnection: async function(a) {
       const modalPath = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:9080/#/agent/'+a.id
+        ? 'http://localhost:9080/#/agent/'+a.id+"/"+a.host
         : `file://${__dirname}/index.html#agent/`+a.id;
       let win = new electron.remote.BrowserWindow({ width: 1000, height: 600, webPreferences: {webSecurity: false} })
       win.on('close', function () { win = null });
@@ -264,7 +264,7 @@ export default {
           console.log("response message", response);
           //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
           // TODO: Clear invite box fter new add.
-          let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
+          let connection_detail = new_connection(invite.label, vm.new_agent_invitation.split("?")[0].replace('http://', ''), response.connection.DIDDoc, toolbox_did);
           console.log("connection detail", connection_detail);
           ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
           vm.add_agent(connection_detail.to_store());

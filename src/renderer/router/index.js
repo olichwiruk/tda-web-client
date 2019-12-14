@@ -27,7 +27,7 @@ export default new Router({
             component: require('@/components/AgentList').default
         },
         {
-            path: '/agent/:agentid/',
+            path: '/agent/:agentid/:acapy',
             //redirect: '/agent/:agentid/dids', //TODO: Needs to point to a screen not dependant on a protocol
             component: require('@/components/AgentBase').default,
             props: true,
