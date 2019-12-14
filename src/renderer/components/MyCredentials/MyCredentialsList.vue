@@ -187,10 +187,25 @@ export default {
   },
   watch: {
     credentials: function() {
+      const fileServer = process.env.FILE_SERVER
       this.credentials.forEach(async (credential) => {
         const hashlink = credential.attrs.hashlink
         if (hashlink && hashlink.includes('hl:')) {
-          const data = await hl.decode({hashlink})
+          // const data = await hl.decode({hashlink})
+          const data = {
+            "hashName": "sha2-256",
+            "hashValue": {
+              "type": "Buffer",
+              "data": [155, 22, 116, 15, 98, 171, 171, 89, 221, 43,
+                14, 6, 169, 117, 166, 60, 241, 171, 117, 33, 73,
+                221, 144, 33, 17, 23, 22, 166, 255, 57, 98, 184]
+            },
+            "meta": {
+              "url": [
+                `${fileServer}/${hashlink.split(':')[1]}.json`
+              ]
+            }
+          }
           const url = data.meta.url[0]
           const req = new XMLHttpRequest();
           req.open("GET", url, true);
