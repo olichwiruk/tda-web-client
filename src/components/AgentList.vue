@@ -53,13 +53,19 @@ export default {
   computed: {
     ...mapState("Agents", ["agent_list"]),
   },
+  created() {
+    if (this.$session.exists()) {
+      this.$router.push({ name: 'agent', params: {
+        agentid: this.$session.get('agentId')
+      }})
+    }
+  },
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
 
     openConnection: async function(a) {
+      this.$session.set('agentId', a.id)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
-      // let win = window.open('http://toolbox.localhost/#/agent/'+a.id, '_blank')
-      // win.focus()
     },
     deleteConnection: async function(a){
       this.delete_agent(a);
@@ -262,6 +268,9 @@ export default {
           let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
           console.log("connection detail", connection_detail);
           ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
+          const connections = vm.$session.get('connections') || []
+          connections.push(connection_detail.to_store())
+          vm.$session.set('connections', connections)
           vm.add_agent(connection_detail.to_store());
           vm.new_agent_invitation = ""; //clear input for next round
         })
