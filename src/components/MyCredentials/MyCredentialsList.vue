@@ -15,9 +15,9 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in credentials"
-          v-bind:title="credential.cred_def_id"
-          :name="credential.cred_def_id"
-          :key="credential.cred_def_id">
+          v-bind:title="credential.referent"
+          :name="credential.referent"
+          :key="credential.referent">
           <el-row>
             <div>
               <vue-json-pretty
@@ -191,21 +191,7 @@ export default {
       this.credentials.forEach(async (credential) => {
         const hashlink = credential.attrs.hashlink
         if (hashlink && hashlink.includes('hl:')) {
-          // const data = await hl.decode({hashlink})
-          const data = {
-            "hashName": "sha2-256",
-            "hashValue": {
-              "type": "Buffer",
-              "data": [155, 22, 116, 15, 98, 171, 171, 89, 221, 43,
-                14, 6, 169, 117, 166, 60, 241, 171, 117, 33, 73,
-                221, 144, 33, 17, 23, 22, 166, 255, 57, 98, 184]
-            },
-            "meta": {
-              "url": [
-                `${fileServer}/${hashlink.split(':')[1]}.json`
-              ]
-            }
-          }
+          const data = await hl.decode({hashlink})
           const url = data.meta.url[0]
           const req = new XMLHttpRequest();
           req.open("GET", url, true);

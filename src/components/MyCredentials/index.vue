@@ -51,17 +51,7 @@ export const shared = {
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list":
     (share, msg) => {
-      // share.holder_credentials = msg.results
-      const acapy = share.routeParams.acapy.split(":")
-      const url = `http://${acapy[0]}:${Number(acapy[1]) + 1}/credentials`
-      const req = new XMLHttpRequest();
-      req.open("GET", url, true);
-      req.onreadystatechange = () => {
-        if(req.readyState === XMLHttpRequest.DONE) {
-          share.holder_credentials = JSON.parse(req.responseText).results
-        }
-      }
-      req.send()
+      share.holder_credentials = msg.results
     }
   },
   methods: {
