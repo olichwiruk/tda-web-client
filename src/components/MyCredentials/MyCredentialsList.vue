@@ -25,6 +25,8 @@
                 :data="credential">
               </vue-json-pretty>
             </div>
+            <el-button v-if="credentialsFile[credential.referent]"
+              v-on:click="preview(credentialsFile[credential.referent])">Preview</el-button>
             <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -112,12 +114,16 @@
         <el-button :disabled="!proposalForm.selected_cred_def" type="primary" @click="propose">Confirm</el-button>
       </span>
     </el-dialog>
+
+    <preview-component ref="PreviewComponent" :form="form"></preview-component>
   </div>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 const hl = require('hashlink');
+
+import { resolveZipFile, renderForm, PreviewComponent } from 'odca-tool'
 
 export default {
   name: 'my-credentials-list',
@@ -130,20 +136,21 @@ export default {
     ],
   components: {
     VueJsonPretty,
+    PreviewComponent
   },
-  data () {
-    return {
-      expanded_items:[],
-      proposalFormActive: false,
-      proposalForm: {
-        connection_id: '',
-        selected_cred_def: null,
-        comment: '',
-        attributes: []
-      },
-      formLabelWidth: '200px',
-    }
-  },
+  data: () => ({
+    expanded_items:[],
+    proposalFormActive: false,
+    proposalForm: {
+      connection_id: '',
+      selected_cred_def: null,
+      comment: '',
+      attributes: []
+    },
+    formLabelWidth: '200px',
+    credentialsFile: {},
+    form: null
+  }),
   methods: {
     collapse_expanded: function(credential){
       this.expanded_items = this.expanded_items.filter(
@@ -174,6 +181,13 @@ export default {
       this.$emit('propose', values);
       this.proposalFormActive = false;
     },
+    preview(file) {
+      this.$refs.PreviewComponent.openModal({ label: 'Loading...' });
+      resolveZipFile(file).then(results => {
+        this.form = renderForm(results[0]).form
+        this.$refs.PreviewComponent.openModal(this.form);
+      })
+    },
     update_attributes: function(cred_def) {
       var comp = this;
       comp.proposalForm.attributes = [];
@@ -193,12 +207,20 @@ export default {
         if (hashlink && hashlink.includes('hl:')) {
           const data = await hl.decode({hashlink})
           const url = data.meta.url[0]
+          const fileType = url.split(".").pop()
           const req = new XMLHttpRequest();
           req.open("GET", url, true);
+          if (fileType == 'zip') {
+            req.responseType = 'blob'
+          }
           req.onreadystatechange = () => {
             if(req.readyState === XMLHttpRequest.DONE) {
-              const responseData = JSON.parse(req.responseText)
-              credential.attrs = {...credential.attrs, ...responseData}
+              if (fileType == 'json') {
+                const responseData = JSON.parse(req.responseText)
+                credential.attrs = {...credential.attrs, ...responseData}
+              } else if (fileType == 'zip') {
+                this.credentialsFile[credential.referent] = req.response
+              }
             }
           }
           req.send()
