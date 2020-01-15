@@ -123,7 +123,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 const hl = require('hashlink');
 
-import { resolveZipFile, renderForm, PreviewComponent } from 'odca-tool'
+import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'my-credentials-list',
