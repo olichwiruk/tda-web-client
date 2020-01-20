@@ -33,6 +33,7 @@
             <p>Mode: {{i.connection.invitation_mode}}</p>
             <p>Created: {{i.connection.created_at}}</p>
             <el-button type="primary" @click="presentQR(i.invitation.invitation_url)">Scan QR</el-button>
+            <el-button type="primary" @click="copyURL(i.invitation.invitation_url)">Copy</el-button>
 
             <div>
               <vue-json-pretty
@@ -164,6 +165,23 @@ export default {
       this.QRDialogURL = url;
       this.QRDialogVisible = true;
     },
+    copyURL: function(url) {
+      const el = document.createElement('input')
+      document.body.append(el)
+      el.setAttribute('type', 'text')
+      el.setAttribute('value', url)
+      el.select()
+
+      const success = document.execCommand('copy')
+      if (success) {
+        this.$noty.success("Copied to the clipboard!", {
+          timeout: 1000
+        })
+      }
+
+      el.remove()
+      window.getSelection().removeAllRanges()
+    }
   }
 }
 </script>
