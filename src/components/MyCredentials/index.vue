@@ -86,6 +86,9 @@ export default {
       actions: ['fetch_holder_credentials']
     })
   ],
+  mounted() {
+    this.fetch_holder_credentials()
+  },
   methods: {
     send_proposal: function(form) {
       let query_msg = {
