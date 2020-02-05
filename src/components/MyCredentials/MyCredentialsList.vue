@@ -25,8 +25,8 @@
                 :data="credential">
               </vue-json-pretty>
             </div>
-            <el-button v-if="credentialsFile[credential.referent]"
-              v-on:click="preview(credentialsFile[credential.referent])">Preview</el-button>
+            <el-button v-if="credentialsSchema[credential.referent]"
+              v-on:click="preview(credentialsSchema[credential.referent], schemaInput[credential.referent])">Preview</el-button>
             <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -123,7 +123,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 const hl = require('hashlink');
 
-import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
+import { resolveZipFile, renderForm, deserializeSchema, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'my-credentials-list',
@@ -148,7 +148,8 @@ export default {
       attributes: []
     },
     formLabelWidth: '200px',
-    credentialsFile: {},
+    credentialsSchema: {},
+    schemaInput: {},
     form: null
   }),
   methods: {
@@ -181,12 +182,14 @@ export default {
       this.$emit('propose', values);
       this.proposalFormActive = false;
     },
-    preview(file) {
-      this.$refs.PreviewComponent.openModal({ label: 'Loading...' });
-      resolveZipFile(file).then(results => {
-        this.form = renderForm(results[0]).form
-        this.$refs.PreviewComponent.openModal(this.form);
-      })
+    preview(schema, input) {
+      this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
+      this.form = renderForm(deserializeSchema(schema)).form
+      try {
+          this.$refs.PreviewComponent.openModal(this.form, input);
+      } catch {
+          this.$refs.PreviewComponent.openModal({ label: 'ERROR!', sections: [] });
+      }
     },
     update_attributes: function(cred_def) {
       var comp = this;
@@ -201,25 +204,52 @@ export default {
   },
   watch: {
     credentials: function() {
-      const fileServer = process.env.FILE_SERVER
+      this.credentialsSchema = {}
+      this.schemaInput = {}
       this.credentials.forEach(async (credential) => {
-        const hashlink = credential.attrs.hashlink
+        let hashlink = credential.attrs.hashlink
         if (hashlink && hashlink.includes('hl:')) {
           const data = await hl.decode({hashlink})
+
+          if (data.meta.experimental && data.meta.experimental['schema-base']) {
+            this.credentialsSchema[credential.referent] = {}
+            let reqBase = new XMLHttpRequest();
+            reqBase.open("GET", data.meta.experimental.host+data.meta.experimental['schema-base'], true);
+            reqBase.onreadystatechange = () => {
+                if(reqBase.readyState === XMLHttpRequest.DONE) {
+                    const responseData = JSON.parse(reqBase.responseText)
+                    this.credentialsSchema[credential.referent]['schemaBase'] = responseData
+                }
+            }
+            reqBase.send()
+
+            data.meta.experimental.overlays.forEach(id => {
+                let reqOv = new XMLHttpRequest();
+                reqOv.open("GET", data.meta.experimental.host+id, true);
+                reqOv.onreadystatechange = () => {
+                    if(reqOv.readyState === XMLHttpRequest.DONE) {
+                        const responseData = JSON.parse(reqOv.responseText)
+                        const name = responseData.type.split('/')[2].split('_').map(w => {
+                            return w.charAt(0).toUpperCase() + w.slice(1)
+                        }).join('') + `Overlay-${id}`
+                        this.credentialsSchema[credential.referent][name] = responseData
+                    }
+                }
+                reqOv.send()
+            })
+          }
+
           const url = data.meta.url[0]
-          const fileType = url.split(".").pop()
           const req = new XMLHttpRequest();
           req.open("GET", url, true);
-          if (fileType == 'zip') {
-            req.responseType = 'blob'
-          }
           req.onreadystatechange = () => {
             if(req.readyState === XMLHttpRequest.DONE) {
-              if (fileType == 'json') {
+              if (data.meta.experimental && data.meta.experimental['schema-base']) {
+                const responseData = JSON.parse(req.responseText)
+                this.schemaInput[credential.referent] = responseData
+              } else if (url.split('.').slice(-1)[0] == 'json') {
                 const responseData = JSON.parse(req.responseText)
                 credential.attrs = {...credential.attrs, ...responseData}
-              } else if (fileType == 'zip') {
-                this.credentialsFile[credential.referent] = req.response
               }
             }
           }
