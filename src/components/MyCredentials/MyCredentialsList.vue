@@ -115,15 +115,16 @@
       </span>
     </el-dialog>
 
-    <preview-component ref="PreviewComponent" :form="form"></preview-component>
+    <preview-component ref="PreviewComponent" readonly="true" :form="form"></preview-component>
   </div>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import axios from 'axios';
 const hl = require('hashlink');
 
-import { resolveZipFile, renderForm, deserializeSchema, PreviewComponent } from 'odca-form'
+import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'my-credentials-list',
@@ -184,11 +185,14 @@ export default {
     },
     preview(schema, input) {
       this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
-      this.form = renderForm(deserializeSchema(schema)).form
       try {
+          this.form = renderForm(schema).form
           this.$refs.PreviewComponent.openModal(this.form, input);
       } catch {
-          this.$refs.PreviewComponent.openModal({ label: 'ERROR!', sections: [] });
+          this.$refs.PreviewComponent.closeModal()
+          this.$noty.error("ERROR! Form data are corrupted.", {
+            timeout: 1000
+          })
       }
     },
     update_attributes: function(cred_def) {
@@ -210,50 +214,28 @@ export default {
         let hashlink = credential.attrs.hashlink
         if (hashlink && hashlink.includes('hl:')) {
           const data = await hl.decode({hashlink})
+          const exp = data.meta.experimental
 
-          if (data.meta.experimental && data.meta.experimental['schema-base']) {
-            this.credentialsSchema[credential.referent] = {}
-            let reqBase = new XMLHttpRequest();
-            reqBase.open("GET", data.meta.experimental.host+data.meta.experimental['schema-base'], true);
-            reqBase.onreadystatechange = () => {
-                if(reqBase.readyState === XMLHttpRequest.DONE) {
-                    const responseData = JSON.parse(reqBase.responseText)
-                    this.credentialsSchema[credential.referent]['schemaBase'] = responseData
-                }
-            }
-            reqBase.send()
-
-            data.meta.experimental.overlays.forEach(id => {
-                let reqOv = new XMLHttpRequest();
-                reqOv.open("GET", data.meta.experimental.host+id, true);
-                reqOv.onreadystatechange = () => {
-                    if(reqOv.readyState === XMLHttpRequest.DONE) {
-                        const responseData = JSON.parse(reqOv.responseText)
-                        const name = responseData.type.split('/')[2].split('_').map(w => {
-                            return w.charAt(0).toUpperCase() + w.slice(1)
-                        }).join('') + `Overlay-${id}`
-                        this.credentialsSchema[credential.referent][name] = responseData
-                    }
-                }
-                reqOv.send()
+          if (exp && exp['schema-base']) {
+            this.credentialsSchema[credential.referent] = []
+            const ids = [...exp.overlays, exp['schema-base']]
+            ids.forEach(id => {
+              axios.get(exp.host + id)
+                .then(response => {
+                  this.credentialsSchema[credential.referent].push(response.data)
+                })
             })
           }
 
           const url = data.meta.url[0]
-          const req = new XMLHttpRequest();
-          req.open("GET", url, true);
-          req.onreadystatechange = () => {
-            if(req.readyState === XMLHttpRequest.DONE) {
-              if (data.meta.experimental && data.meta.experimental['schema-base']) {
-                const responseData = JSON.parse(req.responseText)
-                this.schemaInput[credential.referent] = responseData
+          axios.get(url)
+            .then(response => {
+              if (exp && exp['schema-base']) {
+                this.schemaInput[credential.referent] = response.data
               } else if (url.split('.').slice(-1)[0] == 'json') {
-                const responseData = JSON.parse(req.responseText)
-                credential.attrs = {...credential.attrs, ...responseData}
+                credential.attrs = {...credential.attrs, ...response.data}
               }
-            }
-          }
-          req.send()
+            })
         }
       })
     },
