@@ -45,6 +45,7 @@
         -->
       </el-form>
     </nav>
+    <taa></taa>
 
     <el-main id="main-display">
       <router-view></router-view>
@@ -90,6 +91,10 @@
     line-height: 36px;
   }
 
+  .problem-report-notification {
+    cursor: pointer;
+  }
+
 </style>
 
 <script>
@@ -101,6 +106,7 @@ import { from_store } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
 import components, {shared} from './components.js';
+import Taa from './TAA.vue';
 
 // The (. && .. && ...) || 'default' syntax provides defaults for modules that lack any level of the metadata
 //  definition. It would be useful if javascript had an Elvis Operator, but it does not.
@@ -124,15 +130,37 @@ export default {
     message_bus({ events: {
       'send-message': (v, msg, return_route) => {
         v.send_connection_message(msg, return_route);
+      },
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
+      (vm, msg) => {
+        vm.$notify.error({
+          title: 'Small problem...',
+          message: (text => {
+            if (text.length > 30) {
+              return text.slice(0, 30).trim() + '...';
+            }
+            return text;
+          })(msg['explain-ltxt']),
+          onClick: () => vm.$router.push({name: 'message-history'}),
+          duration: 4000,
+          customClass: 'problem-report-notification'
+        })
       }
     }}),
     share_source(shared),
     share({
       use: ['dids', 'public_did', 'protocols'],
-      actions: ['fetch_dids', 'fetch_active_did', 'activate_did', 'fetch_protocols']
+      actions: [
+        'fetch_dids',
+        'fetch_active_did',
+        'activate_did',
+        'fetch_protocols',
+        'fetch_connections'
+      ]
     })
   ],
   props: ['agentid'],
+  components: {Taa},
   data: function() {
     return {
       'connection': {'label':'loading...'},
@@ -195,12 +223,17 @@ export default {
     this.fetch_protocols();
     this.fetch_dids();
     this.fetch_active_did();
+    this.fetch_connections();
     this.$message_bus.$emit('agent-created');
     //start poll timer
-    this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
+    if(this.connection.needs_return_route_poll()){
+      this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
+    }
   },
   beforeDestroy: function() {
+    if(this.connection.needs_return_route_poll()) {
       clearInterval(this.return_route_poll_timer)
+    }
   }
 }
 </script>

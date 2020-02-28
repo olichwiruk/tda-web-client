@@ -121,6 +121,7 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import share from '@/share.js';
 import axios from 'axios';
 const hl = require('hashlink');
 
@@ -131,10 +132,11 @@ export default {
   props: [
     'title',
     'editable',
-    'credentials',
+    'list',
     'connections',
     'cred_defs'
     ],
+  mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
     PreviewComponent
@@ -205,6 +207,16 @@ export default {
         });
       });
     },
+    credential_title: function(cred) {
+      let split = cred.schema_id.split(':');
+      let connection_name = '';
+      if (!cred.connection) {
+        connection_name = '[deleted]';
+      } else {
+        connection_name = cred.connection.their_label;
+      }
+      return `${split[2]} v${split[3]} received from ${connection_name}`;
+    }
   },
   watch: {
     credentials: function() {
@@ -241,12 +253,15 @@ export default {
     },
   },
   computed: {
-    connection_map: function() {
-      let map =  this.connections.reduce((acc, item) => {
-        acc[item.connection_id] = item;
-        return acc;
-      }, {});
-      return map;
+    credentials: function() {
+      return this.list.map(item => {
+        if (item.connection_id in this.id_to_connection) {
+          item.connection = this.id_to_connection[item.connection_id];
+        } else {
+          item.connection = null;
+        }
+        return item;
+      });
     },
     offerReceivedStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")
@@ -261,7 +276,8 @@ export default {
         cred =>
           "state" in cred &&
           cred.state === "credential_received" ||
-          cred.state === "stored"
+          cred.state === "stored" ||
+          cred.state === "credential_acked"
       )
       */
     },
