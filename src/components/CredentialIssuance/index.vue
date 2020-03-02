@@ -1,5 +1,5 @@
 <template>
-  <el-row>
+  <el-row v-if="is_dev_interface">
     <schema-list
       title="Schemas"
       editable="false"
@@ -22,6 +22,11 @@
       @issue-cred-refresh="fetch_issued_credentials">
     </issued-cred-list>
   </el-row>
+
+  <el-row v-else>
+    <oca-schema-list
+      title="OCA Schemas"></oca-schema-list>
+  </el-row>
 </template>
 
 <script>
@@ -30,6 +35,8 @@ import share from '../../share.js';
 import SchemaList from './SchemaList.vue';
 import CredDefList from './CredDefList.vue';
 import IssuedCredList from './IssuedCredList.vue';
+
+import OcaSchemaList from './OcaSchemaList.vue';
 
 export const metadata = {
   menu: {
@@ -103,6 +110,7 @@ export default {
     }),
     share({
       use: [
+        'is_dev_interface',
         'active_connections',
         'schemas',
         'cred_defs',
@@ -118,6 +126,7 @@ export default {
     })
   ],
   components: {
+    OcaSchemaList,
     SchemaList,
     CredDefList,
     IssuedCredList
