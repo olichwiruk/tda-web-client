@@ -25,7 +25,9 @@
 
   <el-row v-else>
     <oca-schema-list
-      title="OCA Schemas"></oca-schema-list>
+      title="OCA Schemas"
+      :connections="active_connections"
+      ></oca-schema-list>
   </el-row>
 </template>
 
