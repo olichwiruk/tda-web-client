@@ -237,12 +237,19 @@ export default {
                   this.credentialsSchema[credential.referent].push(response.data)
                 })
             })
+          } else if (exp && exp['dri']) {
+            axios.get(exp.host + exp['dri'])
+              .then(r => {
+                this.credentialsSchema[credential.referent] = [
+                  r.data.schema_base, ...r.data.overlays
+                ]
+              })
           }
 
           const url = data.meta.url[0]
           axios.get(url)
             .then(response => {
-              if (exp && exp['schema-base']) {
+              if (exp && (exp['schema-base'] || exp['dri'])) {
                 this.schemaInput[credential.referent] = response.data
               } else if (url.split('.').slice(-1)[0] == 'json') {
                 credential.attrs = {...credential.attrs, ...response.data}
