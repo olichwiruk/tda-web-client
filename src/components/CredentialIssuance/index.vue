@@ -27,6 +27,8 @@
     <oca-schema-list
       title="OCA Schemas"
       :connections="active_connections"
+      @publish-schema="publish_schema"
+      @issue-cred="issue_credential"
       ></oca-schema-list>
   </el-row>
 </template>

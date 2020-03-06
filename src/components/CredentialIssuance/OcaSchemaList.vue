@@ -2,7 +2,7 @@
   <div>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{ title }}</a>
-      <vue-bootstrap-typeahead 
+      <vue-bootstrap-typeahead
         v-model="ocaSchemaQuery"
         :minMatchingChars="0"
         :data="ocaSchemaSearch || []"
@@ -79,7 +79,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="deActivateForm()">Cancel</el-button>
-        <el-button :disabled="!issueData.connection_id" type="primary" @click="issueCredential">Send</el-button>
+        <el-button :disabled="!issueData.connection_id" :loading="sendingCred" type="primary" @click="issueCredential">Send</el-button>
       </span>
     </el-dialog>
 
@@ -94,6 +94,8 @@ import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 import axios from 'axios'
 
 import { generateDri } from '@/dri_generator'
+import message_bus from '../../message_bus.js';
+import share from '../../share.js';
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
   renderForm, PreviewComponent } from 'odca-form'
@@ -106,6 +108,48 @@ export default {
     VueBootstrapTypeahead,
     PreviewComponent
   },
+  mixins: [
+    message_bus({
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-id":
+        (v, msg) => {
+          v.$emit('issue-cred', {
+            connection_id: v.issueData.connection_id,
+            cred_def_id: msg.cred_def_id,
+            comment: v.issueData.comment,
+            attributes: [{
+              name: 'hashlink',
+              value: v.issueData.dri
+            }]
+          })
+        },
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-id":
+        (v, msg) => {
+          v.send_message({
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
+            "schema_id": msg.schema_id
+          });
+        },
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-exchange":
+        (v, msg) => {
+          v.$noty.success("Credential issued successfully!", { timeout: 1000 })
+          v.sendingCred = false
+          v.deActivateForm()
+        },
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report":
+        (v, msg) => {
+          v.$noty.error(msg.explain-ltxt, { timeout: 1000 })
+          v.sendingCred = false
+          v.deActivateForm()
+        },
+      },
+    }),
+    share({
+      use: [
+        'schemas',
+      ]
+    })
+  ],
   data () {
     return {
       issueFormActive: false,
@@ -125,7 +169,8 @@ export default {
       ocaSchemaSearch: [],
       ocaSchema: null,
       ocaForm: null,
-      ocaFormSaved: false
+      ocaFormSaved: false,
+      sendingCred: false
     }
   },
   watch: {
@@ -152,24 +197,12 @@ export default {
   mounted() {
     this.ocaSchemaSearch = this.fetchOcaSchemas('')
 
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, async (data) => {
-      this.issueData.formInput = data
-      const el = document.createElement('a')
-      const dataStr = JSON.stringify(data, null, 2)
-      const dataLink = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2))
-      el.setAttribute('href', dataLink)
-
-      const buffer = Buffer.from(dataStr)
-      const dri = await generateDri(buffer)
-      el.setAttribute('download', `${dri.split(':')[1]}.json`)
-      this.issueData.formInputDri = dri.split(':')[1]
-
-      el.click()
-      el.remove()
-
-      this.$refs.OcaFormComponent.closeModal();
-      this.ocaFormSaved = true
-    })
+    if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
+      ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
+        ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
+          .filter(f => f.name != this.savePreviewHandler.name)
+    }
+    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.savePreviewHandler)
   },
   methods: {
     deActivateForm: function() {
@@ -197,7 +230,25 @@ export default {
           })
       }
     },
-    issueCredential: async function() {
+    issueCredential: function() {
+      this.sendingCred = true
+      this.generateDriForCredential()
+
+      const schema = this.schemas.find(s => {
+        return s.attributes.length == 1 && s.attributes[0] == 'hashlink'
+      })
+      if(schema){
+        this.send_message({
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
+          "schema_id": schema.schema_id,
+        });
+      } else {
+        this.$emit('publish-schema', {
+          name: 'ocaSchema', version: '1.0', attributes: ['hashlink']
+        })
+      }
+    },
+    generateDriForCredential: async function() {
       const buffer = Buffer.from(
         JSON.stringify(this.issueData.formInput, null, 2)
       )
@@ -210,9 +261,7 @@ export default {
         }
       }
 
-      console.log(
-        await generateDri(buffer, urls, meta)
-      )
+      this.issueData.dri = await generateDri(buffer, urls, meta)
     },
     fetchOcaSchemas: function(input) {
         axios.get(`${this.issueData.ocaRepo.host}/v2/schemas?_index=schema_base&q=${input}`)
@@ -252,6 +301,24 @@ export default {
             timeout: 1000
           })
       }
+    },
+    async savePreviewHandler(data) {
+      this.issueData.formInput = data
+      const el = document.createElement('a')
+      const dataStr = JSON.stringify(data, null, 2)
+      const dataLink = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2))
+      el.setAttribute('href', dataLink)
+
+      const buffer = Buffer.from(dataStr)
+      const dri = await generateDri(buffer)
+      el.setAttribute('download', `${dri.split(':')[1]}.json`)
+      this.issueData.formInputDri = dri.split(':')[1]
+
+      el.click()
+      el.remove()
+
+      this.$refs.OcaFormComponent.closeModal();
+      this.ocaFormSaved = true
     }
   }
 }
