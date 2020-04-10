@@ -19,7 +19,7 @@
               <el-button @click="edit(did)">Edit</el-button>
             </template>
             <!-- <el-button type="danger" @click="delete_did(did)">Delete</el-button> -->
-            <!-- <el-button v-if="activeDid" v-on:click="publish(did)">Publish</el-button> -->
+            <el-button @click="publish(did)">Publish</el-button>
             <el-button @click="edit(did)">Edit</el-button>
             <el-button v-if="!('metadata' in did &&
                               'public' in did.metadata &&

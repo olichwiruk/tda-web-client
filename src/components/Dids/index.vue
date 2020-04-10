@@ -6,6 +6,7 @@
       activeDid="public_did"
       :list="dids"
       @did-update="updateAgentDid"
+      @did-publish="publish_did"
       @did-activate="activate_did">
     </did-list>
   <p>Create a Did:</p>
@@ -77,6 +78,18 @@ export const shared = {
         "did": did.did,
       });
     },
+    publish_did: ({send}, did) => {
+      let alias
+      if(did.metadata && did.metadata.label) {
+        alias = did.metadata.label
+      }
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/register-did",
+        "did": did.did,
+        "verkey": did.verkey,
+        "alias": alias
+      });
+    },
     fetch_active_did: ({send}) => {
       send({"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/get-public-did"});
     },
@@ -101,7 +114,7 @@ export default {
     }),
     share({
       use: ['dids', 'public_did'],
-      actions: ['fetch_dids', 'activate_did', 'fetch_active_did']
+      actions: ['fetch_dids', 'activate_did', 'publish_did', 'fetch_active_did']
     })
   ],
   components: {
