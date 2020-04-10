@@ -117,6 +117,7 @@ let module_list = Object.entries(components).map(([modulename, module]) => ({
   icon: (module.metadata && module.metadata.menu && module.metadata.menu.icon) || 'el-icon-document',
   group: (module.metadata && module.metadata.menu && module.metadata.menu.group) || 'Other',
   priority: (module.metadata && module.metadata.menu && module.metadata.menu.priority) || 100,
+  dev_only: (module.metadata && module.metadata.menu && module.metadata.menu.dev_only) || false,
   required_protocols: (module.metadata && module.metadata.menu && module.metadata.menu.required_protocols) || [],
 }));
 
@@ -149,7 +150,7 @@ export default {
     }}),
     share_source(shared),
     share({
-      use: ['dids', 'public_did', 'protocols'],
+      use: ['dids', 'public_did', 'protocols', 'is_dev_interface'],
       actions: [
         'fetch_dids',
         'fetch_active_did',
@@ -180,7 +181,12 @@ export default {
     matching_modules_grouped: function(){
       // This computed attribute updates when the supported protocol list is updated.
       let pid_list = this.protocols.map(p => p.pid);
-      let filtered_list = module_list.filter(function(m){
+
+      let view_filtered_list = module_list
+      if(!this.is_dev_interface) {
+        view_filtered_list = module_list.filter(m => !m.dev_only)
+      }
+      let filtered_list = view_filtered_list.filter(function(m){
         return m.required_protocols.every(req_protocol => pid_list.includes(req_protocol));
       });
       //group modules

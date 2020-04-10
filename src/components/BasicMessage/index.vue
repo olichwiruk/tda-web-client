@@ -54,6 +54,7 @@ export const metadata = {
     icon: 'el-icon-chat-line-square',
     group: 'Toolbox to Agent',
     priority: 20,
+    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0'
     ]

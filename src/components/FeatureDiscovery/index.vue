@@ -29,6 +29,7 @@ export const metadata = {
     icon: 'el-icon-discover',
     group: 'Toolbox to Agent',
     priority: 5,
+    dev_only: true,
     required_protocols: [
     ]
   }

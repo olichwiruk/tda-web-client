@@ -67,6 +67,7 @@ export const metadata = {
     icon: 'el-icon-box',
     group: 'Agent to Agent',
     priority: 40,
+    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1'
     ]

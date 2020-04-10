@@ -22,6 +22,7 @@ export const metadata = {
     icon: 'el-icon-connection',
     group: 'Agent to Agent',
     priority: 70,
+    dev_only: true,
     required_protocols: [
     ]
   }

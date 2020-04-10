@@ -22,6 +22,7 @@ export const metadata = {
     icon: 'el-icon-receiving',
     group: 'Toolbox to Agent',
     priority: 50,
+    dev_only: true,
     required_protocols: [
     ]
   }
