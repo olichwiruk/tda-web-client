@@ -159,7 +159,7 @@ export default {
         comment: ''
       },
       issueData: {
-        fileserver: 'http://fileserver.localhost',
+        fileserver: process.env.VUE_APP_DATA_VAULT || '',
         ocaRepo: {
           host: process.env.VUE_APP_OCA_REPO || ''
         }
@@ -253,7 +253,7 @@ export default {
         JSON.stringify(this.issueData.formInput, null, 2)
       )
 
-      const urls = [`${this.issueData.fileserver}/${this.issueData.formInputDri}.json`]
+      const urls = [`${this.issueData.fileserver}/api/files/${this.issueData.formInputDri}`]
       const meta = {
         experimental: {
           host: `${this.issueData.ocaRepo.host}/v2/schemas/${this.issueData.ocaRepo.namespace}/`,
@@ -304,18 +304,20 @@ export default {
     },
     async savePreviewHandler(data) {
       this.issueData.formInput = data
-      const el = document.createElement('a')
       const dataStr = JSON.stringify(data, null, 2)
-      const dataLink = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2))
-      el.setAttribute('href', dataLink)
-
       const buffer = Buffer.from(dataStr)
       const dri = await generateDri(buffer)
-      el.setAttribute('download', `${dri.split(':')[1]}.json`)
-      this.issueData.formInputDri = dri.split(':')[1]
+      const blob = new Blob([dataStr], {type: 'application/json'})
 
-      el.click()
-      el.remove()
+      const formData = new FormData()
+      formData.append("file", blob, `${dri.split(':')[1]}.json`)
+      axios.post(`${this.fileserver}/api/files`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(r => {
+        this.issueData.formInputDri = r.data
+      })
 
       this.$refs.OcaFormComponent.closeModal();
       this.ocaFormSaved = true
