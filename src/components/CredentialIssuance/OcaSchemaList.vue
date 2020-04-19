@@ -253,10 +253,10 @@ export default {
         JSON.stringify(this.issueData.formInput, null, 2)
       )
 
-      const urls = [`${this.issueData.fileserver}/api/files/${this.issueData.formInputDri}`]
+      const urls = [`${this.issueData.fileserver}/api/v1/files/${this.issueData.formInputDri}`]
       const meta = {
         experimental: {
-          host: `${this.issueData.ocaRepo.host}/v2/schemas/${this.issueData.ocaRepo.namespace}/`,
+          host: `${this.issueData.ocaRepo.host}/api/v2/schemas/${this.issueData.ocaRepo.namespace}/`,
           dri: this.issueData.ocaRepo.branchDri
         }
       }
@@ -264,7 +264,7 @@ export default {
       this.issueData.dri = await generateDri(buffer, urls, meta)
     },
     fetchOcaSchemas: function(input) {
-        axios.get(`${this.issueData.ocaRepo.host}/v2/schemas?_index=schema_base&q=${input}`)
+        axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas?_index=schema_base&q=${input}`)
         .then(r => {
           this.ocaSchemaSearch = r.data.map(x => {
             return {
@@ -276,10 +276,10 @@ export default {
         })
     },
     getOcaSchema: async function(schema) {
-      const result = await axios.get(`${this.issueData.ocaRepo.host}/v2/schemas?_index=branch&schema_base=${schema.DRI}`)
+      const result = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas?_index=branch&schema_base=${schema.DRI}`)
       const branch = result.data.find(e => e.namespace == schema.namespace)
 
-      const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/v2/schemas/${branch.namespace}/${branch.DRI}`)
+      const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branch.namespace}/${branch.DRI}`)
       this.ocaSchema = branchResponse.data
       try {
           this.ocaForm = renderForm(
@@ -311,7 +311,7 @@ export default {
 
       const formData = new FormData()
       formData.append("file", blob, `${dri.split(':')[1]}.json`)
-      axios.post(`${this.fileserver}/api/files`, formData, {
+      axios.post(`${this.issueData.fileserver}/api/v1/files`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
