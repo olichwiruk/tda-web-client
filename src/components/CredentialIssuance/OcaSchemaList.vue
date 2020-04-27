@@ -83,8 +83,8 @@
       </span>
     </el-dialog>
 
-    <preview-component style="z-index: 9999;" ref="PreviewComponent" :readonly="true" :form="ocaForm"></preview-component>
-    <preview-component ref="OcaFormComponent" :form="ocaForm"></preview-component>
+    <preview-component style="z-index: 9999;" ref="PreviewComponent" :readonly="true" :form="ocaForm" :alternatives="ocaFormAlternatives"></preview-component>
+    <preview-component ref="OcaFormComponent" :form="ocaForm" :alternatives="ocaFormAlternatives"></preview-component>
   </div>
 </template>
 
@@ -169,6 +169,7 @@ export default {
       ocaSchemaSearch: [],
       ocaSchema: null,
       ocaForm: null,
+      ocaFormAlternatives: [],
       ocaFormSaved: false,
       sendingCred: false
     }
@@ -276,17 +277,29 @@ export default {
         })
     },
     getOcaSchema: async function(schema) {
+      this.ocaFormAlternatives = []
       const result = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas?_index=branch&schema_base=${schema.DRI}`)
-      const branch = result.data.find(e => e.namespace == schema.namespace)
-
-      const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branch.namespace}/${branch.DRI}`)
+      const branchesBase = result.data.filter(e => e.namespace == schema.namespace)
+      const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branchesBase[0].namespace}/${branchesBase[0].DRI}`)
       this.ocaSchema = branchResponse.data
+
+      branchesBase.forEach(async branchBase => {
+        const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branchBase.namespace}/${branchBase.DRI}`)
+        const branch = branchResponse.data
+        const labelOverlay = branch.overlays.find(b => b.type.includes("label"))
+
+        this.ocaFormAlternatives.push({
+          language: labelOverlay.language,
+          form: renderForm([branch.schema_base, ...branch.overlays]).form
+        })
+      })
+
       try {
           this.ocaForm = renderForm(
             [this.ocaSchema.schema_base, ...this.ocaSchema.overlays]
           ).form
           this.issueData.ocaRepo.namespace = schema.namespace
-          this.issueData.ocaRepo.branchDri = branch.DRI
+          this.issueData.ocaRepo.branchDri = branchesBase[0].DRI
       } catch {
           this.$noty.error("ERROR! Form data are corrupted.", {
             timeout: 1000

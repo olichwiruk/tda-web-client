@@ -26,7 +26,7 @@
               </vue-json-pretty>
             </div>
             <el-button v-if="credentialsSchema[credential.referent]"
-              v-on:click="preview(credentialsSchema[credential.referent], schemaInput[credential.referent])">Preview</el-button>
+              v-on:click="preview(credentialsSchema[credential.referent], schemaInput[credential.referent], credentialsSchemaAlt[credential.referent])">Preview</el-button>
             <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -115,7 +115,7 @@
       </span>
     </el-dialog>
 
-    <preview-component ref="PreviewComponent" readonly="true" :form="form"></preview-component>
+    <preview-component ref="PreviewComponent" readonly="true" :form="form" :alternatives="alternatives"></preview-component>
   </div>
 </template>
 
@@ -152,8 +152,10 @@ export default {
     },
     formLabelWidth: '200px',
     credentialsSchema: {},
+    credentialsSchemaAlt: {},
     schemaInput: {},
-    form: null
+    form: null,
+    alternatives: null
   }),
   methods: {
     collapse_expanded: function(credential){
@@ -185,10 +187,12 @@ export default {
       this.$emit('propose', values);
       this.proposalFormActive = false;
     },
-    preview(schema, input) {
+    preview(schema, input, alternatives) {
+      console.log(alternatives)
       this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
       try {
           this.form = renderForm(schema).form
+          this.alternatives = alternatives
           this.$refs.PreviewComponent.openModal(this.form, input);
       } catch {
           this.$refs.PreviewComponent.closeModal()
@@ -221,6 +225,7 @@ export default {
   watch: {
     credentials: function() {
       this.credentialsSchema = {}
+      this.credentialsSchemaAlt = {}
       this.schemaInput = {}
       this.credentials.forEach(async (credential) => {
         let hashlink = credential.attrs.hashlink
@@ -238,11 +243,33 @@ export default {
                 })
             })
           } else if (exp && exp['dri']) {
+            let schemaBaseDri
             axios.get(exp.host + exp['dri'])
               .then(r => {
                 this.credentialsSchema[credential.referent] = [
                   r.data.schema_base, ...r.data.overlays
                 ]
+                this.credentialsSchemaAlt[credential.referent] = []
+                schemaBaseDri = r.data.overlays[0].schema_base.split(":")[1]
+
+                axios.get(`${exp.host}?_index=branch&schema_base=${schemaBaseDri}`).then(res => {
+                  const branchesDri = res.data.map(b => b.DRI)
+                  if(branchesDri.length == 1) { return }
+                  branchesDri.forEach(branchDri => {
+                    axios.get(`${exp.host}${branchDri}`).then(response => {
+                      const branch = response.data
+                      const labelOverlay = branch.overlays
+                        .find(o => o.type.includes("label"))
+                      if(!this.credentialsSchemaAlt[credential.referent].find(alt => alt.language == labelOverlay.language)) {
+                        this.credentialsSchemaAlt[credential.referent].push({
+                          language: labelOverlay.language,
+                          form: renderForm([branch.schema_base, ...branch.overlays]).form
+                        })
+                      }
+                    })
+                  })
+
+                })
               })
           }
 
