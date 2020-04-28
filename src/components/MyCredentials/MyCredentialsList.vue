@@ -188,11 +188,10 @@ export default {
       this.proposalFormActive = false;
     },
     preview(schema, input, alternatives) {
-      console.log(alternatives)
+      this.alternatives = alternatives
       this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
       try {
-          this.form = renderForm(schema).form
-          this.alternatives = alternatives
+          this.form = schema
           this.$refs.PreviewComponent.openModal(this.form, input);
       } catch {
           this.$refs.PreviewComponent.closeModal()
@@ -220,7 +219,26 @@ export default {
         connection_name = cred.connection.their_label;
       }
       return `${split[2]} v${split[3]} received from ${connection_name}`;
-    }
+    },
+    splitBranchPerLang: function(branch) {
+      const langBranches = []
+      const labelOverlays = branch.overlays.filter(o => o.type.includes("label"))
+      const languages = labelOverlays.map(o => o.language)
+      const schemaBase = branch.schema_base
+      languages.forEach(lang => {
+        langBranches.push({
+          lang: lang,
+          branch: {
+            schema_base: schemaBase,
+            overlays: branch.overlays.filter(o => {
+              if(!o.language) { return true }
+              return o.language == lang
+            })
+          }
+        })
+      })
+      return langBranches
+    },
   },
   watch: {
     credentials: function() {
@@ -246,30 +264,20 @@ export default {
             let schemaBaseDri
             axios.get(exp.host + exp['dri'])
               .then(r => {
-                this.credentialsSchema[credential.referent] = [
-                  r.data.schema_base, ...r.data.overlays
-                ]
+                const branch = r.data
                 this.credentialsSchemaAlt[credential.referent] = []
-                schemaBaseDri = r.data.overlays[0].schema_base.split(":")[1]
+                const langBranches = this.splitBranchPerLang(branch)
 
-                axios.get(`${exp.host}?_index=branch&schema_base=${schemaBaseDri}`).then(res => {
-                  const branchesDri = res.data.map(b => b.DRI)
-                  if(branchesDri.length == 1) { return }
-                  branchesDri.forEach(branchDri => {
-                    axios.get(`${exp.host}${branchDri}`).then(response => {
-                      const branch = response.data
-                      const labelOverlay = branch.overlays
-                        .find(o => o.type.includes("label"))
-                      if(!this.credentialsSchemaAlt[credential.referent].find(alt => alt.language == labelOverlay.language)) {
-                        this.credentialsSchemaAlt[credential.referent].push({
-                          language: labelOverlay.language,
-                          form: renderForm([branch.schema_base, ...branch.overlays]).form
-                        })
-                      }
-                    })
+                langBranches.forEach(langBranch => {
+                  this.credentialsSchemaAlt[credential.referent].push({
+                    language: langBranch.lang,
+                    form: renderForm([
+                      langBranch.branch.schema_base,
+                      ...langBranch.branch.overlays]
+                    ).form
                   })
-
                 })
+                this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
               })
           }
 
