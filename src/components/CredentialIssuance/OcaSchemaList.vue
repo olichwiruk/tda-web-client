@@ -280,24 +280,20 @@ export default {
       this.ocaFormAlternatives = []
       const result = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas?_index=branch&schema_base=${schema.DRI}`)
       const branchesBase = result.data.filter(e => e.namespace == schema.namespace)
-      const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branchesBase[0].namespace}/${branchesBase[0].DRI}`)
-      this.ocaSchema = branchResponse.data
-
-      branchesBase.forEach(async branchBase => {
-        const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branchBase.namespace}/${branchBase.DRI}`)
-        const branch = branchResponse.data
-        const labelOverlay = branch.overlays.find(b => b.type.includes("label"))
-
-        this.ocaFormAlternatives.push({
-          language: labelOverlay.language,
-          form: renderForm([branch.schema_base, ...branch.overlays]).form
-        })
-      })
+      const branchBase = branchesBase[0]
+      const branchResponse = await axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas/${branchBase.namespace}/${branchBase.DRI}`)
+      const branch = branchResponse.data
+      const langBranches = this.splitBranchPerLang(branch)
 
       try {
-          this.ocaForm = renderForm(
-            [this.ocaSchema.schema_base, ...this.ocaSchema.overlays]
-          ).form
+          langBranches.forEach(langBranch => {
+            this.ocaFormAlternatives.push({
+              language: langBranch.lang,
+              form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            })
+          })
+
+          this.ocaForm = this.ocaFormAlternatives[0].form
           this.issueData.ocaRepo.namespace = schema.namespace
           this.issueData.ocaRepo.branchDri = branchesBase[0].DRI
       } catch {
@@ -305,6 +301,25 @@ export default {
             timeout: 1000
           })
       }
+    },
+    splitBranchPerLang: function(branch) {
+      const langBranches = []
+      const labelOverlays = branch.overlays.filter(o => o.type.includes("label"))
+      const languages = labelOverlays.map(o => o.language)
+      const schemaBase = branch.schema_base
+      languages.forEach(lang => {
+        langBranches.push({
+          lang: lang,
+          branch: {
+            schema_base: schemaBase,
+            overlays: branch.overlays.filter(o => {
+              if(!o.language) { return true }
+              return o.language == lang
+            })
+          }
+        })
+      })
+      return langBranches
     },
     preview(formInput = null) {
       try {
