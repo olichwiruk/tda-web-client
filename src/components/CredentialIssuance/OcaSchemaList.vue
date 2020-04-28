@@ -265,7 +265,7 @@ export default {
       this.issueData.dri = await generateDri(buffer, urls, meta)
     },
     fetchOcaSchemas: function(input) {
-        axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas?_index=schema_base&q=${input}`)
+        axios.get(`${this.issueData.ocaRepo.host}/api/v2/schemas?suggest=${input}`)
         .then(r => {
           this.ocaSchemaSearch = r.data.map(x => {
             return {
