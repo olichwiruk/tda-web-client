@@ -4,6 +4,10 @@
       <a class="navbar-brand" href="#">Aries Toolbox</a>
     </nav>
 
+    <div class="alert alert-danger" v-if="defaultConnectionEstablished == false">
+      Connection to Agent failed. Please contact with administrator or try again later.
+    </div>
+
     <el-card shadow="never" class="agent-card" v-for="a in agent_list">
       <span slot="header"><strong>{{a.label}}</strong></span>
       <div>
@@ -31,6 +35,8 @@ const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions } from "vuex"
 import { new_connection } from '../connection_detail.js';
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
 const uuidv4 = require('uuid/v4');
 
 export default {
@@ -39,16 +45,56 @@ export default {
   computed: {
     ...mapState("Agents", ["agent_list"]),
   },
+  data() {
+    return {
+      acapyApiUrl: process.env.VUE_APP_ACAPY_API || null,
+      defaultConnectionEstablished: null,
+      new_agent_invitation: ""
+    }
+  },
   created() {
+    if(this.acapyApiUrl) {
+      this.connectDefaultAgent()
+    }
+
     if (this.$session.exists()) {
       this.$router.push({ name: 'agent', params: {
         agentid: this.$session.get('agentId')
       }})
     }
   },
+  watch: {
+    agent_list: {
+      handler() {
+        if(this.defaultConnectionEstablished) {
+          const agent = this.agent_list[0]
+          this.openConnection(agent)
+        }
+      }
+    }
+  },
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
 
+    connectDefaultAgent() {
+      const axiosInstance = axios.create()
+      axiosRetry(axiosInstance, {
+        retries: 5,
+        shouldResetTimeout: true,
+        retryDelay: retryCount => (retryCount * 500)
+      })
+
+      axiosInstance.post(
+        `${this.acapyApiUrl}/connections/create-admin-invitation-url`,
+        { timeout: 1000 }
+      ).then(r => {
+          const invitationUrl = r.data.invitation_url
+          this.new_agent_invitation = invitationUrl
+          this.new_agent_invitation_process()
+          this.defaultConnectionEstablished = true
+        }
+      ).catch(() => this.defaultConnectionEstablished = false)
+    },
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
@@ -258,11 +304,6 @@ export default {
           // POST failed...
           console.log("request post err", err);
         });
-    }
-  },
-  data() {
-    return {
-      new_agent_invitation: ""
     }
 
   }
