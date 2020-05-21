@@ -3,21 +3,11 @@
   "version": "0.0.1",
   "author": "Sam Curren <telegramsam@gmail.com>",
   "description": "Tools for working with Aries Agents",
-  "repository": {
-    "type": "https",
-    "url": "https://github.com/hyperledger/aries-toolbox.git"
-  },
-  "license": "Apache-2.0",
-  "main": "./dist/electron/main.js",
+  "license": null,
+  "main": "./dist/main.js",
   "scripts": {
-    "build": "node .electron-vue/build.js && electron-builder --publish never",
-    "build:dir": "node .electron-vue/build.js && electron-builder --dir",
-    "build:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
-    "build:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",
-    "dev": "node .electron-vue/dev-runner.js",
-    "pack": "npm run pack:main && npm run pack:renderer",
-    "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.main.config.js",
-    "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-vue/webpack.renderer.config.js",
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
     "postinstall": ""
   },
   "build": {
@@ -25,55 +15,32 @@
     "appId": "com.example.aries-toolbox",
     "directories": {
       "output": "build"
-    },
-    "files": [
-      "dist/electron/**/*"
-    ],
-    "dmg": {
-      "contents": [
-        {
-          "x": 410,
-          "y": 150,
-          "type": "link",
-          "path": "/Applications"
-        },
-        {
-          "x": 130,
-          "y": 150,
-          "type": "file"
-        }
-      ]
-    },
-    "mac": {
-      "icon": "build/icons/icon.icns"
-    },
-    "win": {
-      "icon": "build/icons/icon.ico"
-    },
-    "linux": {
-      "icon": "build/icons"
     }
   },
   "dependencies": {
     "@chenfengyuan/vue-qrcode": "^1.0.1",
+    "@vue/cli-service": "^4.1.1",
     "axios": "^0.18.0",
     "bootstrap": "^4.4.1",
     "bootstrap-vue": "^2.1.0",
     "dompurify": "^2.0.8",
     "element-ui": "^2.10.1",
     "encryption-envelope-js": "1.1.4",
+    "hashlink": "github:digitalbazaar/hashlink#decode",
     "marked": "^0.8.0",
-    "request": "^2.88.0",
+    "odca-form": "^0.0.18",
     "request-promise": "^4.2.4",
     "tslib": "^1.10.0",
     "uuid": "^3.3.3",
     "v-jsoneditor": "^1.0.13",
     "vue": "^2.5.16",
-    "vue-electron": "^1.0.6",
+    "vue-bootstrap-typeahead": "^0.2.6",
+    "vue-cli": "^2.9.6",
     "vue-json-pretty": "^1.6.0",
     "vue-router": "^3.0.1",
+    "vue-session": "^1.0.0",
+    "vuejs-noty": "^0.1.3",
     "vuex": "^3.0.1",
-    "vuex-electron": "^1.0.0",
     "websocket-as-promised": "^1.0.1"
   },
   "devDependencies": {
@@ -85,18 +52,14 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
     "babili-webpack-plugin": "^0.1.2",
+    "bootstrap": "^4.3.1",
+    "bootstrap-vue": "^2.2.1",
     "cfonts": "^2.1.2",
     "chalk": "^2.4.1",
     "copy-webpack-plugin": "^5.1.1",
     "cross-env": "^5.1.6",
     "css-loader": "^3.4.2",
     "del": "^3.0.0",
-    "devtron": "^1.4.0",
-    "electron": "^2.0.4",
-    "electron-builder": "^21.2.0",
-    "electron-debug": "^1.5.0",
-    "electron-devtools-installer": "^2.2.4",
-    "electron-packager": "^14.0.2",
     "file-loader": "^1.1.11",
     "html-webpack-plugin": "^3.2.0",
     "mini-css-extract-plugin": "0.4.0",
@@ -113,6 +76,11 @@
     "webpack-hot-middleware": "^2.22.2",
     "webpack-merge": "^4.1.3"
   },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
   "optionalDependencies": {
     "jquery": "1.9.1 - 3",
     "popper.js": "^1.14.7"
