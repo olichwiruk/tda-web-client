@@ -159,9 +159,9 @@ export default {
         comment: ''
       },
       issueData: {
-        fileserver: process.env.VUE_APP_DATA_VAULT || '',
+        fileserver: config.env.VUE_APP_DATA_VAULT || '',
         ocaRepo: {
-          host: process.env.VUE_APP_OCA_REPO || ''
+          host: config.env.VUE_APP_OCA_REPO || ''
         }
       },
       formLabelWidth: '200px',
