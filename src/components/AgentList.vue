@@ -47,7 +47,7 @@ export default {
   },
   data() {
     return {
-      acapyApiUrl: process.env.VUE_APP_ACAPY_API || null,
+      acapyApiUrl: config.env.VUE_APP_ACAPY_API || null,
       defaultConnectionEstablished: null,
       new_agent_invitation: ""
     }
