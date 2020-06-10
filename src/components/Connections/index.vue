@@ -153,7 +153,7 @@ export default {
       let receive_invite_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/receive-invitation",
         "invitation": this.invitation,
-        "accept": "auto"
+        "auto_accept": "auto"
       };
       this.send_message(receive_invite_msg);
       this.invitation = "";

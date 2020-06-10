@@ -147,7 +147,7 @@ export default {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/create-invitation",
         "label": this.invite_label_form,
         "role": this.invite_role_form,
-        "accept": this.invite_accept_form,
+        "auto_accept": this.invite_accept_form,
         "public": this.invite_public_form,
         "multi_use": this.invite_multi_use_form,
       };
