@@ -127,7 +127,7 @@ export default {
         (v, msg) => {
           v.send_message({
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
-            "schema_id": msg.schema_id
+            "schema_id": msg.schema_id.split(",")[0].slice(2, -1)
           });
         },
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-exchange":
