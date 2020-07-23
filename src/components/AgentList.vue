@@ -44,10 +44,15 @@ export default {
   components: {  },
   computed: {
     ...mapState("Agents", ["agent_list"]),
+    acapyApiUrl: function() {
+      const agentAdmin = this.uuid ? `${this.uuid}-${this.agent}-admin` : `${this.agent}-admin`
+      return `${config.env.VUE_APP_PROTOCOL}://${agentAdmin}.${config.env.VUE_APP_HOST}`
+    }
   },
   data() {
     return {
-      acapyApiUrl: config.env.VUE_APP_ACAPY_API || null,
+      agent: this.routeParams().agent,
+      uuid: this.routeParams().uuid,
       defaultConnectionEstablished: null,
       new_agent_invitation: ""
     }
@@ -75,6 +80,13 @@ export default {
   },
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
+    routeParams() {
+        return window.location.search.substring(1).split("&").reduce(function(result, value) {
+          var parts = value.split('=');
+          if (parts[0]) result[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
+          return result;
+        }, {})
+    },
 
     connectDefaultAgent() {
       const axiosInstance = axios.create()
@@ -89,6 +101,7 @@ export default {
         { timeout: 1000 }
       ).then(r => {
           const invitationUrl = r.data.invitation_url
+          if (!invitationUrl) { throw 'Error' }
           this.new_agent_invitation = invitationUrl
           this.new_agent_invitation_process()
           this.defaultConnectionEstablished = true
@@ -97,6 +110,7 @@ export default {
     },
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
+      this.$session.set('instanceUuid', this.uuid)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
     },
     deleteConnection: async function(a){

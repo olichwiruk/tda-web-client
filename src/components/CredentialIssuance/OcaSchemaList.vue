@@ -159,9 +159,9 @@ export default {
         comment: ''
       },
       issueData: {
-        fileserver: config.env.VUE_APP_DATA_VAULT || '',
+        fileserver: '',
         ocaRepo: {
-          host: config.env.VUE_APP_OCA_REPO || ''
+          host: ''
         }
       },
       formLabelWidth: '200px',
@@ -194,8 +194,16 @@ export default {
     available_connections: function() {
       return this.connections.filter(c => c.their_label != 'ToolBox')
     },
+    ocaRepoUrl: function() {
+      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+    },
+    fileserverUrl: function() {
+      return `${config.env.VUE_APP_PROTOCOL}://${this.$session.get('instanceUuid')}-${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}`
+    }
   },
   mounted() {
+    this.issueData.fileserver = this.fileserverUrl
+    this.issueData.ocaRepo.host = this.ocaRepoUrl
     this.ocaSchemaSearch = this.fetchOcaSchemas('')
 
     if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
