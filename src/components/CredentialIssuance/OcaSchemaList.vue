@@ -198,7 +198,8 @@ export default {
       return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
     },
     fileserverUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${this.$session.get('instanceUuid')}-${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}`
+      const uuid = this.$session.get('instanceUuid')
+      return uuid ? `${config.env.VUE_APP_PROTOCOL}://${uuid}-${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}` : `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}`
     }
   },
   mounted() {
@@ -244,7 +245,7 @@ export default {
       this.generateDriForCredential()
 
       const schema = this.schemas.find(s => {
-        return s.attributes.length == 1 && s.attributes[0] == 'hashlink'
+        return s.attributes.length == 1 && s.attributes[0] == 'hashlink' && s.author == 'self'
       })
       if(schema){
         this.send_message({
