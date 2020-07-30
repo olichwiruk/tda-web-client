@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-form>
-      <el-form-item :label="label" label-width="200px">
+      <el-form-item :label="label" label-width="80px">
         <el-select
           v-model="selectedConsentDRI"
           width="400px"

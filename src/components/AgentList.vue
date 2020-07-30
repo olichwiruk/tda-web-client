@@ -111,6 +111,7 @@ export default {
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
       this.$session.set('instanceUuid', this.uuid)
+      this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
     },
     deleteConnection: async function(a){
