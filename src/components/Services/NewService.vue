@@ -22,8 +22,8 @@
 
 <script>
 import axios from 'axios'
-import OcaSchemaSearch from './OcaSchemaSearch'
-import ConsentSelect from './ConsentSelect'
+import OcaSchemaSearch from './NewService/OcaSchemaSearch'
+import ConsentSelect from './NewService/ConsentSelect'
 
 export default {
   name: 'new-service',
