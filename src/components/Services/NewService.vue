@@ -99,6 +99,7 @@ export default {
       }).then(r => {
         if (r.status === 200) {
           this.$noty.success("Service created!", { timeout: 1000 })
+          this.$emit('services-refresh')
           this.resetServiceData()
         }
       }).catch(e => {
