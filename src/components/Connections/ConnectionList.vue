@@ -16,10 +16,12 @@
           :key="title+connection.connection_id">
           <el-row>
             <div>
-              <vue-json-pretty
-                :deep=1
-                :data="connection">
-              </vue-json-pretty>
+              <vue-json-pretty :deep=0 :data="connection" />
+              <connection-service-list title="Services:"
+                :ref="connection.connection_id"
+                :connection="connection"
+                @service-preview="servicePreview"
+                @service-apply="serviceApply" />
             </div>
             <template v-if="editable">
               <el-button @click="edit(connection)">Edit</el-button>
@@ -44,17 +46,25 @@
         <el-button type="primary" @click="update">Confirm</el-button>
       </span>
     </el-dialog>
+
+    <preview-component class="modal__left" style="z-index: 9999;" ref="PreviewServiceComponent" :readonly="true" :form="{}" :alternatives="serviceFormAlternatives"></preview-component>
+    <preview-component class="modal__right" style="z-index: 9999;" ref="PreviewConsentComponent" :readonly="true" :form="{}" :alternatives="consentFormAlternatives"></preview-component>
   </div>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 
+import { PreviewComponent } from 'odca-form'
+import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
+
 export default {
   name: 'connection-list',
   props: ['title', 'list','editable'],
   components: {
     VueJsonPretty,
+    ConnectionServiceList,
+    PreviewComponent
   },
   data () {
     return {
@@ -65,7 +75,17 @@ export default {
         role: '',
         label: '',
       },
+      serviceFormAlternatives: [],
+      consentFormAlternatives: [],
       formLabelWidth: '100px'
+    }
+  },
+  watch: {
+    'expanded_items': function(a, b) {
+      const connection_id = a.filter(x => !b.includes(x))[0]
+      if (connection_id) {
+        this.$refs[connection_id][0].fetchServices()
+      }
     }
   },
   methods: {
@@ -93,6 +113,25 @@ export default {
         item => item != connection.connection_id
       );
     },
+    servicePreview(event) {
+      try {
+        this.serviceFormAlternatives = event.service.schema.formAlternatives
+        this.$refs.PreviewServiceComponent.openModal(event.service.schema.form);
+
+        this.consentFormAlternatives = event.service.consent.formAlternatives
+        this.$refs.PreviewConsentComponent.openModal(
+          event.service.consent.form, event.service.consent.answers
+        );
+      } catch(e) {
+        console.log(e)
+        this.$noty.error("ERROR! Form data are corrupted.", {
+          timeout: 1000
+        })
+      }
+    },
+    serviceApply(event) {
+      console.log(event)
+    }
   }
 }
 </script>
