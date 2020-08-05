@@ -3,6 +3,7 @@
     <connection-list
       title="Active Connections:"
       editable="true"
+      class="activeConnections"
       :list="active_connections"
       @connection-editted="update_connection"
       @connection-deleted="delete_connection"

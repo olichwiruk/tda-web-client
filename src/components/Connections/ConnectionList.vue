@@ -47,15 +47,18 @@
       </span>
     </el-dialog>
 
+    <preview-component class="modal__left" style="z-index: 9999;" ref="ApplyServiceComponent" :readonly="false" :form="{}" :alternatives="serviceFormAlternatives"></preview-component>
     <preview-component class="modal__left" style="z-index: 9999;" ref="PreviewServiceComponent" :readonly="true" :form="{}" :alternatives="serviceFormAlternatives"></preview-component>
     <preview-component class="modal__right" style="z-index: 9999;" ref="PreviewConsentComponent" :readonly="true" :form="{}" :alternatives="consentFormAlternatives"></preview-component>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
 import VueJsonPretty from 'vue-json-pretty';
 
-import { PreviewComponent } from 'odca-form'
+import { eventBus as ocaEventBus, EventHandlerConstant,
+  PreviewComponent } from 'odca-form'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
 
 export default {
@@ -77,8 +80,14 @@ export default {
       },
       serviceFormAlternatives: [],
       consentFormAlternatives: [],
+      currentApplicationService: {},
       formLabelWidth: '100px'
     }
+  },
+  computed: {
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
+    },
   },
   watch: {
     'expanded_items': function(a, b) {
@@ -87,6 +96,15 @@ export default {
         this.$refs[connection_id][0].fetchServices()
       }
     }
+  },
+  mounted() {
+    if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
+      ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
+        ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
+          .filter(f => f.name != this.saveApplicationHandler.name)
+    }
+
+    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.saveApplicationHandler)
   },
   methods: {
     get_name: function(connection) {
@@ -113,14 +131,11 @@ export default {
         item => item != connection.connection_id
       );
     },
-    servicePreview(event) {
+    previewConsent(consent) {
       try {
-        this.serviceFormAlternatives = event.service.schema.formAlternatives
-        this.$refs.PreviewServiceComponent.openModal(event.service.schema.form);
-
-        this.consentFormAlternatives = event.service.consent.formAlternatives
+        this.consentFormAlternatives = consent.formAlternatives
         this.$refs.PreviewConsentComponent.openModal(
-          event.service.consent.form, event.service.consent.answers
+          consent.form, consent.answers
         );
       } catch(e) {
         console.log(e)
@@ -129,8 +144,53 @@ export default {
         })
       }
     },
+    servicePreview(event) {
+      this.previewConsent(event.service.consent)
+      try {
+        this.serviceFormAlternatives = event.service.schema.formAlternatives
+        this.$refs.PreviewServiceComponent.openModal(event.service.schema.form);
+      } catch(e) {
+        console.log(e)
+        this.$noty.error("ERROR! Form data are corrupted.", {
+          timeout: 1000
+        })
+      }
+    },
     serviceApply(event) {
-      console.log(event)
+      this.currentApplicationService = event
+      this.previewConsent(event.service.consent)
+      try {
+        this.serviceFormAlternatives = event.service.schema.formAlternatives
+        this.$refs.ApplyServiceComponent.openModal(event.service.schema.form);
+      } catch(e) {
+        console.log(e)
+        this.$noty.error("ERROR! Form data are corrupted.", {
+          timeout: 1000
+        })
+      }
+    },
+    saveApplicationHandler(data) {
+      const ref = this.$parent.$children.find(child => (
+        child.$el.className == 'activeConnections'
+      ))
+      if(ref) { ref.sendApplication(data) }
+    },
+    sendApplication(data) {
+      this.$refs.ApplyServiceComponent.closeModal();
+      this.$refs.PreviewConsentComponent.closeModal();
+
+      axios.post(`${this.acapyApiUrl}/verifiable-services/apply`, {
+        connection_id: this.currentApplicationService.connection_id,
+        service_id: this.currentApplicationService.service.id
+      }).then(r => {
+        console.log(r.data)
+        if (r.status === 200) {
+          this.$noty.success("Application send!", { timeout: 1000 })
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
     }
   }
 }
