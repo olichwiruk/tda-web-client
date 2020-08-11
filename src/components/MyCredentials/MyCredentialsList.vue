@@ -115,7 +115,7 @@
       </span>
     </el-dialog>
 
-    <preview-component ref="PreviewComponent" readonly="true" :form="form" :alternatives="alternatives"></preview-component>
+    <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component>
   </div>
 </template>
 

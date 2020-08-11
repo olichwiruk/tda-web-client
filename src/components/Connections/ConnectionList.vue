@@ -47,9 +47,9 @@
       </span>
     </el-dialog>
 
-    <preview-component class="modal__left" style="z-index: 9999;" ref="ApplyServiceComponent" :readonly="false" :form="{}" :alternatives="serviceFormAlternatives"></preview-component>
-    <preview-component class="modal__left" style="z-index: 9999;" ref="PreviewServiceComponent" :readonly="true" :form="{}" :alternatives="serviceFormAlternatives"></preview-component>
-    <preview-component class="modal__right" style="z-index: 9999;" ref="PreviewConsentComponent" :readonly="true" :form="{}" :alternatives="consentFormAlternatives"></preview-component>
+    <multi-preview-component confirmLabel="Apply"
+      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
+      ref="PreviewServiceComponent" />
   </div>
 </template>
 
@@ -58,7 +58,7 @@ import axios from 'axios'
 import VueJsonPretty from 'vue-json-pretty';
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  PreviewComponent } from 'odca-form'
+  MultiPreviewComponent } from 'odca-form'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
 
 export default {
@@ -67,7 +67,7 @@ export default {
   components: {
     VueJsonPretty,
     ConnectionServiceList,
-    PreviewComponent
+    MultiPreviewComponent
   },
   data () {
     return {
@@ -78,8 +78,8 @@ export default {
         role: '',
         label: '',
       },
-      serviceFormAlternatives: [],
-      consentFormAlternatives: [],
+      forms: [{ class: 'col-md-7', readonly: true, formData: {} },
+        { class: 'col-md-5', readonly: true, formData: {} }],
       currentApplicationService: {},
       formLabelWidth: '100px'
     }
@@ -131,24 +131,26 @@ export default {
         item => item != connection.connection_id
       );
     },
-    previewConsent(consent) {
-      try {
-        this.consentFormAlternatives = consent.formAlternatives
-        this.$refs.PreviewConsentComponent.openModal(
-          consent.form, consent.answers
-        );
-      } catch(e) {
-        console.log(e)
-        this.$noty.error("ERROR! Form data are corrupted.", {
-          timeout: 1000
-        })
-      }
+    collectForms(event, options) {
+      Object.assign(this.forms[0],
+        {
+          label: event.service.schema.form.label,
+          formData: event.service.schema.form,
+          alternatives: event.service.schema.formAlternatives
+        }, options[0])
+      Object.assign(this.forms[1],
+        {
+          label: event.service.consent.form.label,
+          formData: event.service.consent.form,
+          alternatives: event.service.consent.formAlternatives,
+          input: event.service.consent.answers
+        }, options[1])
     },
     servicePreview(event) {
-      this.previewConsent(event.service.consent)
+      this.collectForms(event, [{ readonly: true }])
+
       try {
-        this.serviceFormAlternatives = event.service.schema.formAlternatives
-        this.$refs.PreviewServiceComponent.openModal(event.service.schema.form);
+        this.$refs.PreviewServiceComponent.openModal();
       } catch(e) {
         console.log(e)
         this.$noty.error("ERROR! Form data are corrupted.", {
@@ -158,10 +160,10 @@ export default {
     },
     serviceApply(event) {
       this.currentApplicationService = event
-      this.previewConsent(event.service.consent)
+      this.collectForms(event, [{ readonly: false }])
+
       try {
-        this.serviceFormAlternatives = event.service.schema.formAlternatives
-        this.$refs.ApplyServiceComponent.openModal(event.service.schema.form);
+        this.$refs.PreviewServiceComponent.openModal();
       } catch(e) {
         console.log(e)
         this.$noty.error("ERROR! Form data are corrupted.", {
@@ -176,9 +178,7 @@ export default {
       if(ref) { ref.sendApplication(data) }
     },
     sendApplication(data) {
-      this.$refs.ApplyServiceComponent.closeModal();
-      this.$refs.PreviewConsentComponent.closeModal();
-
+      this.$refs.PreviewServiceComponent.closeModal();
       axios.post(`${this.acapyApiUrl}/verifiable-services/apply`, {
         connection_id: this.currentApplicationService.connection_id,
         service_id: this.currentApplicationService.service.id
