@@ -178,10 +178,13 @@ export default {
       if(ref) { ref.sendApplication(data) }
     },
     sendApplication(data) {
+      if(!this.$refs.PreviewServiceComponent) { return }
+
       this.$refs.PreviewServiceComponent.closeModal();
       axios.post(`${this.acapyApiUrl}/verifiable-services/apply`, {
         connection_id: this.currentApplicationService.connection_id,
-        service_id: this.currentApplicationService.service.id
+        service_id: this.currentApplicationService.service.id,
+        payload: JSON.stringify(data)
       }).then(r => {
         console.log(r.data)
         if (r.status === 200) {

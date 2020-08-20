@@ -45,10 +45,10 @@ export default {
   methods: {
     fetchServices() {
       const connId = this.connection.connection_id
-      axios.get(`${this.acapyApiUrl}/service-discovery/request-list/${connId}`)
+      axios.get(`${this.acapyApiUrl}/verifiable-services/request/${connId}`)
         .then(result => {
           if (result.status === 200) {
-            axios.get(`${this.acapyApiUrl}/service-discovery/get-list/${connId}`)
+            axios.get(`${this.acapyApiUrl}/verifiable-services/fetch-list/${connId}`)
               .then(r => {
                 this.services = r.data.services || []
               })

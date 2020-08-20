@@ -220,6 +220,79 @@ export default {
       }
       return `${split[2]} v${split[3]} received from ${connection_name}`;
     },
+    generatePreview: async function(credential) {
+      let hashlink = credential.attrs.hashlink
+      if (hashlink && hashlink.includes('hl:')) {
+        const data = await hl.decode({hashlink})
+        const exp = data.meta.experimental
+
+        if (exp && exp['schema-base']) {
+          this.credentialsSchema[credential.referent] = []
+          const ids = [...exp.overlays, exp['schema-base']]
+          ids.forEach(id => {
+            axios.get(exp.host + id)
+              .then(response => {
+                this.credentialsSchema[credential.referent].push(response.data)
+              })
+          })
+        } else if (exp && exp['dri']) {
+          let schemaBaseDri
+          axios.get(exp.host + exp['dri'])
+            .then(r => {
+              const branch = r.data
+              this.credentialsSchemaAlt[credential.referent] = []
+              const langBranches = this.splitBranchPerLang(branch)
+
+              langBranches.forEach(langBranch => {
+                this.credentialsSchemaAlt[credential.referent].push({
+                  language: langBranch.lang,
+                  form: renderForm([
+                    langBranch.branch.schema_base,
+                    ...langBranch.branch.overlays]
+                  ).form
+                })
+              })
+              this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
+            })
+        }
+      } else if (credential.attrs.oca_schema_dri) {
+        const serviceSchema = {
+          oca_schema_namespace: credential.attrs.oca_schema_namespace,
+          oca_schema_dri: credential.attrs.oca_schema_dri
+        }
+        axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
+          .then(r => {
+            const branch = r.data
+            this.credentialsSchemaAlt[credential.referent] = []
+            const langBranches = this.splitBranchPerLang(branch)
+
+            langBranches.forEach(langBranch => {
+              this.credentialsSchemaAlt[credential.referent].push({
+                language: langBranch.lang,
+                form: renderForm([
+                  langBranch.branch.schema_base,
+                  ...langBranch.branch.overlays]
+                ).form
+              })
+            })
+            this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
+          })
+
+        if(credential.attrs.data_url) {
+          axios.get(credential.attrs.data_url)
+            .then(response => {
+              this.schemaInput[credential.referent] = response.data
+            })
+        } else if (credential.attrs.data_dri) {
+          const url = `${this.acapyApiUrl}/verifiable-services/get-credential-data/${credential.attrs.data_dri}`
+          axios.get(url)
+            .then(response => {
+                console.log(response)
+                this.schemaInput[credential.referent] = JSON.parse(response.data.credential_data)
+            })
+        }
+      }
+    },
     splitBranchPerLang: function(branch) {
       const langBranches = []
       const labelOverlays = branch.overlays.filter(o => o.type.includes("label"))
@@ -246,51 +319,7 @@ export default {
       this.credentialsSchemaAlt = {}
       this.schemaInput = {}
       this.credentials.forEach(async (credential) => {
-        let hashlink = credential.attrs.hashlink
-        if (hashlink && hashlink.includes('hl:')) {
-          const data = await hl.decode({hashlink})
-          const exp = data.meta.experimental
-
-          if (exp && exp['schema-base']) {
-            this.credentialsSchema[credential.referent] = []
-            const ids = [...exp.overlays, exp['schema-base']]
-            ids.forEach(id => {
-              axios.get(exp.host + id)
-                .then(response => {
-                  this.credentialsSchema[credential.referent].push(response.data)
-                })
-            })
-          } else if (exp && exp['dri']) {
-            let schemaBaseDri
-            axios.get(exp.host + exp['dri'])
-              .then(r => {
-                const branch = r.data
-                this.credentialsSchemaAlt[credential.referent] = []
-                const langBranches = this.splitBranchPerLang(branch)
-
-                langBranches.forEach(langBranch => {
-                  this.credentialsSchemaAlt[credential.referent].push({
-                    language: langBranch.lang,
-                    form: renderForm([
-                      langBranch.branch.schema_base,
-                      ...langBranch.branch.overlays]
-                    ).form
-                  })
-                })
-                this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
-              })
-          }
-
-          const url = data.meta.url[0]
-          axios.get(url)
-            .then(response => {
-              if (exp && (exp['schema-base'] || exp['dri'])) {
-                this.schemaInput[credential.referent] = response.data
-              } else if (url.split('.').slice(-1)[0] == 'json') {
-                credential.attrs = {...credential.attrs, ...response.data}
-              }
-            })
-        }
+        await this.generatePreview(credential)
       })
     },
   },
@@ -304,6 +333,12 @@ export default {
         }
         return item;
       });
+    },
+    ocaRepoUrl: function() {
+      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+    },
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
     },
     offerReceivedStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")

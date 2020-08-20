@@ -8,11 +8,13 @@
       title="Pending applications:"
       :list="pending_applications"
       label='From:'
+      @applications-refresh="refreshPendingApplications"
       @application-preview="previewApplication($event, { readonly: false })" />
     <application-list
       title="Submitted applications:"
       :list="submitted_applications"
       label='To:'
+      @applications-refresh="refreshSubmittedApplications"
       @application-preview="previewApplication($event, { readonly: true })" />
 
     <multi-preview-component label="Application" confirmLabel="Confirm"
@@ -62,10 +64,14 @@ export default {
       myServices: [],
       readonlyPreview: true,
       currentApplication: {},
+      refreshApplicationsFrequency: 1000,
+      refreshApplicationsMaxCount: 5,
       forms: [
         { class: "col-md-7", readonly: true, formData: {} },
         { class: "col-md-5", readonly: true, formData: {} }
-      ]
+      ],
+      submitted_applications: [],
+      pending_applications: []
     }
   },
   computed: {
@@ -80,72 +86,105 @@ export default {
         return new Date(b.created_at) - new Date(a.created_at)
       })
     },
-    pending_applications: function() {
-      return [{
-        label: "Health Card",
-        connection_id: "asd",
-        connection_label: "Marian",
-        service_id: "xyz",
-        consent_schema: {
-          data_url: `${this.fileserverUrl}/api/v1/files/zQmPsU57nqWY8jzndU9AE2RK4EXvjMLGmytVpUNxfRpm18G`,
-          oca_schema_namespace: "consent",
-          oca_schema_dri: "fArVHJTQSKHu2CeXJocQmH3HHxzZXsuQD7kzyHJhQ49s",
-        },
-        service_schema: {
-          oca_schema_namespace: "hcf",
-          oca_schema_dri: "gffA2i9tCexTwQ1S6JsXxJ8JEMHfTdaMtggBjX6jvF8N",
-        }
-      }]
-    },
-    submitted_applications: function() {
-      return [{
-        label: "Health Card",
-        connection_id: "asd",
-        connection_label: "Hospital",
-        service_id: "xyz",
-        consent_schema: {
-          data_url: `${this.fileserverUrl}/api/v1/files/zQmPsU57nqWY8jzndU9AE2RK4EXvjMLGmytVpUNxfRpm18G`,
-          oca_schema_namespace: "consent",
-          oca_schema_dri: "fArVHJTQSKHu2CeXJocQmH3HHxzZXsuQD7kzyHJhQ49s",
-        },
-        service_schema: {
-          oca_schema_namespace: "hcf",
-          oca_schema_dri: "gffA2i9tCexTwQ1S6JsXxJ8JEMHfTdaMtggBjX6jvF8N",
-        }
-      }]
-    },
   },
   mixins: [
     message_bus(),
     share({
-      use: [],
+      use: ['connections'],
       actions: []
     })
   ],
   created: async function() {
     await this.ready();
     this.refreshServices()
+    this.refreshSubmittedApplications()
+    this.refreshPendingApplications()
   },
   mounted() {
     if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
       ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
         ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
-          .filter(f => f.name != this.saveApplicationHandler.name)
+          .filter(f => f.name != this.confirmApplicationHandler.name)
     }
 
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmApplicationHandler)
   },
   methods: {
     refreshServices() {
-      axios.get(`${this.acapyApiUrl}/service-discovery/get-list-self`)
+      axios.get(`${this.acapyApiUrl}/verifiable-services/fetch-self`)
         .then(r => {
           if (r.status === 200) {
             this.myServices = r.data
           }
         }).catch(e => {
           console.log(e)
-          this.$noty.error("Error occuerrd", { timeout: 1000 })
+          this.$noty.error("Error occurrde", { timeout: 1000 })
         })
+    },
+    async refreshSubmittedApplications() {
+      let count = 0
+      let fullResponse = false
+      let connectionsLoaded = this.connections.length > 0
+
+      while(!connectionsLoaded || (count < this.refreshApplicationsMaxCount && !fullResponse)) {
+        axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+          state: "pending", author: "self"
+        }).then(r => {
+          console.log(r.data)
+          if (r.status === 200) {
+            count += 1
+            fullResponse = r.data.every(a => a.payload)
+            connectionsLoaded = this.connections.length > 0
+            this.submitted_applications = r.data.map(application => {
+              const connection = this.connections.find(conn =>
+                conn.connection_id == application.connection_id
+              )
+              return Object.assign(application, {
+                payload: JSON.parse(application.payload),
+                service_schema: JSON.parse(application.service_schema),
+                consent_schema: JSON.parse(application.consent_schema),
+                connection: connection
+              })
+            })
+          }
+        }).catch(e => {
+          console.log(e)
+          this.$noty.error("Error occurred", { timeout: 1000 })
+        })
+        await new Promise(r => setTimeout(r, this.refreshApplicationsFrequency));
+      }
+    },
+    async refreshPendingApplications() {
+      let count = 0
+      let fullResponse = false
+      let connectionsLoaded = this.connections.length > 0
+
+      while(!connectionsLoaded || (count < this.refreshApplicationsMaxCount && !fullResponse)) {
+        axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+          state: "pending", author: "other"
+        }).then(r => {
+          console.log(r.data)
+          if (r.status === 200) {
+            count += 1
+            fullResponse = r.data.every(a => a.payload)
+            this.pending_applications = r.data.map(application => {
+              const connection = this.connections.find(conn => 
+                conn.connection_id == application.connection_id
+              )
+              return Object.assign(application, {
+                payload: JSON.parse(application.payload),
+                service_schema: JSON.parse(application.service_schema),
+                consent_schema: JSON.parse(application.consent_schema),
+                connection: connection
+              })
+            })
+          }
+        }).catch(e => {
+          console.log(e)
+          this.$noty.error("Error occurred", { timeout: 1000 })
+        })
+        await new Promise(r => setTimeout(r, this.refreshApplicationsFrequency));
+      }
     },
     collectForms(application, options=[]) {
       Object.assign(this.forms[0],
@@ -170,9 +209,24 @@ export default {
       this.$refs.PreviewApplicationComponent.openModal()
     },
     confirmApplicationHandler() {
-      console.log(this.currentApplication)
       this.$refs.PreviewApplicationComponent.closeModal()
-    }
+      axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
+        decision: "accept", issue_id: this.currentApplication.issue_id
+      }).then(r => {
+        console.log(r.data)
+        if (r.status === 200) {
+          if(r.data.state == 'ledger error') {
+            this.$noty.error("Error occurred. Be sure your active DID is published on ledger", { timeout: 2000 })
+          } else {
+            this.$noty.success("Application accepted!", { timeout: 1000 })
+            this.refreshPendingApplications()
+          }
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
+    },
   }
 }
 </script>

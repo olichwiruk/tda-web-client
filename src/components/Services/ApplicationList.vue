@@ -13,10 +13,10 @@
           v-for="(application, index) in list"
           :name="application.label + index"
           :key="index">
-          <template v-slot:title>{{ application.label }} | {{ label }} {{ application.connection_label }}</template>
+          <template v-slot:title>{{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}</template>
           <el-row>
             <vue-json-pretty :deep=0 :data="application" />
-            <el-button size="medium"
+            <el-button size="medium" :disabled="!application.payload"
               @click="preview(application)">Preview</el-button>
           </el-row>
         </el-collapse-item>
@@ -104,11 +104,7 @@ export default {
         schema: {
           form: serviceForm,
           formAlternatives: serviceFormAlternatives,
-          answers: {
-            first_name: "Marian",
-            last_name: "Opania",
-            gender: "1"
-          }
+          answers: application.payload
         }
       }
     },
@@ -132,10 +128,11 @@ export default {
       return langBranches
     },
     async preview(application) {
-      this.$emit('application-preview', 
+      this.$emit('application-preview',
         Object.assign(
           await this.renderApplicationForm(application),
-          { connection_id: application.connection_id }
+          { connection_id: application.connection_id,
+            issue_id: application.issue_id }
         )
       )
     }
