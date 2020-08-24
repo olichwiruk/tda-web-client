@@ -255,6 +255,15 @@ export default {
               this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
             })
         }
+
+        const url = data.meta.url[0]
+        axios.get(url).then(response => {
+          if (exp && (exp['schema-base'] || exp['dri'])) {
+            this.schemaInput[credential.referent] = response.data
+          } else if (url.split('.').slice(-1)[0] == 'json') {
+            credential.attrs = {...credential.attrs, ...response.data}
+          }
+        })
       } else if (credential.attrs.oca_schema_dri) {
         const serviceSchema = {
           oca_schema_namespace: credential.attrs.oca_schema_namespace,
@@ -287,7 +296,6 @@ export default {
           const url = `${this.acapyApiUrl}/verifiable-services/get-credential-data/${credential.attrs.data_dri}`
           axios.get(url)
             .then(response => {
-                console.log(response)
                 this.schemaInput[credential.referent] = JSON.parse(response.data.credential_data)
             })
         }
