@@ -47,7 +47,7 @@
       </span>
     </el-dialog>
 
-    <multi-preview-component confirmLabel="Apply"
+    <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent" />
   </div>
@@ -81,6 +81,7 @@ export default {
       forms: [{ class: 'col-md-7', readonly: true, formData: {} },
         { class: 'col-md-5', readonly: true, formData: {} }],
       currentApplicationService: {},
+      confirmProcessing: false,
       formLabelWidth: '100px'
     }
   },
@@ -179,8 +180,8 @@ export default {
     },
     sendApplication(data) {
       if(!this.$refs.PreviewServiceComponent) { return }
+      this.confirmProcessing = true
 
-      this.$refs.PreviewServiceComponent.closeModal();
       axios.post(`${this.acapyApiUrl}/verifiable-services/apply`, {
         connection_id: this.currentApplicationService.connection_id,
         service_id: this.currentApplicationService.service.id,
@@ -190,9 +191,15 @@ export default {
         if (r.status === 200) {
           this.$noty.success("Application send!", { timeout: 1000 })
         }
+
+        this.confirmProcessing = false
+        this.$refs.PreviewServiceComponent.closeModal();
       }).catch(e => {
         console.log(e)
         this.$noty.error("Error occurred", { timeout: 1000 })
+
+        this.confirmProcessing = false
+        this.$refs.PreviewServiceComponent.closeModal();
       })
     }
   }

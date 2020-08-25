@@ -18,8 +18,8 @@
       @application-preview="previewApplication($event, { readonly: true })" />
 
     <multi-preview-component label="Application" confirmLabel="Confirm"
-      :readonly="readonlyPreview" :forms="forms"
-      :key="forms.map(f => f.formData._uniqueId).join('-')"
+      :confirmProcessing="confirmProcessing" :readonly="readonlyPreview"
+      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewApplicationComponent" />
   </el-row>
 </template>
@@ -64,6 +64,7 @@ export default {
       myServices: [],
       readonlyPreview: true,
       currentApplication: {},
+      confirmProcessing: false,
       refreshApplicationsFrequency: 1000,
       refreshApplicationsMaxCount: 5,
       forms: [
@@ -209,22 +210,28 @@ export default {
       this.$refs.PreviewApplicationComponent.openModal()
     },
     confirmApplicationHandler() {
-      this.$refs.PreviewApplicationComponent.closeModal()
+      this.confirmProcessing = true
+
       axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
         decision: "accept", issue_id: this.currentApplication.issue_id
       }).then(r => {
         console.log(r.data)
         if (r.status === 200) {
-          if(r.data.state == 'ledger error') {
+          if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
             this.$noty.error("Error occurred. Be sure your active DID is published on ledger", { timeout: 2000 })
           } else {
             this.$noty.success("Application accepted!", { timeout: 1000 })
             this.refreshPendingApplications()
           }
         }
+        this.confirmProcessing = false
+        this.$refs.PreviewApplicationComponent.closeModal()
       }).catch(e => {
         console.log(e)
         this.$noty.error("Error occurred", { timeout: 1000 })
+
+        this.confirmProcessing = false
+        this.$refs.PreviewApplicationComponent.closeModal()
       })
     },
   }
