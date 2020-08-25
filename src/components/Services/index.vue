@@ -18,8 +18,9 @@
       @applications-refresh="refreshSubmittedApplications"
       @application-preview="previewApplication($event, { readonly: true })" />
 
-    <multi-preview-component :label="previewLabel" confirmLabel="Confirm"
-      :confirmProcessing="confirmProcessing" :readonly="readonlyPreview"
+    <multi-preview-component :label="previewLabel" :readonly="readonlyPreview"
+      confirmLabel="Confirm" :confirmProcessing="confirmProcessing"
+      rejectLabel="Reject" :rejectProcessing="rejectProcessing"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewApplicationComponent" />
   </el-row>
@@ -67,6 +68,7 @@ export default {
       readonlyPreview: true,
       currentApplication: {},
       confirmProcessing: false,
+      rejectProcessing: false,
       refreshApplicationsFrequency: 1000,
       refreshApplicationsMaxCount: 5,
       forms: [
@@ -109,8 +111,14 @@ export default {
         ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
           .filter(f => f.name != this.confirmApplicationHandler.name)
     }
-
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmApplicationHandler)
+
+    if(ocaEventBus._events[EventHandlerConstant.REJECT_PREVIEW]) {
+      ocaEventBus._events[EventHandlerConstant.REJECT_PREVIEW] =
+        ocaEventBus._events[EventHandlerConstant.REJECT_PREVIEW]
+          .filter(f => f.name != this.rejectApplicationHandler.name)
+    }
+    ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
   },
   methods: {
     refreshServices() {
@@ -171,7 +179,7 @@ export default {
             count += 1
             fullResponse = r.data.every(a => a.payload)
             this.pending_applications = r.data.map(application => {
-              const connection = this.connections.find(conn => 
+              const connection = this.connections.find(conn =>
                 conn.connection_id == application.connection_id
               )
               return Object.assign(application, {
@@ -220,30 +228,40 @@ export default {
       this.collectForms(application)
       this.$refs.PreviewApplicationComponent.openModal()
     },
-    confirmApplicationHandler() {
-      this.confirmProcessing = true
+    examineApplication(decision) {
+      if(decision == 'accept') { this.confirmProcessing = true }
+      else if (decision == 'reject') { this.rejectProcessing = true }
 
       axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
-        decision: "accept", issue_id: this.currentApplication.issue_id
+        decision: decision, issue_id: this.currentApplication.issue_id
       }).then(r => {
         console.log(r.data)
         if (r.status === 200) {
           if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
-            this.$noty.error("Error occurred. Be sure your active DID is published on ledger", { timeout: 2000 })
+            this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
           } else {
-            this.$noty.success("Application accepted!", { timeout: 1000 })
+            this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
             this.refreshPendingApplications()
           }
         }
-        this.confirmProcessing = false
+
+        if(decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
         this.$refs.PreviewApplicationComponent.closeModal()
       }).catch(e => {
         console.log(e)
         this.$noty.error("Error occurred", { timeout: 1000 })
 
-        this.confirmProcessing = false
+        if(decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
         this.$refs.PreviewApplicationComponent.closeModal()
       })
+    },
+    confirmApplicationHandler() {
+      this.examineApplication('accept')
+    },
+    rejectApplicationHandler() {
+      this.examineApplication('reject')
     },
   }
 }
