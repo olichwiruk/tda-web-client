@@ -3,7 +3,8 @@
     <new-service title="Create new service"
       @services-refresh="refreshServices" />
     <service-list title="My services" :services="myServicesSorted"
-      @services-refresh="refreshServices" />
+      @services-refresh="refreshServices"
+      @service-preview="previewService($event)" />
     <application-list
       title="Pending applications:"
       :list="pending_applications"
@@ -17,7 +18,7 @@
       @applications-refresh="refreshSubmittedApplications"
       @application-preview="previewApplication($event, { readonly: true })" />
 
-    <multi-preview-component label="Application" confirmLabel="Confirm"
+    <multi-preview-component :label="previewLabel" confirmLabel="Confirm"
       :confirmProcessing="confirmProcessing" :readonly="readonlyPreview"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewApplicationComponent" />
@@ -62,6 +63,7 @@ export default {
   data() {
     return {
       myServices: [],
+      previewLabel: '',
       readonlyPreview: true,
       currentApplication: {},
       confirmProcessing: false,
@@ -192,9 +194,11 @@ export default {
         {
           label: application.schema.form.label,
           formData: application.schema.form,
-          alternatives: application.schema.formAlternatives,
-          input: application.schema.answers
+          alternatives: application.schema.formAlternatives
         }, options[0])
+      if(application.schema.answers) {
+        Object.assign(this.forms[0], { input: application.schema.answers })
+      }
       Object.assign(this.forms[1],
         {
           label: application.consent.form.label,
@@ -203,8 +207,15 @@ export default {
           input: application.consent.answers
         }, options[1])
     },
+    previewService(service, options={}) {
+      this.previewLabel = 'Service'
+      this.readonlyPreview = true
+      this.collectForms(service)
+      this.$refs.PreviewApplicationComponent.openModal()
+    },
     previewApplication(application, options={}) {
       this.currentApplication = application
+      this.previewLabel = 'Application'
       this.readonlyPreview = options.readonly
       this.collectForms(application)
       this.$refs.PreviewApplicationComponent.openModal()
