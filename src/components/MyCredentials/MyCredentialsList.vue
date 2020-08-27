@@ -2,10 +2,10 @@
   <div>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{ title }}</a>
-      <el-button
-        type="primary"
-        icon="el-icon-plus"
-        @click="proposalFormActive = true">Send Credential Proposal</el-button>
+      <!-- <el-button -->
+      <!--   type="primary" -->
+      <!--   icon="el-icon-plus" -->
+      <!--   @click="proposalFormActive = true">Send Credential Proposal</el-button> -->
       <el-button
         type="primary"
         icon="el-icon-refresh"
@@ -23,7 +23,7 @@
           <el-row>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="credential">
               </vue-json-pretty>
             </div>
@@ -54,7 +54,7 @@
           <el-row>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="credential">
               </vue-json-pretty>
             </div>

@@ -1,12 +1,12 @@
 <template>
   <el-row>
-    <cred-def-list
-      title="Retrieved Credential Definitions"
-      v-bind:retrievable="true"
-      v-bind:can_create="false"
-      v-bind:list="proposal_cred_defs"></cred-def-list>
+    <!-- <cred-def-list -->
+    <!--   title="Retrieved Credential Definitions" -->
+    <!--   v-bind:retrievable="true" -->
+    <!--   v-bind:can_create="false" -->
+    <!--   v-bind:list="proposal_cred_defs"></cred-def-list> -->
     <my-credentials-list
-      title="Credentials"
+      title="Documents"
       editable="false"
       v-bind:list="holder_credentials"
       v-bind:cred_defs="proposal_cred_defs"
