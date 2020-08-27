@@ -24,6 +24,7 @@ export const metadata = {
     icon: 'el-icon-s-claim',
     group: 'Agent to Agent',
     priority: 100,
+    dev_only: true,
     required_protocols: [
       "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1"
     ]

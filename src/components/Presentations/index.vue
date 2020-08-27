@@ -23,6 +23,7 @@ export const metadata = {
     icon: 'el-icon-document-checked',
     group: 'Agent to Agent',
     priority: 90,
+    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'
     ]

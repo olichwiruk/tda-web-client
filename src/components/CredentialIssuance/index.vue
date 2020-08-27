@@ -48,6 +48,7 @@ export const metadata = {
     icon: 'el-icon-document',
     group: 'Agent to Agent',
     priority: 50,
+    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1',
       "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1",
