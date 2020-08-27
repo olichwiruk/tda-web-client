@@ -67,6 +67,9 @@ export const shared = {
             if (!("state" in conn)) {
               return false;
             }
+            if (conn.their_label == 'ToolBox') {
+              return false;
+            }
             return conn.state === "active" || conn.state === "response"
           }
         );
