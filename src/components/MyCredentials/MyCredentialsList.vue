@@ -15,9 +15,11 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in credentials"
-          v-bind:title="credential.referent"
           :name="credential.referent"
           :key="credential.referent">
+          <template slot="title">
+            {{ credentialsLabel[credential.referent] }} | {{ credential.referent }}
+          </template>
           <el-row>
             <div>
               <vue-json-pretty
@@ -151,6 +153,7 @@ export default {
       attributes: []
     },
     formLabelWidth: '200px',
+    credentialsLabel: {},
     credentialsSchema: {},
     credentialsSchemaAlt: {},
     schemaInput: {},
@@ -253,6 +256,7 @@ export default {
                 })
               })
               this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
+              this.credentialsLabel[credential.referent] = this.credentialsSchema[credential.referent].label
             })
         }
 
@@ -285,6 +289,7 @@ export default {
               })
             })
             this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
+            this.credentialsLabel[credential.referent] = this.credentialsSchema[credential.referent].label
           })
 
         if(credential.attrs.data_url) {
@@ -323,12 +328,12 @@ export default {
   },
   watch: {
     credentials: function() {
-      this.credentialsSchema = {}
-      this.credentialsSchemaAlt = {}
-      this.schemaInput = {}
       this.credentials.forEach(async (credential) => {
         await this.generatePreview(credential)
       })
+      if (this.credentials.length != Object.keys(this.credentialsLabel).length) {
+        this.$emit('cred-refresh',)
+      }
     },
   },
   computed: {
