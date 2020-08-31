@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus';
+import share from '../../share';
 import SchemaList from './SchemaList.vue';
 import CredDefList from './CredDefList.vue';
 import IssuedCredList from './IssuedCredList.vue';

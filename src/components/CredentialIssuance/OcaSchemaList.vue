@@ -94,8 +94,8 @@ import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 import axios from 'axios'
 
 import { generateDri } from '@/dri_generator'
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus.ts';
+import share from '../../share.ts';
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
   renderForm, PreviewComponent } from 'odca-form'

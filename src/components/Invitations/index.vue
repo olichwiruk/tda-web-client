@@ -75,8 +75,8 @@
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import VueQrcode from '@chenfengyuan/vue-qrcode';
-import message_bus from '@/message_bus.js';
-import share from '@/share.js';
+import message_bus from '@/message_bus.ts';
+import share from '@/share.ts';
 
 export const metadata = {
   menu: {

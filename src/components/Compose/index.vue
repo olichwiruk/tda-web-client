@@ -7,7 +7,7 @@
 
 <script>
 import VJsoneditor from 'v-jsoneditor';
-import message_bus from '@/message_bus.js';
+import message_bus from '@/message_bus.ts';
 
 export const metadata = {
   menu: {

@@ -19,8 +19,8 @@
 <script>
 import CredDefList from '../CredentialIssuance/CredDefList.vue';
 import MyCredentialsList from './MyCredentialsList.vue';
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus.ts';
+import share from '../../share.ts';
 
 export const metadata = {
   menu: {

@@ -123,7 +123,7 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-import share from '@/share.js';
+import share from '@/share.ts';
 import axios from 'axios';
 const hl = require('hashlink');
 

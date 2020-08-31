@@ -87,8 +87,8 @@
 </style>
 
 <script>
-import message_bus from '@/message_bus.js';
-import share from '@/share.js';
+import message_bus from '@/message_bus.ts';
+import share from '@/share.ts';
 
 export const protocol = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1';
 export const metadata = {

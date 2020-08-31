@@ -38,7 +38,7 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-import message_bus from '../../message_bus.js';
+import message_bus from '../../message_bus.ts';
 
 export const metadata = {
   menu: {

@@ -34,7 +34,7 @@ const rp = require('request-promise');
 const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions } from "vuex"
-import { new_connection } from '../connection_detail.js';
+import { new_connection } from '../connection_detail.ts';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 const uuidv4 = require('uuid/v4');

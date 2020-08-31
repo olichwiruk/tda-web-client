@@ -59,10 +59,10 @@ const bs58 = require('bs58');
 
 import Vue from 'vue';
 import { mapState, mapActions } from "vuex";
-import { from_store } from '../connection_detail.js';
-import message_bus from '@/message_bus.js';
-import share, {share_source} from '@/share.js';
-import components, {shared} from './components.js';
+import { from_store } from '../connection_detail.ts';
+import message_bus from '@/message_bus.ts';
+import share, {share_source} from '@/share.ts';
+import components, {shared} from './components.ts';
 import Taa from './TAA.vue';
 
 // The (. && .. && ...) || 'default' syntax provides defaults for modules that lack any level of the metadata
