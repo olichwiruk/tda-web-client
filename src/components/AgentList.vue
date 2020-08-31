@@ -47,6 +47,10 @@ export default {
     acapyApiUrl: function() {
       const agentAdmin = this.uuid ? `${this.uuid}-${this.agent}-admin` : `${this.agent}-admin`
       return `${config.env.VUE_APP_PROTOCOL}://${agentAdmin}.${config.env.VUE_APP_HOST}`
+    },
+    agentWsUrl: function() {
+      const agentWs = this.uuid ? `${this.uuid}-${this.agent}-ws` : `${this.agent}-ws`
+      return `ws://${agentWs}.${config.env.VUE_APP_HOST}`
     }
   },
   data() {
@@ -112,6 +116,7 @@ export default {
       this.$session.set('agentId', a.id)
       this.$session.set('instanceUuid', this.uuid)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
+      this.$session.set('websocketUrl', this.agentWsUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
     },
     deleteConnection: async function(a){
