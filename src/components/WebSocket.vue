@@ -3,6 +3,8 @@
 </template>
 
 <script>
+  import { mapActions } from "vuex"
+
   export default {
     name: 'WebSocket',
     computed: {
@@ -11,26 +13,20 @@
       }
     },
     methods: {
+      ...mapActions("WsMessages", ["add_message"]),
       openWebsocketConnection() {
           if(!this.websocketUrl)  { return }
+          const vm = this
           const ws = new WebSocket(this.websocketUrl)
 
           ws.onopen = function () {
-              ws.onmessage = function (message) {
-                  const message_json = JSON.parse(message.data)
-                  const topic_info = JSON.parse(message_json['message'])
-
-                  console.log(message)
-                  console.log("\n----------------\n")
-                  console.log(message_json)
-                  console.log("\n----------------\n")
-                  console.log(topic_info)
-                  // console.log(message_json['request'])
-                  console.log("\n----------------\n")
-                  console.log("\n----------------\n")
-                  console.log("\n----------------\n")
+              ws.onmessage = function (wsMessage) {
+                  const data = JSON.parse(wsMessage.data)
+                  const topic = data['topic']
+                  const content = JSON.parse(data['message'])
+                  vm.add_message({ topic, content })
               }
-              console.log("Connected")
+              console.log("WebSocket connected")
           }
       }
     },
