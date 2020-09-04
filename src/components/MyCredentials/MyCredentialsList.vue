@@ -123,6 +123,7 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import { mapState, mapActions } from 'vuex'
 import share from '@/share.ts';
 import axios from 'axios';
 const hl = require('hashlink');
@@ -161,6 +162,7 @@ export default {
     alternatives: null
   }),
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
     collapse_expanded: function(credential){
       this.expanded_items = this.expanded_items.filter(
         item => item != credential.credential_exchange_id
@@ -298,10 +300,11 @@ export default {
               this.schemaInput[credential.referent] = response.data
             })
         } else if (credential.attrs.data_dri) {
-          const url = `${this.acapyApiUrl}/verifiable-services/get-credential-data/${credential.attrs.data_dri}`
-          axios.get(url)
+          axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+            issue_id: credential.attrs.data_dri
+          })
             .then(response => {
-                this.schemaInput[credential.referent] = JSON.parse(response.data.credential_data)
+                this.schemaInput[credential.referent] = JSON.parse(response.data[0].payload)
             })
         }
       }
@@ -327,6 +330,17 @@ export default {
     },
   },
   watch: {
+    credentialMessages: {
+      handler: function() {
+        this.credentialMessages.forEach(message => {
+          if (message.content.state == 'credential_received') {
+            this.$emit('cred-refresh',)
+          }
+          this.delete_message(message.uuid)
+        })
+      },
+      deep: true
+    },
     credentials: function() {
       this.credentials.forEach(async (credential) => {
         await this.generatePreview(credential)
@@ -337,6 +351,12 @@ export default {
     },
   },
   computed: {
+    ...mapState("WsMessages", ['messages']),
+    credentialMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/issue_credential/'
+      })
+    },
     credentials: function() {
       return this.list.map(item => {
         if (item.connection_id in this.id_to_connection) {
