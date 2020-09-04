@@ -18,6 +18,7 @@
 <script>
 import axios from 'axios';
 
+import { mapState, mapActions } from 'vuex'
 import { renderForm } from 'odca-form'
 
 export default {
@@ -30,6 +31,12 @@ export default {
     }
   },
   computed: {
+    ...mapState('WsMessages', ['messages']),
+    serviceListMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/request-service-list/'
+      })
+    },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
     },
@@ -42,18 +49,22 @@ export default {
       })
     }
   },
+  watch: {
+    serviceListMessages: {
+      handler: function() {
+        this.serviceListMessages.forEach(message => {
+          this.services = JSON.parse(message.content.services)
+          this.delete_message(message.uuid)
+        })
+      },
+      deep: true
+    }
+  },
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
     fetchServices() {
       const connId = this.connection.connection_id
-      axios.get(`${this.acapyApiUrl}/verifiable-services/request/${connId}`)
-        .then(result => {
-          if (result.status === 200) {
-            axios.get(`${this.acapyApiUrl}/verifiable-services/fetch-list/${connId}`)
-              .then(r => {
-                this.services = r.data.services || []
-              })
-          }
-        })
+      axios.get(`${this.acapyApiUrl}/verifiable-services/request-service-list/${connId}`)
     },
     async renderServiceForm(service) {
       const consentAnswers = (await axios.get(service.consent_schema.data_url)).data
@@ -136,13 +147,15 @@ export default {
     async preview(service) {
       this.$emit('service-preview', {
         connection_id: this.connection.connection_id,
-        service: await this.renderServiceForm(service)
+        service: service,
+        serviceForm: await this.renderServiceForm(service)
       })
     },
     async apply(service) {
       this.$emit('service-apply', {
         connection_id: this.connection.connection_id,
-        service: await this.renderServiceForm(service)
+        service: service,
+        serviceForm: await this.renderServiceForm(service)
       })
     }
   }

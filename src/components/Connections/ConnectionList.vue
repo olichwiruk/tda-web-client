@@ -130,16 +130,16 @@ export default {
     collectForms(event, options) {
       Object.assign(this.forms[0],
         {
-          label: event.service.schema.form.label,
-          formData: event.service.schema.form,
-          alternatives: event.service.schema.formAlternatives
+          label: event.serviceForm.schema.form.label,
+          formData: event.serviceForm.schema.form,
+          alternatives: event.serviceForm.schema.formAlternatives
         }, options[0])
       Object.assign(this.forms[1],
         {
-          label: event.service.consent.form.label,
-          formData: event.service.consent.form,
-          alternatives: event.service.consent.formAlternatives,
-          input: event.service.consent.answers
+          label: event.serviceForm.consent.form.label,
+          formData: event.serviceForm.consent.form,
+          alternatives: event.serviceForm.consent.formAlternatives,
+          input: event.serviceForm.consent.answers
         }, options[1])
     },
     servicePreview(event) {
@@ -179,7 +179,7 @@ export default {
 
       axios.post(`${this.acapyApiUrl}/verifiable-services/apply`, {
         connection_id: this.currentApplicationService.connection_id,
-        service_id: this.currentApplicationService.service.id,
+        service: this.currentApplicationService.service,
         payload: JSON.stringify(data)
       }).then(r => {
         console.log(r.data)
