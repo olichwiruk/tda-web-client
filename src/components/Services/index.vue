@@ -29,6 +29,7 @@
 <script>
 import axios from 'axios';
 
+import { mapState, mapActions } from 'vuex'
 import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
@@ -69,8 +70,6 @@ export default {
       currentApplication: {},
       confirmProcessing: false,
       rejectProcessing: false,
-      refreshApplicationsFrequency: 1000,
-      refreshApplicationsMaxCount: 5,
       forms: [
         { class: "col-md-7", readonly: true, formData: {} },
         { class: "col-md-5", readonly: true, formData: {} }
@@ -80,6 +79,17 @@ export default {
     }
   },
   computed: {
+    ...mapState('WsMessages', ['messages']),
+    stateUpdateMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/issue-state-update/'
+      })
+    },
+    incomingApplicationMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/incoming-pending-application/'
+      })
+    },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
     },
@@ -91,6 +101,34 @@ export default {
         return new Date(b.created_at) - new Date(a.created_at)
       })
     },
+  },
+  watch: {
+    connections: {
+      handler: function() {
+        this.refreshSubmittedApplications()
+        this.refreshPendingApplications()
+      },
+      deep: true
+    },
+    stateUpdateMessages: {
+      handler: function() {
+        this.stateUpdateMessages.forEach(message => {
+          this.refreshSubmittedApplications()
+          this.refreshPendingApplications()
+          this.delete_message(message.uuid)
+        })
+      },
+      deep: true
+    },
+    incomingApplicationMessages: {
+      handler: function() {
+        this.incomingApplicationMessages.forEach(message => {
+          this.refreshPendingApplications()
+          this.delete_message(message.uuid)
+        })
+      },
+      deep: true
+    }
   },
   mixins: [
     message_bus(),
@@ -112,8 +150,9 @@ export default {
     ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
   },
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
     refreshServices() {
-      axios.get(`${this.acapyApiUrl}/verifiable-services/fetch-self`)
+      axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
         .then(r => {
           if (r.status === 200) {
             this.myServices = r.data
@@ -123,70 +162,49 @@ export default {
           this.$noty.error("Error occurrde", { timeout: 1000 })
         })
     },
-    async refreshSubmittedApplications() {
-      let count = 0
-      let fullResponse = false
-      let connectionsLoaded = this.connections.length > 0
-
-      while(!connectionsLoaded || (count < this.refreshApplicationsMaxCount && !fullResponse)) {
-        axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
-          state: "pending", author: "self"
-        }).then(r => {
-          console.log(r.data)
-          if (r.status === 200) {
-            count += 1
-            fullResponse = r.data.every(a => a.payload)
-            connectionsLoaded = this.connections.length > 0
-            this.submitted_applications = r.data.map(application => {
-              const connection = this.connections.find(conn =>
-                conn.connection_id == application.connection_id
-              )
-              return Object.assign(application, {
-                payload: JSON.parse(application.payload),
-                service_schema: JSON.parse(application.service_schema),
-                consent_schema: JSON.parse(application.consent_schema),
-                connection: connection
-              })
+    refreshSubmittedApplications() {
+      axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+        state: "pending", author: "self"
+      }).then(r => {
+        if (r.status === 200) {
+          this.submitted_applications = r.data.map(application => {
+            const connection = this.connections.find(conn =>
+              conn.connection_id == application.connection_id
+            )
+            return Object.assign(application, {
+              payload: JSON.parse(application.payload),
+              service_schema: JSON.parse(application.service_schema),
+              consent_schema: JSON.parse(application.consent_schema),
+              connection: connection
             })
-          }
-        }).catch(e => {
-          console.log(e)
-          this.$noty.error("Error occurred", { timeout: 1000 })
-        })
-        await new Promise(r => setTimeout(r, this.refreshApplicationsFrequency));
-      }
+          })
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
     },
-    async refreshPendingApplications() {
-      let count = 0
-      let fullResponse = false
-      let connectionsLoaded = this.connections.length > 0
-
-      while(!connectionsLoaded || (count < this.refreshApplicationsMaxCount && !fullResponse)) {
-        axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
-          state: "pending", author: "other"
-        }).then(r => {
-          console.log(r.data)
-          if (r.status === 200) {
-            count += 1
-            fullResponse = r.data.every(a => a.payload)
-            this.pending_applications = r.data.map(application => {
-              const connection = this.connections.find(conn =>
-                conn.connection_id == application.connection_id
-              )
-              return Object.assign(application, {
-                payload: JSON.parse(application.payload),
-                service_schema: JSON.parse(application.service_schema),
-                consent_schema: JSON.parse(application.consent_schema),
-                connection: connection
-              })
+    refreshPendingApplications() {
+      axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+        state: "pending", author: "other"
+      }).then(r => {
+        if (r.status === 200) {
+          this.pending_applications = r.data.map(application => {
+            const connection = this.connections.find(conn =>
+              conn.connection_id == application.connection_id
+            )
+            return Object.assign(application, {
+              payload: JSON.parse(application.payload),
+              service_schema: JSON.parse(application.service_schema),
+              consent_schema: JSON.parse(application.consent_schema),
+              connection: connection
             })
-          }
-        }).catch(e => {
-          console.log(e)
-          this.$noty.error("Error occurred", { timeout: 1000 })
-        })
-        await new Promise(r => setTimeout(r, this.refreshApplicationsFrequency));
-      }
+          })
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
     },
     collectForms(application, options=[]) {
       Object.assign(this.forms[0],
@@ -226,7 +244,6 @@ export default {
       axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
         decision: decision, issue_id: this.currentApplication.issue_id
       }).then(r => {
-        console.log(r.data)
         if (r.status === 200) {
           if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
             this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
