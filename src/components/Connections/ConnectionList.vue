@@ -99,12 +99,7 @@ export default {
     }
   },
   mounted() {
-    if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
-      ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
-        ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
-          .filter(f => f.name != this.saveApplicationHandler.name)
-    }
-
+    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.saveApplicationHandler)
   },
   methods: {

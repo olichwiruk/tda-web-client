@@ -207,11 +207,7 @@ export default {
     this.issueData.ocaRepo.host = this.ocaRepoUrl
     this.ocaSchemaSearch = this.fetchOcaSchemas('')
 
-    if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
-      ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
-        ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
-          .filter(f => f.name != this.savePreviewHandler.name)
-    }
+    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.savePreviewHandler)
   },
   methods: {

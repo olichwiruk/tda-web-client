@@ -106,18 +106,9 @@ export default {
     this.refreshPendingApplications()
   },
   mounted() {
-    if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
-      ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
-        ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
-          .filter(f => f.name != this.confirmApplicationHandler.name)
-    }
+    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmApplicationHandler)
-
-    if(ocaEventBus._events[EventHandlerConstant.REJECT_PREVIEW]) {
-      ocaEventBus._events[EventHandlerConstant.REJECT_PREVIEW] =
-        ocaEventBus._events[EventHandlerConstant.REJECT_PREVIEW]
-          .filter(f => f.name != this.rejectApplicationHandler.name)
-    }
+    ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
   },
   methods: {
