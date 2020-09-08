@@ -50,7 +50,8 @@ export default {
     },
     agentWsUrl: function() {
       const agentWs = this.uuid ? `${this.uuid}-${this.agent}-ws` : `${this.agent}-ws`
-      return `ws://${agentWs}.${config.env.VUE_APP_HOST}`
+      const protocol = config.env.VUE_APP_PROTOCOL === "https" ? "wss" : "ws"
+      return `${protocol}://${agentWs}.${config.env.VUE_APP_HOST}`
     }
   },
   data() {
