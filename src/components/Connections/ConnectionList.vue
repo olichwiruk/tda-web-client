@@ -184,7 +184,11 @@ export default {
       }).then(r => {
         console.log(r.data)
         if (r.status === 200) {
-          this.$noty.success("Application send!", { timeout: 1000 })
+          if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
+            this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
+          } else {
+            this.$noty.success("Application send!", { timeout: 1000 })
+          }
         }
 
         this.confirmProcessing = false
