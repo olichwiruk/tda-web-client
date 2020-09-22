@@ -29,7 +29,7 @@
           vm.ws.onopen = function () {
               vm.ws.onmessage = function (wsMessage) {
                   const data = JSON.parse(wsMessage.data)
-                  const topic = data['topic']
+                  const topic = data.request.url
                   const content = JSON.parse(data['message'])
                   vm.add_message({ topic, content })
               }
