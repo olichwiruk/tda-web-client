@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import message_bus from '@/message_bus.js';
+import message_bus from '@/message_bus.ts';
 
 export function Share(vm, data = {}, computed = {}, methods = {}) {
     return new Vue({

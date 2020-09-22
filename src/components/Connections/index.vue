@@ -3,6 +3,7 @@
     <connection-list
       title="Active Connections:"
       editable="true"
+      class="activeConnections"
       :list="active_connections"
       @connection-editted="update_connection"
       @connection-deleted="delete_connection"
@@ -40,8 +41,8 @@
 
 <script>
 import ConnectionList from './ConnectionList.vue';
-import share from '@/share.js';
-import message_bus from '@/message_bus.js';
+import share from '@/share.ts';
+import message_bus from '@/message_bus.ts';
 
 export const metadata = {
   menu: {
@@ -64,6 +65,9 @@ export const shared = {
         return Object.values(this.connections).filter(
           conn => {
             if (!("state" in conn)) {
+              return false;
+            }
+            if (conn.their_label == 'ToolBox') {
               return false;
             }
             return conn.state === "active" || conn.state === "response"

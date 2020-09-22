@@ -58,8 +58,8 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-import share from '@/share.js';
-import message_bus from '@/message_bus.js';
+import share from '@/share.ts';
+import message_bus from '@/message_bus.ts';
 
 export const metadata = {
   menu: {

@@ -14,8 +14,8 @@
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import Presentation from './Presentation.vue';
-import message_bus from '@/message_bus.js';
-import share from '@/share.js';
+import message_bus from '@/message_bus.ts';
+import share from '@/share.ts';
 
 export const metadata = {
   menu: {
@@ -23,6 +23,7 @@ export const metadata = {
     icon: 'el-icon-document-checked',
     group: 'Agent to Agent',
     priority: 90,
+    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'
     ]

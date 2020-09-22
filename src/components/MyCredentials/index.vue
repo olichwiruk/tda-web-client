@@ -1,30 +1,32 @@
 <template>
   <el-row>
-    <cred-def-list
-      title="Retrieved Credential Definitions"
-      v-bind:retrievable="true"
-      v-bind:can_create="false"
-      v-bind:list="proposal_cred_defs"></cred-def-list>
+    <!-- <cred-def-list -->
+    <!--   title="Retrieved Credential Definitions" -->
+    <!--   v-bind:retrievable="true" -->
+    <!--   v-bind:can_create="false" -->
+    <!--   v-bind:list="proposal_cred_defs"></cred-def-list> -->
     <my-credentials-list
-      title="Credentials"
+      title="Documents"
       editable="false"
-      v-bind:list="holder_credentials"
+      v-bind:list="credentials"
       v-bind:cred_defs="proposal_cred_defs"
       v-bind:connections="active_connections"
-      @cred-refresh="fetch_holder_credentials"
+      @cred-refresh="fetch_credentials"
       @propose="send_proposal"></my-credentials-list>
   </el-row>
 </template>
 
 <script>
+import axios from 'axios'
+
 import CredDefList from '../CredentialIssuance/CredDefList.vue';
 import MyCredentialsList from './MyCredentialsList.vue';
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus.ts';
+import share from '../../share.ts';
 
 export const metadata = {
   menu: {
-    label: 'My Credentials',
+    label: 'My Documents',
     icon: 'el-icon-bank-card',
     group: 'Agent to Agent',
     priority: 60,
@@ -86,8 +88,18 @@ export default {
       actions: ['fetch_holder_credentials']
     })
   ],
+  data: () => {
+    return {
+      credentials: []
+    }
+  },
+  computed: {
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
+    },
+  },
   mounted() {
-    this.fetch_holder_credentials()
+    this.fetch_credentials()
   },
   methods: {
     send_proposal: function(form) {
@@ -102,10 +114,15 @@ export default {
         }
       };
       this.send_message(query_msg);
+    },
+    fetch_credentials: function() {
+      axios.get(`${this.acapyApiUrl}/credentials`).then(r => {
+        this.credentials = r.data.results
+      })
     }
   },
   created: function() {
-    this.fetch_holder_credentials();
+    this.fetch_credentials();
   }
 }
 </script>

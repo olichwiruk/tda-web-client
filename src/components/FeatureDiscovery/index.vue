@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import share from '@/share.js';
+import share from '@/share.ts';
 
 export const metadata = {
   menu: {

@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus';
+import share from '../../share';
 import SchemaList from './SchemaList.vue';
 import CredDefList from './CredDefList.vue';
 import IssuedCredList from './IssuedCredList.vue';
@@ -48,6 +48,7 @@ export const metadata = {
     icon: 'el-icon-document',
     group: 'Agent to Agent',
     priority: 50,
+    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1',
       "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1",

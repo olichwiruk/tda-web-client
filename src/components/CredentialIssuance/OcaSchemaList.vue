@@ -94,8 +94,8 @@ import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 import axios from 'axios'
 
 import { generateDri } from '@/dri_generator'
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus.ts';
+import share from '../../share.ts';
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
   renderForm, PreviewComponent } from 'odca-form'
@@ -207,11 +207,7 @@ export default {
     this.issueData.ocaRepo.host = this.ocaRepoUrl
     this.ocaSchemaSearch = this.fetchOcaSchemas('')
 
-    if(ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]) {
-      ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW] =
-        ocaEventBus._events[EventHandlerConstant.SAVE_PREVIEW]
-          .filter(f => f.name != this.savePreviewHandler.name)
-    }
+    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.savePreviewHandler)
   },
   methods: {

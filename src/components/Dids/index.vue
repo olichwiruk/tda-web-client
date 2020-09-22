@@ -30,8 +30,8 @@
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import DidList from './DidList.vue';
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '../../message_bus.ts';
+import share from '../../share.ts';
 
 export const metadata = {
   menu: {

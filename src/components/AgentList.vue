@@ -34,7 +34,7 @@ const rp = require('request-promise');
 const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions } from "vuex"
-import { new_connection } from '../connection_detail.js';
+import { new_connection } from '../connection_detail.ts';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 const uuidv4 = require('uuid/v4');
@@ -47,6 +47,11 @@ export default {
     acapyApiUrl: function() {
       const agentAdmin = this.uuid ? `${this.uuid}-${this.agent}-admin` : `${this.agent}-admin`
       return `${config.env.VUE_APP_PROTOCOL}://${agentAdmin}.${config.env.VUE_APP_HOST}`
+    },
+    agentWsUrl: function() {
+      const agentWs = this.uuid ? `${this.uuid}-${this.agent}-ws` : `${this.agent}-ws`
+      const protocol = config.env.VUE_APP_PROTOCOL === "https" ? "wss" : "ws"
+      return `${protocol}://${agentWs}.${config.env.VUE_APP_HOST}`
     }
   },
   data() {
@@ -111,6 +116,8 @@ export default {
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
       this.$session.set('instanceUuid', this.uuid)
+      this.$session.set('acapyApiUrl', this.acapyApiUrl)
+      this.$session.set('websocketUrl', this.agentWsUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
     },
     deleteConnection: async function(a){

@@ -93,6 +93,7 @@ export default {
       this.$emit('did-update', this.editForm);
     },
     activate: function(did) {
+      this.publish(did)
       this.$emit('did-activate', did);
     },
     publish: function(did) {
