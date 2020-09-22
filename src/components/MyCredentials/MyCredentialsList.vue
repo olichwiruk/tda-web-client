@@ -15,10 +15,10 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in credentials"
-          :name="credential.referent"
-          :key="credential.referent">
+          :name="credential.created_at"
+          :key="credential.created_at">
           <template slot="title">
-            {{ credentialsLabel[credential.referent] }} | {{ credential.referent }}
+            {{ credentialsLabel[credential.created_at] }} | {{ credential.created_at }} {{ credential.connection ? `| ${credential.connection.their_label}` : '' }}
           </template>
           <el-row>
             <div>
@@ -27,8 +27,8 @@
                 :data="credential">
               </vue-json-pretty>
             </div>
-            <el-button v-if="credentialsSchema[credential.referent]"
-              v-on:click="preview(credentialsSchema[credential.referent], schemaInput[credential.referent], credentialsSchemaAlt[credential.referent])">Preview</el-button>
+            <el-button v-if="credentialsSchema[credential.created_at]"
+              v-on:click="preview(credentialsSchema[credential.created_at], schemaInput[credential.created_at], credentialsSchemaAlt[credential.created_at])">Preview</el-button>
             <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -165,7 +165,7 @@ export default {
     ...mapActions('WsMessages', ['delete_message']),
     collapse_expanded: function(credential){
       this.expanded_items = this.expanded_items.filter(
-        item => item != credential.credential_exchange_id
+        item => item != credential.id
       );
     },
     deActivateForm: function() {
@@ -226,18 +226,18 @@ export default {
       return `${split[2]} v${split[3]} received from ${connection_name}`;
     },
     generatePreview: async function(credential) {
-      let hashlink = credential.attrs.hashlink
+      let hashlink = credential.credentialSubject.hashlink
       if (hashlink && hashlink.includes('hl:')) {
         const data = await hl.decode({hashlink})
         const exp = data.meta.experimental
 
         if (exp && exp['schema-base']) {
-          this.credentialsSchema[credential.referent] = []
+          this.credentialsSchema[credential.created_at] = []
           const ids = [...exp.overlays, exp['schema-base']]
           ids.forEach(id => {
             axios.get(exp.host + id)
               .then(response => {
-                this.credentialsSchema[credential.referent].push(response.data)
+                this.credentialsSchema[credential.created_at].push(response.data)
               })
           })
         } else if (exp && exp['dri']) {
@@ -245,11 +245,11 @@ export default {
           axios.get(exp.host + exp['dri'])
             .then(r => {
               const branch = r.data
-              this.credentialsSchemaAlt[credential.referent] = []
+              this.credentialsSchemaAlt[credential.created_at] = []
               const langBranches = this.splitBranchPerLang(branch)
 
               langBranches.forEach(langBranch => {
-                this.credentialsSchemaAlt[credential.referent].push({
+                this.credentialsSchemaAlt[credential.created_at].push({
                   language: langBranch.lang,
                   form: renderForm([
                     langBranch.branch.schema_base,
@@ -257,32 +257,32 @@ export default {
                   ).form
                 })
               })
-              this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
-              this.credentialsLabel[credential.referent] = this.credentialsSchema[credential.referent].label
+              this.credentialsSchema[credential.created_at] = this.credentialsSchemaAlt[credential.created_at][0].form
+              this.credentialsLabel[credential.created_at] = this.credentialsSchema[credential.created_at].label
             })
         }
 
         const url = data.meta.url[0]
         axios.get(url).then(response => {
           if (exp && (exp['schema-base'] || exp['dri'])) {
-            this.schemaInput[credential.referent] = response.data
+            this.schemaInput[credential.created_at] = response.data
           } else if (url.split('.').slice(-1)[0] == 'json') {
-            credential.attrs = {...credential.attrs, ...response.data}
+            credential.credentialSubject = {...credential.credentialSubject, ...response.data}
           }
         })
-      } else if (credential.attrs.oca_schema_dri) {
+      } else if (credential.credentialSubject.oca_schema_dri) {
         const serviceSchema = {
-          oca_schema_namespace: credential.attrs.oca_schema_namespace,
-          oca_schema_dri: credential.attrs.oca_schema_dri
+          oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
+          oca_schema_dri: credential.credentialSubject.oca_schema_dri
         }
         axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
           .then(r => {
             const branch = r.data
-            this.credentialsSchemaAlt[credential.referent] = []
+            this.credentialsSchemaAlt[credential.created_at] = []
             const langBranches = this.splitBranchPerLang(branch)
 
             langBranches.forEach(langBranch => {
-              this.credentialsSchemaAlt[credential.referent].push({
+              this.credentialsSchemaAlt[credential.created_at].push({
                 language: langBranch.lang,
                 form: renderForm([
                   langBranch.branch.schema_base,
@@ -290,21 +290,21 @@ export default {
                 ).form
               })
             })
-            this.credentialsSchema[credential.referent] = this.credentialsSchemaAlt[credential.referent][0].form
-            this.credentialsLabel[credential.referent] = this.credentialsSchema[credential.referent].label
+            this.credentialsSchema[credential.created_at] = this.credentialsSchemaAlt[credential.created_at][0].form
+            this.credentialsLabel[credential.created_at] = this.credentialsSchema[credential.created_at].label
           })
 
-        if(credential.attrs.data_url) {
-          axios.get(credential.attrs.data_url)
+        if(credential.credentialSubject.data_url) {
+          axios.get(credential.credentialSubject.data_url)
             .then(response => {
-              this.schemaInput[credential.referent] = response.data
+              this.schemaInput[credential.created_at] = response.data
             })
-        } else if (credential.attrs.data_dri) {
+        } else if (credential.credentialSubject.data_dri) {
           axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
-            issue_id: credential.attrs.data_dri
+            issue_id: credential.credentialSubject.data_dri
           })
             .then(response => {
-                this.schemaInput[credential.referent] = JSON.parse(response.data[0].payload)
+                this.schemaInput[credential.created_at] = JSON.parse(response.data[0].payload)
             })
         }
       }
@@ -359,8 +359,10 @@ export default {
     },
     credentials: function() {
       return this.list.map(item => {
-        if (item.connection_id in this.id_to_connection) {
-          item.connection = this.id_to_connection[item.connection_id];
+        if (item.issuer && item.issuer.split(':')[0] === "did") {
+          item.connection = this.connections.find(conn => {
+            return conn.their_did == item.issuer.split(':')[2]
+          })
         } else {
           item.connection = null;
         }
