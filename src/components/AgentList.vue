@@ -120,6 +120,7 @@ export default {
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
       this.$session.set('instanceUuid', this.uuid)
+      this.$session.set('instanceAgent', this.agent)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$session.set('websocketUrl', this.agentWsUrl)
       this.$session.set('localDataVaultUrl', this.localDataVaultUrl)

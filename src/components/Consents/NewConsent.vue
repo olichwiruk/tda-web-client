@@ -20,6 +20,7 @@
 
 <script>
 import axios from 'axios'
+import { add_consent } from '@/storage/persistence'
 import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
@@ -55,6 +56,12 @@ export default {
     },
     localDataVaultUrl: function() {
       return this.$session.get('localDataVaultUrl')
+    },
+    instanceUuid: function() {
+      return this.$session.get('instanceUuid')
+    },
+    instanceAgent: function() {
+      return this.$session.get('instanceAgent')
     },
     consentSelected: function() {
       return this.consent.oca_schema_dri && this.consent.form
@@ -92,6 +99,16 @@ export default {
         console.log(r.data)
         this.consentData.dri = r.data
         this.consentData.sending = false
+        add_consent({
+          instanceUuid: this.instanceUuid,
+          instanceAgent: this.instanceAgent
+        }, {
+          label: '',
+          ocaSchemaNamespace: this.consent.oca_schema_namespace,
+          ocaSchemaDri: this.consent.oca_schema_dri,
+          dataDri: this.consentData.dri
+        })
+
         this.$refs.ConsentPreviewComponent.closeModal();
       })
     }
