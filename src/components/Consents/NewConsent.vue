@@ -5,11 +5,13 @@
     </nav>
 
     <div class="content">
+      <el-input placeholder="Label" v-model="consent.label"
+        style="width: 200px;"></el-input>
       <oca-schema-search label="Schema:" :ocaRepoHost="ocaRepoHost"
         @consentSchemaSelected="consentSchemaSelected"
         @consentFormRendered="consentFormRendered"/>
       <div>
-        <el-button :disabled="!consentSelected" type="primary" size="medium" 
+        <el-button :disabled="!consentSelected" type="primary"
           @click="openCreateConsentForm">Create</el-button>
       </div>
     </div>
@@ -36,6 +38,7 @@ export default {
   data () {
     return {
       consent: {
+        label: '',
         oca_schema_dri: null,
         oca_schema_namespace: null,
         form: null,
@@ -103,12 +106,13 @@ export default {
           instanceUuid: this.instanceUuid,
           instanceAgent: this.instanceAgent
         }, {
-          label: '',
+          label: this.consent.label,
           ocaSchemaNamespace: this.consent.oca_schema_namespace,
           ocaSchemaDri: this.consent.oca_schema_dri,
           dataDri: this.consentData.dri
         })
 
+        this.consent.label = ''
         this.$emit('consents-refresh')
         this.$refs.ConsentPreviewComponent.closeModal();
       })
@@ -124,12 +128,7 @@ export default {
 <style scoped>
 .content {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-around;
   padding: 20px 0px;
-}
-
-.content > div {
-  margin: 6px;
 }
 </style>
