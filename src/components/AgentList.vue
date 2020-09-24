@@ -52,6 +52,10 @@ export default {
       const agentWs = this.uuid ? `${this.uuid}-${this.agent}-ws` : `${this.agent}-ws`
       const protocol = config.env.VUE_APP_PROTOCOL === "https" ? "wss" : "ws"
       return `${protocol}://${agentWs}.${config.env.VUE_APP_HOST}`
+    },
+    localDataVaultUrl: function() {
+      const dataVault = this.uuid ? `${this.uuid}-data-vault` : `data-vault`
+      return `${config.env.VUE_APP_PROTOCOL}://${dataVault}.${config.env.VUE_APP_HOST}`
     }
   },
   data() {
@@ -118,6 +122,7 @@ export default {
       this.$session.set('instanceUuid', this.uuid)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$session.set('websocketUrl', this.agentWsUrl)
+      this.$session.set('localDataVaultUrl', this.localDataVaultUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
     },
     deleteConnection: async function(a){
