@@ -8,8 +8,7 @@
       <oca-schema-search label="Service:" :ocaRepoHost="ocaRepoHost"
         @serviceSchemaSelected="serviceSchemaSelected"/>
 
-      <consent-select label="Consent:" :dataVaultHost="dataVaultHost"
-        @consentSelected="consentSelected"/>
+      <consent-select label="Consent:" @consentSelected="consentSelected"/>
 
       <div>
         <el-button :disabled="!dataFilled" type="primary"
@@ -50,17 +49,11 @@ export default {
     ocaRepoHost: function() {
       return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
     },
-    dataVaultHost: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}`
+    localDataVaultUrl: function() {
+      return this.$session.get('localDataVaultUrl')
     },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
-    },
-    consentSchema: function() {
-      return {
-        namespace: "consent",
-        DRI: "fArVHJTQSKHu2CeXJocQmH3HHxzZXsuQD7kzyHJhQ49s"
-      }
     },
     dataFilled: function() {
       return this.label != null &&
@@ -74,10 +67,10 @@ export default {
       this.service.oca_schema_dri = DRI
       this.service.oca_schema_namespace = namespace
     },
-    consentSelected(DRI) {
-      this.consent.oca_schema_dri = this.consentSchema.DRI
-      this.consent.oca_schema_namespace = this.consentSchema.namespace
-      this.consent.data_url = `${this.dataVaultHost}/api/v1/files/${DRI}`
+    consentSelected(consent) {
+      this.consent.oca_schema_dri = consent.ocaSchemaDri
+      this.consent.oca_schema_namespace = consent.ocaSchemaNamespace
+      this.consent.data_url = `${this.localDataVaultUrl}/api/v1/files/${consent.dataDri}`
     },
     resetServiceData() {
       this.label = null

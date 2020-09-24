@@ -3,18 +3,15 @@
     <el-form>
       <el-form-item :label="label" label-width="80px">
         <el-select
-          v-model="selectedConsentDRI"
+          v-model="selectedConsent"
           width="400px"
           no-data-text="No consents found"
           placeholder="Consent">
           <el-option
-            v-for="consentData in consentsData"
-            :key="consentData.DRI"
-            :label="`Expiration: ${consentData.expiration}; ` +
-              `Limitation: ${consentData.limitation}; ` +
-              `Dictated by: ${consentData.dictatedBy}; ` +
-              `Validity TTL: ${consentData.validityTTL};`"
-            :value="consentData.DRI">
+            v-for="consent in consent_list"
+            :key="consent.label"
+            :label="consent.label"
+            :value="consent">
           </el-option>
         </el-select>
       </el-form-item>
@@ -24,35 +21,35 @@
 
 <script>
 import axios from 'axios'
+import { get_consents } from '@/storage/persistence'
 
 export default {
   name: 'consent-select',
-  props: ['dataVaultHost', 'label'],
+  props: ['label'],
   components: {},
   data() {
     return {
-      consentsData: [],
-      selectedConsentDRI: null
+      consent_list: [],
+      selectedConsent: null
     }
   },
   computed: {
-    consentAnswers: function() {
-      return [
-        "zQmNeoZGfo1chKACu9RLrVoG4afjLrGnAz1rhsfvGZwg9Z3",
-        "zQmPsU57nqWY8jzndU9AE2RK4EXvjMLGmytVpUNxfRpm18G"
-      ]
+    instanceUuid: function() {
+      return this.$session.get('instanceUuid')
+    },
+    instanceAgent: function() {
+      return this.$session.get('instanceAgent')
     }
   },
   watch: {
-    'selectedConsentDRI': function() {
-      this.$emit('consentSelected', this.selectedConsentDRI)
+    'selectedConsent': function() {
+      this.$emit('consentSelected', this.selectedConsent)
     }
   },
-  created() {
-    this.consentAnswers.forEach(DRI => {
-      axios.get(`${this.dataVaultHost}/api/v1/files/${DRI}`).then(r => { 
-        this.consentsData.push({ DRI, ...r.data })
-      })
+  mounted() {
+    this.consent_list = get_consents({
+      instanceUuid: this.instanceUuid,
+      instanceAgent: this.instanceAgent
     })
   },
   methods: {}
