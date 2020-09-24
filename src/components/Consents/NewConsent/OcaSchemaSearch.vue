@@ -3,7 +3,6 @@
     <label class="el-form-item__label">{{ label }}</label>
     <vue-typeahead-bootstrap
       v-model="search.query"
-      inputClass="typeahead-input"
       :minMatchingChars="0"
       :showOnFocus="true"
       :data="search.matching.length == 0 ? search.all : search.matching"
@@ -61,7 +60,6 @@ export default {
     },
     'search.selected': function() {
       this.getOcaSchema(this.search.selected)
-      this.$el.querySelector(".typeahead-input").setAttribute('disabled', true)
     }
   },
   created() {
