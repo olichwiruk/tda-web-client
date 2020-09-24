@@ -109,6 +109,7 @@ export default {
           dataDri: this.consentData.dri
         })
 
+        this.$emit('consents-refresh')
         this.$refs.ConsentPreviewComponent.closeModal();
       })
     }
