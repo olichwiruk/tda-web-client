@@ -11,7 +11,7 @@
         @consentSchemaSelected="consentSchemaSelected"
         @consentFormRendered="consentFormRendered"/>
       <div>
-        <el-button :disabled="!consentSelected" type="primary"
+        <el-button :disabled="!dataFilled" type="primary"
           @click="openCreateConsentForm">Create</el-button>
       </div>
     </div>
@@ -22,8 +22,11 @@
 
 <script>
 import axios from 'axios'
-import { add_consent } from '@/storage/persistence'
 import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
+
+import Consent from '@/storage/models/Consent'
+import InstanceConsentsStorage from '@/storage/InstanceConsentsStorage'
+const instanceConsentsStorage = new InstanceConsentsStorage()
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
   PreviewComponent } from 'odca-form'
@@ -66,8 +69,13 @@ export default {
     instanceAgent: function() {
       return this.$session.get('instanceAgent')
     },
-    consentSelected: function() {
-      return this.consent.oca_schema_dri && this.consent.form
+    dataFilled: function() {
+      return this.consent.oca_schema_dri && this.consent.form && this.consent.label.length > 0
+    },
+    instanceConsents: function() {
+      return instanceConsentsStorage.findByInstance(
+        this.instanceUuid, this.instanceAgent
+      )
     }
   },
   methods: {
@@ -99,18 +107,20 @@ export default {
       axios.post(`${this.localDataVaultUrl}/api/v1/files`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       }).then(r => {
-        console.log(r.data)
         this.consentData.dri = r.data
         this.consentData.sending = false
-        add_consent({
-          instanceUuid: this.instanceUuid,
-          instanceAgent: this.instanceAgent
-        }, {
-          label: this.consent.label,
-          ocaSchemaNamespace: this.consent.oca_schema_namespace,
-          ocaSchemaDri: this.consent.oca_schema_dri,
-          dataDri: this.consentData.dri
-        })
+        const consent = new Consent(
+          this.consent.label, this.consent.oca_schema_namespace,
+          this.consent.oca_schema_dri, this.consentData.dri
+        )
+        const result = this.instanceConsents.addConsent(consent)
+        if (result.success) {
+          instanceConsentsStorage.add(this.instanceConsents)
+        } else {
+          this.$noty.error(`Error: ${result.errors.join(', ')}`, {
+            timeout: 1000
+          })
+        }
 
         this.consent.label = ''
         this.$emit('consents-refresh')

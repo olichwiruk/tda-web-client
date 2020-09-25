@@ -21,7 +21,7 @@
 
 <script>
 import axios from 'axios'
-import { get_consents } from '@/storage/persistence'
+import InstanceConsentsStorage from '@/storage/InstanceConsentsStorage'
 
 export default {
   name: 'consent-select',
@@ -39,6 +39,12 @@ export default {
     },
     instanceAgent: function() {
       return this.$session.get('instanceAgent')
+    },
+    instanceConsents: function() {
+      const instanceConsentsStorage = new InstanceConsentsStorage()
+      return instanceConsentsStorage.findByInstance(
+        this.instanceUuid, this.instanceAgent
+      )
     }
   },
   watch: {
@@ -47,10 +53,7 @@ export default {
     }
   },
   mounted() {
-    this.consent_list = get_consents({
-      instanceUuid: this.instanceUuid,
-      instanceAgent: this.instanceAgent
-    })
+    this.consent_list = this.instanceConsents ? this.instanceConsents.list : []
   },
   methods: {}
 }

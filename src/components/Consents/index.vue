@@ -12,10 +12,10 @@
 
 <script>
 import axios from 'axios';
-import { get_consents } from '@/storage/persistence'
 import { PreviewComponent } from 'odca-form'
 import NewConsent from './NewConsent'
 import ConsentList from './ConsentList'
+import InstanceConsentsStorage from '@/storage/InstanceConsentsStorage'
 
 export const metadata = {
   menu: {
@@ -50,10 +50,11 @@ export default {
   },
   methods: {
     refreshConsents() {
-      this.consent_list = get_consents({
-        instanceUuid: this.instanceUuid,
-        instanceAgent: this.instanceAgent
-      })
+      const instanceConsentsStorage = new InstanceConsentsStorage()
+      const instanceConsents = instanceConsentsStorage.findByInstance(
+        this.instanceUuid, this.instanceAgent
+      )
+      this.consent_list = instanceConsents ? instanceConsents.list : []
     },
     previewConsent(event) {
       this.alternatives = event.formAlternatives
