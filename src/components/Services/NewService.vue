@@ -41,7 +41,7 @@ export default {
       consent: {
         oca_schema_dri: null,
         oca_schema_namespace: null,
-        data_url: null
+        data_dri: null
       }
     }
   },
@@ -58,7 +58,7 @@ export default {
     dataFilled: function() {
       return this.label != null &&
         this.service.oca_schema_dri != null &&
-        this.consent.data_url != null
+        this.consent.data_dri != null
     }
   },
   methods: {
@@ -70,7 +70,7 @@ export default {
     consentSelected(consent) {
       this.consent.oca_schema_dri = consent.ocaSchemaDri
       this.consent.oca_schema_namespace = consent.ocaSchemaNamespace
-      this.consent.data_url = `${this.localDataVaultUrl}/api/v1/files/${consent.dataDri}`
+      this.consent.data_dri = `${this.localDataVaultUrl}/api/v1/files/${consent.dataDri}`
     },
     resetServiceData() {
       this.label = null
@@ -81,7 +81,7 @@ export default {
       this.consent = {
         oca_schema_dri: null,
         oca_schema_namespace: null,
-        data_url: null
+        data_dri: null
       }
     },
     submit() {

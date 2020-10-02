@@ -294,8 +294,8 @@ export default {
             this.credentialsLabel[credential.created_at] = this.credentialsSchema[credential.created_at].label
           })
 
-        if(credential.credentialSubject.data_url) {
-          axios.get(credential.credentialSubject.data_url)
+        if(credential.credentialSubject.data_dri) {
+          axios.get(credential.credentialSubject.data_dri)
             .then(response => {
               this.schemaInput[credential.created_at] = response.data
             })

@@ -49,7 +49,7 @@ export default {
   },
   methods: {
     async renderApplicationForm(application) {
-      const consentAnswers = (await axios.get(application.consent_schema.data_url)).data
+      const consentAnswers = (await axios.get(application.consent_schema.data_dri)).data
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${application.consent_schema.oca_schema_namespace}/${application.consent_schema.oca_schema_dri}`
       )).data

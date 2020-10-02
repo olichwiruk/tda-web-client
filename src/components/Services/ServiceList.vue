@@ -52,7 +52,7 @@ export default {
   },
   methods: {
     async renderServiceForm(service) {
-      const consentAnswers = (await axios.get(service.consent_schema.data_url)).data
+      const consentAnswers = (await axios.get(service.consent_schema.data_dri)).data
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${service.consent_schema.oca_schema_namespace}/${service.consent_schema.oca_schema_dri}`
       )).data
