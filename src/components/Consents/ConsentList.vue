@@ -11,9 +11,9 @@
       <ul class="list">
         <el-collapse-item
           v-for="(consent, index) in consents"
-          :title="consent.label"
           :name="consent.label + index"
           :key="index">
+          <template v-slot:title>{{ consent.label }} {{ consent.created_at ? '| ' + consent.created_at : '' }} {{ consent.connection ? '| ' + consent.connection.their_label : '' }}</template>
           <el-row>
             <vue-json-pretty :deep=0 :data="consent" />
             <el-button size="medium"
@@ -52,6 +52,9 @@ export default {
     localDataVaultUrl: function() {
       return this.$session.get('localDataVaultUrl')
     },
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
+    },
   },
   methods: {
     async renderConsentForm(consent) {
@@ -84,6 +87,34 @@ export default {
         answers: consentAnswers
       }
     },
+    async renderServiceForm(consent) {
+      const serviceBranch = (await axios.get(
+        `${this.ocaRepoUrl}/api/v2/schemas/${consent.service_schema.oca_schema_namespace}/${consent.service_schema.oca_schema_dri}`
+      )).data
+
+      const serviceLangBranches = this.splitBranchPerLang(serviceBranch)
+      let serviceForm
+      const serviceFormAlternatives = []
+      try {
+        serviceLangBranches.forEach(langBranch => {
+          serviceFormAlternatives.push({
+            language: langBranch.lang,
+            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+          })
+        })
+        serviceForm = serviceFormAlternatives[0].form
+      } catch(e) {
+        console.log(e)
+        this.$noty.error("ERROR! Service form data are corrupted.", {
+          timeout: 1000
+        })
+      }
+      return {
+        form: serviceForm,
+        formAlternatives: serviceFormAlternatives,
+        answers: consent.service_payload
+      }
+    },
     splitBranchPerLang(branch) {
       const langBranches = []
       const labelOverlays = branch.overlays.filter(o => o.type.includes("label"))
@@ -104,7 +135,10 @@ export default {
       return langBranches
     },
     async preview(consent) {
-      this.$emit('consent-preview', await this.renderConsentForm(consent))
+      this.$emit('consent-preview', {
+        consent: await this.renderConsentForm(consent),
+        service: await this.renderServiceForm(consent)
+      })
     }
   },
 }
