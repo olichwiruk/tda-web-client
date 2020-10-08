@@ -10,7 +10,7 @@
           :key="index">
           <el-row>
             <vue-json-pretty :deep=0 :data="plugin" />
-            <el-button size="medium"
+            <el-button size="medium" :disabled="!plugin.oca_schema_namespace || !plugin.oca_schema_dri"
               @click="configure(plugin)">Configure</el-button>
           </el-row>
         </el-collapse-item>
@@ -32,13 +32,13 @@ export default {
   data() {
     return {
       expanded_items: [],
-      plugin_list: [
-        { pluginName: 'plug1', oca_schema_namespace: 'consent', oca_schema_dri: 'fArVHJTQSKHu2CeXJocQmH3HHxzZXsuQD7kzyHJhQ49s' },
-        { pluginName: 'plug2', oca_schema_namespace: 'consent', oca_schema_dri: 'fArVHJTQSKHu2CeXJocQmH3HHxzZXsuQD7kzyHJhQ49s' },
-      ]
+      plugin_list: []
     }
   },
   computed: {
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
+    },
     ocaRepoUrl: function() {
       return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
     }
@@ -96,6 +96,24 @@ export default {
         plugin: await this.renderPluginForm(plugin)
       })
     }
+  },
+  mounted() {
+    axios.get(`${this.acapyApiUrl}/pds/settings`)
+      .then(r => {
+        if (r.status === 200) {
+          const entries = Object.entries(r.data)
+          this.plugin_list = entries.map(entry => {
+            return {
+              pluginName: entry[0],
+              oca_schema_namespace: entry[1].oca_schema_namespace,
+              oca_schema_dri: entry[1].oca_schema_dri
+            }
+          })
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
   }
 }
 </script>
