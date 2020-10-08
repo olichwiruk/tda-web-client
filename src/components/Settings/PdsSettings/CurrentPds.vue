@@ -3,15 +3,13 @@
     <el-form @submit.native.prevent :inline="true">
       <el-form-item label="Current PDS:">
         <el-select
-          v-model="activePdsName"
+          v-model="active_pds"
           filterable
           placeholder="Select PDS"
           @change="pds_selected">
           <el-option
             v-for="pds in pds_list"
-            :key="pds.pdsName"
-            :label="pds.pdsName"
-            :value="pds.pdsName">
+            :key="pds" :label="pds" :value="pds">
           </el-option>
         </el-select>
       </el-form-item>
@@ -20,6 +18,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'current-pds',
   components: {
@@ -27,20 +27,30 @@ export default {
   data() {
     return {
       pds_list: [],
-      activePdsName: null
+      active_pds: null
     }
   },
+  computed: {
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
+    },
+  },
   methods: {
-    pds_selected(pdsName) {
-      console.log(pdsName)
+    pds_selected(pds) {
+      axios.post(`${this.acapyApiUrl}/pds/activate`, { "type": pds })
     }
   },
   mounted() {
-    this.pds_list.push({ pdsName: 's3', active: false })
-    this.pds_list.push({ pdsName: 'oyd', active: true })
-
-    const activePds = this.pds_list.find(el => el.active)
-    this.activePdsName = activePds ? activePds.pdsName : ''
+    axios.get(`${this.acapyApiUrl}/pds`)
+      .then(r => {
+        if (r.status === 200) {
+          this.pds_list = r.data.types
+          this.active_pds = r.data.active
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
   }
 }
 </script>
