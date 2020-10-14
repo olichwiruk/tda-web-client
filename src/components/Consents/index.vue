@@ -116,6 +116,7 @@ export default {
         ).then(r => {
           const service = r.data[0]
           consent.label = service.label
+          consent.data = JSON.parse(service.consent_schema).data
           consent.service_schema = JSON.parse(service.service_schema)
           consent.service_payload = JSON.parse(service.payload)
           consent.created_at = service.created_at

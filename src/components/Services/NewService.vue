@@ -70,7 +70,7 @@ export default {
     consentSelected(consent) {
       this.consent.oca_schema_dri = consent.ocaSchemaDri
       this.consent.oca_schema_namespace = consent.ocaSchemaNamespace
-      this.consent.data_dri = `${this.localDataVaultUrl}/api/v1/files/${consent.dataDri}`
+      this.consent.data_dri = String(consent.dataDri)
     },
     resetServiceData() {
       this.label = null

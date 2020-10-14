@@ -58,7 +58,12 @@ export default {
   },
   methods: {
     async renderConsentForm(consent) {
-      const consentAnswers = (await axios.get(`${this.localDataVaultUrl}/api/v1/files/${consent.dataDri}`)).data
+      let consentAnswers
+      if (consent.data) {
+        consentAnswers = JSON.parse(consent.data)
+      } else {
+        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${consent.dataDri}`)).data.payload)
+      }
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${consent.ocaSchemaNamespace}/${consent.ocaSchemaDri}`
       )).data

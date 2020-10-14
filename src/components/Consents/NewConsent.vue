@@ -99,15 +99,12 @@ export default {
     },
     sendConsentData(data) {
       const dataStr = JSON.stringify(data, null, 2)
-      const blob = new Blob([dataStr], {type: 'application/json'})
       this.consentData.sending = true
 
-      const formData = new FormData()
-      formData.append("file", blob, `consent.json`)
-      axios.post(`${this.localDataVaultUrl}/api/v1/files`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      axios.post(`${this.acapyApiUrl}/pds/save`, {
+        payload: dataStr
       }).then(r => {
-        this.consentData.dri = r.data
+        this.consentData.dri = r.data.payload_id
         this.consentData.sending = false
         const consent = new Consent(
           this.consent.label, this.consent.oca_schema_namespace,
@@ -124,6 +121,10 @@ export default {
 
         this.consent.label = ''
         this.$emit('consents-refresh')
+        this.$refs.ConsentPreviewComponent.closeModal();
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error(`PDS error`, { timeout: 1000 })
         this.$refs.ConsentPreviewComponent.closeModal();
       })
     }

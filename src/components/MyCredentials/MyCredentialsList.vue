@@ -295,10 +295,9 @@ export default {
           })
 
         if(credential.credentialSubject.data_dri) {
-          axios.get(credential.credentialSubject.data_dri)
-            .then(response => {
-              this.schemaInput[credential.created_at] = response.data
-            })
+          this.schemaInput[credential.created_at] = JSON.parse(
+            (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.data_dri}`)).data.payload
+          )
         } else if (credential.credentialSubject.data_dri) {
           axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
             issue_id: credential.credentialSubject.data_dri
