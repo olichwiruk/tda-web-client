@@ -38,19 +38,22 @@ export default {
   methods: {
     pds_selected(pds) {
       axios.post(`${this.acapyApiUrl}/pds/activate`, { "type": pds })
+    },
+    refreshPdsList() {
+      axios.get(`${this.acapyApiUrl}/pds`)
+        .then(r => {
+          if (r.status === 200) {
+            this.pds_list = r.data.types
+            this.active_pds = r.data.active
+          }
+        }).catch(e => {
+          console.log(e)
+          this.$noty.error("Error occurred", { timeout: 1000 })
+        })
     }
   },
   mounted() {
-    axios.get(`${this.acapyApiUrl}/pds`)
-      .then(r => {
-        if (r.status === 200) {
-          this.pds_list = r.data.types
-          this.active_pds = r.data.active
-        }
-      }).catch(e => {
-        console.log(e)
-        this.$noty.error("Error occurred", { timeout: 1000 })
-      })
+    this.refreshPdsList()
   }
 }
 </script>

@@ -93,6 +93,7 @@ export default {
     },
     async configure(plugin) {
       this.$emit('configure-plugin', {
+        pluginName: plugin.pluginName,
         plugin: await this.renderPluginForm(plugin)
       })
     }
