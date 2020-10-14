@@ -88,6 +88,7 @@ export default {
       }
     },
     async renderServiceForm(consent) {
+      if (!consent.service_schema) { return {} }
       const serviceBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${consent.service_schema.oca_schema_namespace}/${consent.service_schema.oca_schema_dri}`
       )).data
