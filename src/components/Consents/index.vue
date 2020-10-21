@@ -22,7 +22,6 @@ import axios from 'axios';
 import { PreviewComponent, MultiPreviewComponent } from 'odca-form'
 import NewConsent from './NewConsent'
 import ConsentList from './ConsentList'
-import InstanceConsentsStorage from '@/storage/InstanceConsentsStorage'
 import share from '@/share.ts';
 
 export const metadata = {
@@ -63,23 +62,18 @@ export default {
     }
   },
   computed: {
-    instanceUuid: function() {
-      return this.$session.get('instanceUuid')
-    },
-    instanceAgent: function() {
-      return this.$session.get('instanceAgent')
-    },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
     },
   },
   methods: {
-    refreshDefinedConsents() {
-      const instanceConsentsStorage = new InstanceConsentsStorage()
-      const instanceConsents = instanceConsentsStorage.findByInstance(
-        this.instanceUuid, this.instanceAgent
-      )
-      this.defined_consent_list = instanceConsents ? instanceConsents.list : []
+    async refreshDefinedConsents() {
+      await axios.get(`${this.acapyApiUrl}/verifiable-services/consents`)
+        .then(r => {
+          if (r.status === 200) {
+            this.defined_consent_list = r.data.result
+          }
+        })
     },
     async refreshGivenConsents() {
       await axios.get(`${this.acapyApiUrl}/issue-credential/records`, {

@@ -21,7 +21,6 @@
 
 <script>
 import axios from 'axios'
-import InstanceConsentsStorage from '@/storage/InstanceConsentsStorage'
 
 export default {
   name: 'consent-select',
@@ -34,26 +33,22 @@ export default {
     }
   },
   computed: {
-    instanceUuid: function() {
-      return this.$session.get('instanceUuid')
+    acapyApiUrl: function() {
+      return this.$session.get('acapyApiUrl')
     },
-    instanceAgent: function() {
-      return this.$session.get('instanceAgent')
-    },
-    instanceConsents: function() {
-      const instanceConsentsStorage = new InstanceConsentsStorage()
-      return instanceConsentsStorage.findByInstance(
-        this.instanceUuid, this.instanceAgent
-      )
-    }
   },
   watch: {
     'selectedConsent': function() {
       this.$emit('consentSelected', this.selectedConsent)
     }
   },
-  mounted() {
-    this.consent_list = this.instanceConsents ? this.instanceConsents.list : []
+  async mounted() {
+    await axios.get(`${this.acapyApiUrl}/verifiable-services/consents`)
+      .then(r => {
+        if (r.status === 200) {
+          this.consent_list = r.data.result
+        }
+      })
   },
   methods: {}
 }
