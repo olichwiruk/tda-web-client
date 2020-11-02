@@ -20,7 +20,7 @@
     "web": {
       "presets": [
         ["env", {
-          "modules": false
+          "targets": { "node": 8 }
         }],
         "stage-0"
       ]

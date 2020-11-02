@@ -3,10 +3,11 @@
     <connection-list
       title="Active Connections:"
       editable="true"
-      :list="active_connections_new"
+      class="activeConnections"
+      :list="active_connections"
       @connection-editted="update_connection"
       @connection-deleted="delete_connection"
-      @refresh="fetch_connections_new"></connection-list>
+      @refresh="fetch_connections"></connection-list>
     <connection-list
       title="Pending Connections:"
       editable="true"
@@ -43,78 +44,72 @@ import ConnectionList from './ConnectionList.vue';
 import share from '@/share.ts';
 import message_bus from '@/message_bus.ts';
 
-export const protocol = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1';
 export const metadata = {
   menu: {
-    label: 'Connections [New]',
+    label: 'Connections',
     icon: 'el-icon-user',
     group: 'Agent to Agent',
     priority: 30,
     required_protocols: [
-      protocol
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'
     ]
-  },
-  types: {
-    connection: protocol + '/connection',
-    get_list: protocol + '/get-list',
-    list: protocol + '/list',
-    update: protocol + '/update',
-    delete: protocol + '/delete',
-    deleted: protocol + '/deleted',
-    receive_invitation: protocol + '/receive-invitation'
   }
 };
 
 export const shared = {
   data: {
-    connections_new: []
+    connections: []
   },
   computed: {
-    active_connections_new: function() {
-        return Object.values(this.connections_new).filter(
+    active_connections: function() {
+        return Object.values(this.connections).filter(
           conn => {
             if (!("state" in conn)) {
               return false;
             }
-            return conn.state === "active"
+            if (conn.their_label == 'ToolBox') {
+              return false;
+            }
+            return conn.state === "active" || conn.state === "response"
           }
         );
     },
-    id_to_connection_new: function(connection_id) {
+    id_to_connection: function(connection_id) {
       let map = {};
-      this.connections_new.forEach((connection) => {
+      this.connections.forEach((connection) => {
         map[connection.connection_id] = connection;
       })
+      console.log(map);
       return map;
     }
   },
   listeners: {
-    [metadata.types.list]:
-    (share, msg) => share.connections_new = msg.connections,
-    [metadata.types.connection]:
-    (share, msg) => share.fetch_connections_new(),
-    [metadata.types.deleted]:
-    (share, msg) => share.fetch_connections_new(),
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
+    (share, msg) => share.connections = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
+    (share, msg) => share.fetch_connections(),
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/ack":
+    (share, msg) => share.fetch_connections(),
   },
   methods: {
-    fetch_connections_new: ({send}) => {
+    fetch_connections: ({send}) => {
       send({
-        "@type": metadata.types.get_list,
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-get-list",
       });
     }
   }
 };
 
 export default {
-  name: 'connections-new',
+  name: 'connections',
   components: {
     ConnectionList
   },
   mixins: [
     message_bus(),
     share({
-      use: ['connections_new', 'active_connections_new'],
-      actions: ['fetch_connections_new']
+      use: ['connections', 'active_connections'],
+      actions: ['fetch_connections']
     })
   ],
   data: function() {
@@ -124,16 +119,19 @@ export default {
   },
   created: async function() {
     await this.ready();
-    this.fetch_connections_new();
+    this.fetch_connections();
   },
   computed: {
     pending_connections: function() {
-      return Object.values(this.connections_new).filter(
-        conn => "state" in conn && conn.state == 'pending'
+      return Object.values(this.connections).filter(
+        conn => "state" in conn &&
+        conn.state !== "active" &&
+        conn.state !== "invitation" &&
+        conn.state !== "error"
       );
     },
     failed_connections: function() {
-      return Object.values(this.connections_new).filter(
+      return Object.values(this.connections).filter(
         conn => "state" in conn && conn.state === "error"
       );
     }
@@ -141,7 +139,7 @@ export default {
   methods: {
     update_connection: function(form) {
       let query_msg = {
-        "@type": metadata.types.update,
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/update",
         "connection_id": form.connection_id,
         "label": form.label,
         "role": form.role,
@@ -150,21 +148,21 @@ export default {
     },
     delete_connection: function(connection) {
       let query_msg = {
-        "@type": metadata.types.delete,
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/delete",
         "connection_id": connection.connection_id,
       };
       this.send_message(query_msg);
     },
     recieve_invitation: function() {
       let receive_invite_msg = {
-        "@type": metadata.types.receive_invitation,
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/receive-invitation",
         "invitation": this.invitation,
-        "auto_accept": true
+        "auto_accept": "auto"
       };
       this.send_message(receive_invite_msg);
       this.invitation = "";
       setTimeout(() => {
-        return this.fetch_connections_new();
+        return this.fetch_connections();
       }, 4000);
     },
   },

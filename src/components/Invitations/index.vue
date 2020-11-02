@@ -18,25 +18,26 @@
       <el-button
         type="primary"
         icon="el-icon-refresh"
-        @click="fetch_invitations_v1"></el-button>
+        @click="fetch_invitations"></el-button>
   </nav>
   <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="i in invitations_v1"
-          v-bind:title="i.alias"
-          :name="i.alias"
-          :key="i.id">
-          <el-row :key="i.id">
-            <p>Auto Accept: {{i.auto_accept}}</p>
-            <p>Role: {{i.role}}</p>
-            <p>Multi-use: {{i.multi_use}}</p>
-            <p>Created: {{i.created_date}}</p>
-            <el-button type="primary" @click="copyURL(i.invitation_url)">Copy URL</el-button>
-            <el-button type="primary" @click="presentQR(i.invitation_url)">Scan QR</el-button>
+          v-for="i in invitations"
+          v-bind:title="get_name(i)"
+          :name="get_name(i)"
+          :key="i.connection.connection_id">
+          <el-row :key="i.connection.connection_id">
+            <p>Accept: {{i.connection.accept}}</p>
+            <p>Their Role: {{i.connection.their_role}}</p>
+            <p>Mode: {{i.connection.invitation_mode}}</p>
+            <p>Created: {{i.connection.created_at}}</p>
+            <el-button type="primary" @click="presentQR(i.invitation.invitation_url)">Scan QR</el-button>
+            <el-button type="primary" @click="copyURL(i.invitation.invitation_url)">Copy</el-button>
+
             <div>
               <vue-json-pretty
-                :deep=0
+                :deep=1
                 :data="i">
               </vue-json-pretty>
             </div>
@@ -45,29 +46,23 @@
       </ul>
     </el-collapse>
 
-  <el-divider></el-divider>
 
   <p>Create Invitations:</p>
-  <el-form :inline="false" label-width="120px">
-    <el-form-item label="Alias:">
-      <el-input v-model="invite_alias_form" style="width:200px;"> </el-input>
-      <i>Alias used in your list of invitations.</i>
-    </el-form-item>
+  <el-form :inline="true">
     <el-form-item label="Label:">
       <el-input v-model="invite_label_form" style="width:200px;"> </el-input>
-      <i>The label is presented in the invitation to the recipient.</i>
     </el-form-item>
     <el-form-item label="Role:">
       <el-input v-model="invite_role_form" style="width:200px;"> </el-input>
-      <i>The role assigned to new connections that use this invitation</i>
     </el-form-item>
-    <el-form-item label="Auto Accept:">
-      <el-switch v-model="invite_auto_accept_form"></el-switch>
-      <i>Auto accepted invitations will automatically respond to connection requests.</i>
+    <el-form-item label="Acceptance:">
+      <el-input v-model="invite_accept_form" style="width:200px;"> </el-input>
+    </el-form-item>
+    <el-form-item label="Public:">
+      <el-switch v-model="invite_public_form"></el-switch>
     </el-form-item>
     <el-form-item label="Multi Use:">
       <el-switch v-model="invite_multi_use_form"></el-switch>
-      <i>Multi-use invitations can be used more than onece. </i>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="fetchNewInvite()">Create New Invite</el-button>
@@ -79,52 +74,51 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
 
 export const metadata = {
   menu: {
-    label: 'Invitations New',
+    label: 'Invitations',
     icon: 'el-icon-plus',
     group: 'Agent to Agent',
     priority: 10,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1'
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'
     ]
   }
 };
-// elements here need to be unique
+
 export const shared = {
   data: {
-    invitations_v1: [],
+    invitations: [],
   },
   listeners: {
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/list': (share, msg) => {
-      share.invitations_v1 = msg.results;
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation-list': (share, msg) => {
+      share.invitations = msg.results;
     } 
   },
   methods: {
-    fetch_invitations_v1: ({send}) => {
+    fetch_invitations: ({send}) => {
       send({
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation-get-list",
       });
     }
   }
 }
 
 export default {
-  name: 'invitations_new',
+  name: 'invitations',
   mixins: [
     message_bus({events: {
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation': (v, msg) => {
-        v.fetch_invitations_v1()
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation': (v, msg) => {
+        v.fetch_invitations()
       }
     }}),
     share({
-      use: ['invitations_v1'],
-      actions: ['fetch_invitations_v1']
+      use: ['invitations'],
+      actions: ['fetch_invitations']
     })
   ],
   components: {
@@ -137,52 +131,57 @@ export default {
       QRDialogVisible: false,
       QRDialogURL: '',
       invite_label_form:"",
-      invite_alias_form:"",
       invite_role_form:"",
-      invite_auto_accept_form:true,
+      invite_accept_form:"auto",
+      invite_public_form:false,
       invite_multi_use_form:false,
     }
   },
   created: async function() {
     await this.ready();
-    this.fetch_invitations_v1();
+    this.fetch_invitations();
   },
   methods: {
     async fetchNewInvite(){
       let query_msg = {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/create-invitation",
         "label": this.invite_label_form,
-        "alias": this.invite_alias_form,
         "role": this.invite_role_form,
-        "auto_accept": this.invite_auto_accept_form,
+        "auto_accept": this.invite_accept_form,
+        "public": this.invite_public_form,
         "multi_use": this.invite_multi_use_form,
       };
       this.invite_label_form = "";
-      this.invite_alias_form = "";
       this.invite_role_form = "";
-      this.invite_autoaccept_form = false;
+      this.invite_accept_form = "auto";
+      this.invite_public_form = false;
       this.invite_multi_use_form = false;
       this.send_message(query_msg);
     },
     get_name: function(i) {
-      if(i.alias){
-        return i.alias;
-      }
-      return "no alias"; //i.invitation_mode +" / "+ i.role +" / "+ i.connection.created_at ;
-    },
-    copyURL: function(url){
-      clipboard.writeText(url);
-      this.$notify({
-          type: 'success',
-          title: 'Copied',
-          message: 'This Invitation has been copied to the clipboard.',
-          duration: 2000
-        });
+      return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
     },
     presentQR: function(url){
       this.QRDialogURL = url;
       this.QRDialogVisible = true;
     },
+    copyURL: function(url) {
+      const el = document.createElement('input')
+      document.body.append(el)
+      el.setAttribute('type', 'text')
+      el.setAttribute('value', url)
+      el.select()
+
+      const success = document.execCommand('copy')
+      if (success) {
+        this.$noty.success("Copied to the clipboard!", {
+          timeout: 1000
+        })
+      }
+
+      el.remove()
+      window.getSelection().removeAllRanges()
+    }
   }
 }
 </script>
