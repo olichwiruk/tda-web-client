@@ -94,7 +94,7 @@ export default {
       return this.$session.get('acapyApiUrl')
     },
     fileserverUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}`
+      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_DATA_VAULT_URL}`
     },
     myServicesSorted: function() {
       return this.myServices.sort((a, b) => {

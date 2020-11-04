@@ -50,7 +50,7 @@ export default {
       return this.$session.get('acapyApiUrl')
     },
     ocaRepoUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO_URL}`
     },
   },
   methods: {

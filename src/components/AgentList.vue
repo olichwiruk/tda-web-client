@@ -44,37 +44,29 @@ export default {
   components: {  },
   computed: {
     ...mapState("Agents", ["agent_list"]),
-    acapyApiUrl: function() {
-      const agentAdmin = this.uuid ? `${this.uuid}-${this.agent}-admin` : `${this.agent}-admin`
-      return `${config.env.VUE_APP_PROTOCOL}://${agentAdmin}.${config.env.VUE_APP_HOST}`
-    },
     agentWsUrl: function() {
-      const agentWs = this.uuid ? `${this.uuid}-${this.agent}-ws` : `${this.agent}-ws`
       const protocol = config.env.VUE_APP_PROTOCOL === "https" ? "wss" : "ws"
-      return `${protocol}://${agentWs}.${config.env.VUE_APP_HOST}`
+      return `${protocol}://${config.env.VUE_APP_WS_HOST}`
     },
     localDataVaultUrl: function() {
-      const dataVault = this.uuid ? `${this.uuid}-data-vault` : `data-vault`
-      return `${config.env.VUE_APP_PROTOCOL}://${dataVault}.${config.env.VUE_APP_HOST}`
+      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_DATA_VAULT_URL}`
     }
   },
   data() {
     return {
-      agent: this.routeParams().agent,
-      uuid: this.routeParams().uuid,
       defaultConnectionEstablished: null,
-      new_agent_invitation: ""
+      new_agent_invitation: this.$route.query.invitationUrl
     }
   },
   created() {
-    if(this.acapyApiUrl) {
-      this.connectDefaultAgent()
-    }
-
-    if (this.$session.exists()) {
+    if (this.$session.exists() && this.$session.get('agentId')) {
       this.$router.push({ name: 'agent', params: {
         agentid: this.$session.get('agentId')
       }})
+    }
+    if (this.$data.new_agent_invitation) {
+      this.defaultConnectionEstablished = true;
+      this.new_agent_invitation_process();
     }
   },
   watch: {
@@ -89,39 +81,11 @@ export default {
   },
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
-    routeParams() {
-        return window.location.search.substring(1).split("&").reduce(function(result, value) {
-          var parts = value.split('=');
-          if (parts[0]) result[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-          return result;
-        }, {})
-    },
 
-    connectDefaultAgent() {
-      const axiosInstance = axios.create()
-      axiosRetry(axiosInstance, {
-        retries: 5,
-        shouldResetTimeout: true,
-        retryDelay: retryCount => (retryCount * 500)
-      })
-
-      axiosInstance.post(
-        `${this.acapyApiUrl}/connections/create-admin-invitation-url`,
-        { timeout: 1000 }
-      ).then(r => {
-          const invitationUrl = r.data.invitation_url
-          if (!invitationUrl) { throw 'Error' }
-          this.new_agent_invitation = invitationUrl
-          this.new_agent_invitation_process()
-          this.defaultConnectionEstablished = true
-        }
-      ).catch(() => this.defaultConnectionEstablished = false)
-    },
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
       this.$session.set('instanceUuid', this.uuid)
       this.$session.set('instanceAgent', this.agent)
-      this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$session.set('websocketUrl', this.agentWsUrl)
       this.$session.set('localDataVaultUrl', this.localDataVaultUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
@@ -132,16 +96,8 @@ export default {
     async new_agent_invitation_process(){
       //process invite, prepare request
       var vm = this; //hang on to view model reference
-      this.new_agent_invitation = this.new_agent_invitation.replace(' ', '')
-      console.log("invite", this.new_agent_invitation);
-      //extract c_i param
-      function getUrlVars(url) {
-        var vars = {};
-        var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-          vars[key] = value;
-        });
-        return vars;
-      }
+      const url = new URL(this.new_agent_invitation);
+      this.$session.set('acapyApiUrl', url.hostname);
       /*
        * JavaScript base64 / base64url encoder and decoder
        */
@@ -244,7 +200,7 @@ export default {
         if (base64.indexOf("_") >= 0) return true
         return false
       }
-      var invite_b64 = getUrlVars(this.new_agent_invitation)["c_i"];
+      var invite_b64 = url.searchParams.get('c_i');
       console.log("invite b64", invite_b64);
       //base 64 decode
       var invite_string = base64_decode(invite_b64);

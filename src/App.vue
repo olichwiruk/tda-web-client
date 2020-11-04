@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <router-view></router-view>
-    <WebSocket :key="$session.get('websocketUrl')" />
+    <WebSocket/>
   </div>
 </template>
 
@@ -14,11 +14,12 @@
     components: { WebSocket },
     created() {
       if (this.$session.exists()) {
-        this.$session.get('connections').forEach(connection => {
-          this.add_agent(connection)
-        })
-      } else {
-        this.$session.start()
+        let connections = this.$session.get('connections');
+        if (connections) {
+          connections.forEach(connection => {
+            this.add_agent(connection)
+          })
+        }
       }
     },
     methods: {
