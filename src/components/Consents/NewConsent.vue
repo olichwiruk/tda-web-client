@@ -24,10 +24,6 @@
 import axios from 'axios'
 import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
 
-import Consent from '@/storage/models/Consent'
-import InstanceConsentsStorage from '@/storage/InstanceConsentsStorage'
-const instanceConsentsStorage = new InstanceConsentsStorage()
-
 import { eventBus as ocaEventBus, EventHandlerConstant,
   PreviewComponent } from 'odca-form'
 
@@ -55,7 +51,7 @@ export default {
   },
   computed: {
     ocaRepoHost: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      return this.$session.get('ocaRepoUrl')
     },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
@@ -63,20 +59,9 @@ export default {
     localDataVaultUrl: function() {
       return this.$session.get('localDataVaultUrl')
     },
-    instanceUuid: function() {
-      return this.$session.get('instanceUuid')
-    },
-    instanceAgent: function() {
-      return this.$session.get('instanceAgent')
-    },
     dataFilled: function() {
       return this.consent.oca_schema_dri && this.consent.form && this.consent.label.length > 0
     },
-    instanceConsents: function() {
-      return instanceConsentsStorage.findByInstance(
-        this.instanceUuid, this.instanceAgent
-      )
-    }
   },
   methods: {
     consentSchemaSelected({ namespace, DRI }) {
@@ -98,34 +83,30 @@ export default {
       }
     },
     sendConsentData(data) {
-      const dataStr = JSON.stringify(data, null, 2)
       this.consentData.sending = true
 
-      axios.post(`${this.acapyApiUrl}/pds/save`, {
-        payload: dataStr
+      axios.post(`${this.acapyApiUrl}/verifiable-services/consents`, {
+        label: this.consent.label,
+        oca_schema: {
+          namespace: this.consent.oca_schema_namespace,
+          dri: this.consent.oca_schema_dri,
+        },
+        payload: data
       }).then(r => {
-        this.consentData.dri = r.data.payload_id
         this.consentData.sending = false
-        const consent = new Consent(
-          this.consent.label, this.consent.oca_schema_namespace,
-          this.consent.oca_schema_dri, this.consentData.dri
-        )
-        const result = this.instanceConsents.addConsent(consent)
-        if (result.success) {
-          instanceConsentsStorage.add(this.instanceConsents)
+        if (r.data.success) {
+          this.$emit('consents-refresh')
+          this.consent.label = ''
+          this.$refs.ConsentPreviewComponent.closeModal();
         } else {
           this.$noty.error(`Error: ${result.errors.join(', ')}`, {
             timeout: 1000
           })
         }
-
-        this.consent.label = ''
-        this.$emit('consents-refresh')
-        this.$refs.ConsentPreviewComponent.closeModal();
       }).catch(e => {
         console.log(e)
-        this.$noty.error(`PDS error`, { timeout: 1000 })
-        this.$refs.ConsentPreviewComponent.closeModal();
+        this.consentData.sending = false
+        this.$noty.error(`Error occurred`, { timeout: 1000 })
       })
     }
   },

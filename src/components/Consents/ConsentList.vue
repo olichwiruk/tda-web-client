@@ -47,25 +47,23 @@ export default {
   },
   computed: {
     ocaRepoUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
-    },
-    localDataVaultUrl: function() {
-      return this.$session.get('localDataVaultUrl')
-    },
-    acapyApiUrl: function() {
-      return this.$session.get('acapyApiUrl')
+      return this.$session.get('ocaRepoUrl')
     },
   },
   methods: {
     async renderConsentForm(consent) {
-      let consentAnswers
-      if (consent.data) {
-        consentAnswers = JSON.parse(consent.data)
+      let consentAnswers, consentSchemaNamespace, consentSchemaDri
+      if (consent.payload) {
+        consentAnswers = consent.payload
+        consentSchemaNamespace = consent.oca_schema.namespace
+        consentSchemaDri = consent.oca_schema.dri
       } else {
-        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${consent.dataDri}`)).data.payload)
+        consentAnswers = JSON.parse(consent.data)
+        consentSchemaNamespace = consent.ocaSchemaNamespace
+        consentSchemaDri = consent.ocaSchemaDri
       }
       const consentBranch = (await axios.get(
-        `${this.ocaRepoUrl}/api/v2/schemas/${consent.ocaSchemaNamespace}/${consent.ocaSchemaDri}`
+        `${this.ocaRepoUrl}/api/v2/schemas/${consentSchemaNamespace}/${consentSchemaDri}`
       )).data
 
       const consentLangBranches = this.splitBranchPerLang(consentBranch)

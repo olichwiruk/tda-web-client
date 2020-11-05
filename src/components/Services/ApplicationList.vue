@@ -47,12 +47,17 @@ export default {
       return this.$session.get('acapyApiUrl')
     },
     ocaRepoUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      return this.$session.get('ocaRepoUrl')
     },
   },
   methods: {
     async renderApplicationForm(application) {
-      const consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${application.consent_schema.data_dri}`)).data.payload)
+      let consentAnswers
+      if(application.consent_schema.data) {
+        consentAnswers = JSON.parse(application.consent_schema.data)
+      } else {
+        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${application.consent_schema.data_dri}`)).data.payload)
+      }
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${application.consent_schema.oca_schema_namespace}/${application.consent_schema.oca_schema_dri}`
       )).data

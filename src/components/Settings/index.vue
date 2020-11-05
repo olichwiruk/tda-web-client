@@ -1,12 +1,14 @@
 <template>
   <el-row>
     <pds-settings title="Personal Data Storage" />
+    <controller-settings title="Controller Configuration" />
   </el-row>
 </template>
 
 <script>
 
 import PdsSettings from './PdsSettings.vue'
+import ControllerSettings from './ControllerSettings.vue'
 
 export const metadata = {
   menu: {
@@ -26,7 +28,8 @@ export const shared = {
 export default {
   name: 'settings',
   components: {
-    PdsSettings
+    PdsSettings,
+    ControllerSettings
   },
   data() {
     return {

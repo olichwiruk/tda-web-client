@@ -47,7 +47,7 @@ export default {
   },
   computed: {
     ocaRepoHost: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      return this.$session.get('ocaRepoUrl')
     },
     localDataVaultUrl: function() {
       return this.$session.get('localDataVaultUrl')
@@ -68,9 +68,9 @@ export default {
       this.service.oca_schema_namespace = namespace
     },
     consentSelected(consent) {
-      this.consent.oca_schema_dri = consent.ocaSchemaDri
-      this.consent.oca_schema_namespace = consent.ocaSchemaNamespace
-      this.consent.data_dri = String(consent.dataDri)
+      this.consent.oca_schema_namespace = consent.oca_schema.namespace
+      this.consent.oca_schema_dri = consent.oca_schema.dri
+      this.consent.data_dri = consent.payload_dri
     },
     resetServiceData() {
       this.label = null

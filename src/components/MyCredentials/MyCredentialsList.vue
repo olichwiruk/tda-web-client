@@ -369,7 +369,7 @@ export default {
       });
     },
     ocaRepoUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      return this.$session.get('ocaRepoUrl')
     },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
