@@ -44,30 +44,57 @@ export default {
   components: {  },
   computed: {
     ...mapState("Agents", ["agent_list"]),
+    agentServiceEndpoint: function() {
+      if(this.invitation_url) {
+        return (new URL(this.invitation_url)).origin
+      } else if(this.agent) {
+        const a = this.uuid ? `${this.uuid}-${this.agent}` : this.agent
+        return `${config.env.VUE_APP_PROTOCOL}://${a}.${config.env.VUE_APP_HOST}`
+      }
+    },
     acapyApiUrl: function() {
-      const agentAdmin = this.uuid ? `${this.uuid}-${this.agent}-admin` : `${this.agent}-admin`
-      return `${config.env.VUE_APP_PROTOCOL}://${agentAdmin}.${config.env.VUE_APP_HOST}`
+      const temp = this.agentServiceEndpoint.split('.')
+      temp[0] = temp[0].concat('-admin')
+      return temp.join('.')
     },
     agentWsUrl: function() {
-      const agentWs = this.uuid ? `${this.uuid}-${this.agent}-ws` : `${this.agent}-ws`
-      const protocol = config.env.VUE_APP_PROTOCOL === "https" ? "wss" : "ws"
-      return `${protocol}://${agentWs}.${config.env.VUE_APP_HOST}`
+      const temp = this.agentServiceEndpoint.split('.')
+      temp[0] = temp[0].replace('http', 'ws')
+      temp[0] = temp[0].concat('-ws')
+      return temp.join('.')
     },
     localDataVaultUrl: function() {
-      const dataVault = this.uuid ? `${this.uuid}-data-vault` : `data-vault`
-      return `${config.env.VUE_APP_PROTOCOL}://${dataVault}.${config.env.VUE_APP_HOST}`
+      const tempURL = new URL(this.agentServiceEndpoint)
+      const temp = tempURL.host.split('.')
+      const t0 = temp[0].split('-')
+      t0.pop()
+      t0.push(config.env.VUE_APP_DATA_VAULT)
+      temp[0] = t0.join('-')
+      return `${tempURL.protocol}//${temp.join('.')}`
+    },
+    ocaRepoUrl: function() {
+      if(config.env.VUE_APP_OCA_REPO_URL) {
+        return config.env.VUE_APP_OCA_REPO_URL
+      } else {
+        return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      }
     }
   },
   data() {
     return {
-      agent: this.routeParams().agent,
-      uuid: this.routeParams().uuid,
+      agent: this.routeParams().get('agent'),
+      uuid: this.routeParams().get('uuid'),
+      invitation_url: this.routeParams().get('invitation_url'),
       defaultConnectionEstablished: null,
       new_agent_invitation: ""
     }
   },
   created() {
-    if(this.acapyApiUrl) {
+    if(this.invitation_url) {
+      this.new_agent_invitation = this.invitation_url
+      this.new_agent_invitation_process()
+      this.defaultConnectionEstablished = true
+    } else if(this.acapyApiUrl) {
       this.connectDefaultAgent()
     }
 
@@ -90,11 +117,7 @@ export default {
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
     routeParams() {
-        return window.location.search.substring(1).split("&").reduce(function(result, value) {
-          var parts = value.split('=');
-          if (parts[0]) result[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-          return result;
-        }, {})
+        return (new URL(document.location)).searchParams;
     },
 
     connectDefaultAgent() {
@@ -119,11 +142,10 @@ export default {
     },
     openConnection: async function(a) {
       this.$session.set('agentId', a.id)
-      this.$session.set('instanceUuid', this.uuid)
-      this.$session.set('instanceAgent', this.agent)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$session.set('websocketUrl', this.agentWsUrl)
       this.$session.set('localDataVaultUrl', this.localDataVaultUrl)
+      this.$session.set('ocaRepoUrl', this.ocaRepoUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
     },
     deleteConnection: async function(a){

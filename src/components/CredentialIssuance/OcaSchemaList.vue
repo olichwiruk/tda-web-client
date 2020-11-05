@@ -195,11 +195,10 @@ export default {
       return this.connections.filter(c => c.their_label != 'ToolBox')
     },
     ocaRepoUrl: function() {
-      return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
+      return this.$session.get('ocaRepoUrl')
     },
     fileserverUrl: function() {
-      const uuid = this.$session.get('instanceUuid')
-      return uuid ? `${config.env.VUE_APP_PROTOCOL}://${uuid}-${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}` : `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_DATA_VAULT}.${config.env.VUE_APP_HOST}`
+      return this.$session.get('localDataVaultUrl')
     }
   },
   mounted() {
