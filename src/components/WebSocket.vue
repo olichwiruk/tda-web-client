@@ -37,7 +37,7 @@
           }
       },
       heartbeat() {
-        if (this.ws.readyState == WS_STATE.CLOSED) {
+        if (this.ws && this.ws.readyState == WS_STATE.CLOSED) {
           this.openWebsocketConnection()
         }
         setTimeout(this.heartbeat, 10000)
