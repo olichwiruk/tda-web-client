@@ -57,12 +57,6 @@ export default {
       temp[0] = temp[0].concat('-admin')
       return temp.join('.')
     },
-    agentWsUrl: function() {
-      const temp = this.agentServiceEndpoint.split('.')
-      temp[0] = temp[0].replace('http', 'ws')
-      temp[0] = temp[0].concat('-ws')
-      return temp.join('.')
-    },
     localDataVaultUrl: function() {
       const tempURL = new URL(this.agentServiceEndpoint)
       const temp = tempURL.host.split('.')
@@ -141,9 +135,15 @@ export default {
       ).catch(() => this.defaultConnectionEstablished = false)
     },
     openConnection: async function(a) {
+      axios.get(`${this.acapyApiUrl}/info`)
+        .then(r => {
+            const agentWsUrl = r.data.websocket_server_url
+            this.$session.set('websocketUrl', agentWsUrl)
+          }
+        )
+
       this.$session.set('agentId', a.id)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
-      this.$session.set('websocketUrl', this.agentWsUrl)
       this.$session.set('localDataVaultUrl', this.localDataVaultUrl)
       this.$session.set('ocaRepoUrl', this.ocaRepoUrl)
       this.$router.push({ name: 'agent', params: { agentid: a.id} })
