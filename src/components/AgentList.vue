@@ -54,7 +54,7 @@ export default {
     },
     acapyApiUrl: function() {
       const temp = this.agentServiceEndpoint.split('.')
-      temp[0] = temp[0].concat('-admin')
+      temp[0] = temp[0].concat('-api')
       return temp.join('.')
     },
     localDataVaultUrl: function() {
