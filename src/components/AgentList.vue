@@ -42,16 +42,18 @@ const uuidv4 = require('uuid/v4');
 export default {
   name: 'agent-list',
   components: {  },
+  data() {
+    return {
+      agent: this.routeParams().get('agent'),
+      uuid: this.routeParams().get('uuid'),
+      invitation_url: this.routeParams().get('invitation_url'),
+      agentServiceEndpoint: '',
+      defaultConnectionEstablished: null,
+      new_agent_invitation: ""
+    }
+  },
   computed: {
     ...mapState("Agents", ["agent_list"]),
-    agentServiceEndpoint: function() {
-      if(this.invitation_url) {
-        return (new URL(this.invitation_url)).origin
-      } else if(this.agent) {
-        const a = this.uuid ? `${this.uuid}-${this.agent}` : this.agent
-        return `${config.env.VUE_APP_PROTOCOL}://${a}.${config.env.VUE_APP_HOST}`
-      }
-    },
     acapyApiUrl: function() {
       const temp = this.agentServiceEndpoint.split('.')
       temp[0] = temp[0].concat('-api')
@@ -74,21 +76,15 @@ export default {
       }
     }
   },
-  data() {
-    return {
-      agent: this.routeParams().get('agent'),
-      uuid: this.routeParams().get('uuid'),
-      invitation_url: this.routeParams().get('invitation_url'),
-      defaultConnectionEstablished: null,
-      new_agent_invitation: ""
-    }
-  },
   created() {
     if(this.invitation_url) {
+      this.agentServiceEndpoint = (new URL(this.invitation_url)).origin
       this.new_agent_invitation = this.invitation_url
       this.new_agent_invitation_process()
       this.defaultConnectionEstablished = true
-    } else if(this.acapyApiUrl) {
+    } else if(this.agent) {
+      const a = this.uuid ? `${this.uuid}-${this.agent}` : this.agent
+      this.agentServiceEndpoint = `${config.env.VUE_APP_PROTOCOL}://${a}.${config.env.VUE_APP_HOST}`
       this.connectDefaultAgent()
     }
 
@@ -101,10 +97,8 @@ export default {
   watch: {
     agent_list: {
       handler() {
-        if(this.defaultConnectionEstablished) {
-          const agent = this.agent_list[0]
-          this.openConnection(agent)
-        }
+        const agent = this.agent_list[0]
+        this.openConnection(agent)
       }
     }
   },
@@ -152,6 +146,10 @@ export default {
       this.delete_agent(a);
     },
     async new_agent_invitation_process(){
+      if (this.agentServiceEndpoint.length == 0) {
+        this.agentServiceEndpoint = (new URL(this.new_agent_invitation)).origin
+      }
+
       //process invite, prepare request
       var vm = this; //hang on to view model reference
       this.new_agent_invitation = this.new_agent_invitation.replace(' ', '')
