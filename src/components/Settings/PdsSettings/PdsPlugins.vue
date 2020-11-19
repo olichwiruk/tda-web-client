@@ -99,10 +99,10 @@ export default {
     }
   },
   mounted() {
-    axios.get(`${this.acapyApiUrl}/pds/settings`)
+    axios.get(`${this.acapyApiUrl}/pds`)
       .then(r => {
         if (r.status === 200) {
-          const entries = Object.entries(r.data)
+          const entries = Object.entries(r.data.types)
           this.plugin_list = entries.map(entry => {
             return {
               pluginName: entry[0],
