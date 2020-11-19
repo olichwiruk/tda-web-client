@@ -5,7 +5,7 @@ export function Share(vm, data = {}, computed = {}, methods = {}) {
     return new Vue({
         data: function() {
             return {
-                is_dev_interface: config.env.VUE_APP_UI == 'dev',
+                is_dev_interface: vm.$session.get('isDevUi'),
                 vm: vm,
                 ...data
             };
