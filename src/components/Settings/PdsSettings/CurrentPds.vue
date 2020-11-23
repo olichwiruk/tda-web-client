@@ -37,7 +37,8 @@ export default {
   },
   methods: {
     pds_selected(pds) {
-      axios.post(`${this.acapyApiUrl}/pds/activate?type=${pds.split(',')[0]}`)
+      const [pds_type, pds_name] = pds.split(',')
+      axios.post(`${this.acapyApiUrl}/pds/activate?type=${pds_type}&optional_name=${pds_name}`)
     },
     refreshPdsList() {
       axios.get(`${this.acapyApiUrl}/pds`)
