@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import adminApi from '@/admin_api.ts'
 import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
@@ -49,12 +49,10 @@ export default {
       }
     }
   },
+  mixins: [adminApi],
   computed: {
     ocaRepoHost: function() {
       return this.$session.get('ocaRepoUrl')
-    },
-    acapyApiUrl: function() {
-      return this.$session.get('acapyApiUrl')
     },
     localDataVaultUrl: function() {
       return this.$session.get('localDataVaultUrl')
@@ -85,12 +83,10 @@ export default {
     sendConsentData(data) {
       this.consentData.sending = true
 
-      axios.post(`${this.acapyApiUrl}/verifiable-services/consents`, {
+      this.$_adminApi_addConsent({
         label: this.consent.label,
-        oca_schema: {
-          namespace: this.consent.oca_schema_namespace,
-          dri: this.consent.oca_schema_dri,
-        },
+        oca_schema_namespace: this.consent.oca_schema_namespace,
+        oca_schema_dri: this.consent.oca_schema_dri,
         payload: data
       }).then(r => {
         this.consentData.sending = false
