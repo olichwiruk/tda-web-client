@@ -185,7 +185,7 @@ export default {
         console.log(r.data)
         if (r.status === 200) {
           if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
-            this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
+            this.$noty.error(`Error: ${r.data.split(':')[1]}`, { timeout: 2000 })
           } else {
             this.$noty.success("Application send!", { timeout: 1000 })
           }
@@ -194,8 +194,9 @@ export default {
         this.confirmProcessing = false
         this.$refs.PreviewServiceComponent.closeModal();
       }).catch(e => {
-        console.log(e)
-        this.$noty.error("Error occurred", { timeout: 1000 })
+        console.error(e)
+        const { status: code, statusText: msg } = e.response
+        this.$noty.error(`Error: ${code} ${msg}`, { timeout: 1000 })
 
         this.confirmProcessing = false
         this.$refs.PreviewServiceComponent.closeModal();
