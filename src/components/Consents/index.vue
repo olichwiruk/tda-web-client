@@ -19,6 +19,7 @@
 
 <script>
 import axios from 'axios';
+import adminApi from '@/admin_api.ts'
 import { PreviewComponent, MultiPreviewComponent } from 'odca-form'
 import NewConsent from './NewConsent'
 import ConsentList from './ConsentList'
@@ -45,7 +46,8 @@ export default {
   mixins: [
     share({
       use: ['connections'],
-    })
+    }),
+    adminApi
   ],
   data() {
     return {
@@ -68,7 +70,7 @@ export default {
   },
   methods: {
     async refreshDefinedConsents() {
-      await axios.get(`${this.acapyApiUrl}/verifiable-services/consents`)
+      await this.$_adminApi_getConsents()
         .then(r => {
           if (r.status === 200) {
             this.defined_consent_list = r.data.result

@@ -14,6 +14,12 @@ export default {
             this.adminApiUrl,
             params
           )
+        },
+        $_adminApi_getConsents(): Promise<object> {
+          return getConsents(
+            // @ts-ignore
+            this.adminApiUrl
+          )
         }
     }
 }
@@ -35,4 +41,8 @@ function addConsent(apiUrl: string, params: addConsentParams) {
         payload: params.payload
     }
     return axios.post(`${apiUrl}/verifiable-services/consents`, body)
+}
+
+function getConsents(apiUrl: string) {
+    return axios.get(`${apiUrl}/verifiable-services/consents`)
 }
