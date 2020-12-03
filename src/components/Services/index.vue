@@ -28,6 +28,7 @@
 
 <script>
 import axios from 'axios';
+import adminApi from '@/admin_api.ts'
 
 import { mapState, mapActions } from 'vuex'
 import NewService from './NewService.vue';
@@ -135,7 +136,8 @@ export default {
     share({
       use: ['connections'],
       actions: []
-    })
+    }),
+    adminApi
   ],
   created: async function() {
     await this.ready();
@@ -163,7 +165,7 @@ export default {
         })
     },
     refreshSubmittedApplications() {
-      axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+      this.$_adminApi_getServiceApplications({
         state: "pending", author: "self"
       }).then(r => {
         if (r.status === 200) {
@@ -172,7 +174,7 @@ export default {
               conn.connection_id == application.connection_id
             )
             return Object.assign(application, {
-              payload: JSON.parse(application.payload),
+              payload: JSON.parse(application.service_user_data),
               service_schema: JSON.parse(application.service_schema),
               consent_schema: JSON.parse(application.consent_schema),
               connection: connection
@@ -185,7 +187,7 @@ export default {
       })
     },
     refreshPendingApplications() {
-      axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
+      this.$_adminApi_getServiceApplications({
         state: "pending", author: "other"
       }).then(r => {
         if (r.status === 200) {
@@ -194,7 +196,7 @@ export default {
               conn.connection_id == application.connection_id
             )
             return Object.assign(application, {
-              payload: JSON.parse(application.payload),
+              payload: JSON.parse(application.service_user_data),
               service_schema: JSON.parse(application.service_schema),
               consent_schema: JSON.parse(application.consent_schema),
               connection: connection

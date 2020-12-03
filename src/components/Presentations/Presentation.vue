@@ -4,10 +4,6 @@
       <a class="navbar-brand" href="#"> {{ title }} </a>
       <el-button
         type="primary"
-        icon="el-icon-plus"
-        @click="proposalFormActive = true">Presentation Proposal</el-button>
-      <el-button
-        type="primary"
         icon="el-icon-refresh"
         @click="$emit('presentation-refresh',)"></el-button>
     </nav>
@@ -15,16 +11,17 @@
       <ul class="list">
         <el-collapse-item
           v-for="presentation in VerifiedPresentations"
-          v-bind:title="presentation.presentation_exchange_id"
+          :title="presentationTitle(presentation, 'From')"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
           <el-row>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
+            <el-button @click="preview_presentation(presentation)">Preview</el-button>
             <el-button v-on:click="collapse_expanded_ver_pres(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -37,215 +34,113 @@
       <ul class="list">
         <el-collapse-item
           v-for="presentation in ReceivedRequests"
-          v-bind:title="presentation.presentation_exchange_id"
+          :title="presentationTitle(presentation, 'From')"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
           <el-row>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
+            <el-button @click="preview_presentation(presentation)">Preview</el-button>
+            <el-button type="success" plain @click="activate_presentation_dialog(presentation)">Present</el-button>
             <el-button v-on:click="collapse_expanded_rec_req(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Sent Presentation </a>
+      <a class="navbar-brand" href="#"> Sent Presentations </a>
     </nav>
     <el-collapse v-model="sent_pres_expanded_items">
       <ul class="list">
         <el-collapse-item
           v-for="presentation in SentPresentations"
-          v-bind:title="presentation.presentation_exchange_id"
+          :title="presentationTitle(presentation, 'To')"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
           <el-row>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
+            <el-button @click="preview_presentation(presentation)">Preview</el-button>
             <el-button v-on:click="collapse_expanded_sent_pres(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Sent Proposals </a>
+      <a class="navbar-brand" href="#"> Sent Requests </a>
     </nav>
     <el-collapse v-model="sent_prop_expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="presentation in SentProposals"
-          v-bind:title="presentation.presentation_exchange_id"
+          v-for="presentation in SentRequest"
+          :title="presentationTitle(presentation, 'To')"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
           <el-row>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
+            <el-button @click="preview_presentation(presentation)">Preview</el-button>
             <el-button v-on:click="collapse_expanded_sent_prop(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
 
-    <el-dialog title="Make a Presentation Proposal" :visible.sync="proposalFormActive">
-      <el-form :model="proposalForm">
-        <el-form-item label="Connection:" :label-width="formLabelWidth">
-          <el-select
-            v-model="proposalForm.connection_id"
-            filterable
-            placeholder="Connection">
-            <el-option
-              v-for="connection in connections"
-              :key="connection.connection_id"
-              :label="connection.their_label"
-              :value="connection.connection_id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-
+    <el-dialog title="Present document" :visible.sync="presentationDialog.active" @close="deactivatePresentationDialog()">
+      <el-form>
         <el-form-item
-          label="Comment (optional)"
+          label="Documents:"
           :label-width="formLabelWidth">
-          <el-input
-            v-model="proposalForm.comment"
-            type="textarea"></el-input>
-        </el-form-item>
-
-        <el-form-item
-          v-for="(attribute, index) in proposalForm.attributes"
-          :label="'Attribute ' + index"
-          :label-width="formLabelWidth"
-          :key="'attribute_' + index"
-          class="additions">
-          <el-select
-            v-model="proposalForm.attributes[index].cred_def"
-            filterable
-            no-data-text="No credential definitions"
-            placeholder="Credential Definition">
+          <el-select v-model="presentationDialog.selectedCredential" placeholder="Select document">
             <el-option
-              v-for="cred_def in cred_defs"
-              :key="cred_def.cred_def_id"
-              :label="cred_def.cred_def_id"
-              :value="cred_def">
+              v-for="(item, i) in presentationDialog.matchingCredentials"
+              :key="item.id"
+              :label="item.credential.issuanceDate"
+              :value="i">
             </el-option>
           </el-select>
-          <el-input
-            v-model="proposalForm.attributes[index].value"
-            placeholder="Attribute Value">
-            <el-select
-              slot="prepend"
-              v-if="proposalForm.attributes[index].cred_def != null"
-              v-model="proposalForm.attributes[index].name"
-              placeholder="Attribute Name"
-              style="width: 100px;">
-              <el-option
-                v-for="(attribute, index) in proposalForm.attributes[index].cred_def.attributes"
-                :key="'attribute_name_' + index"
-                :label="attribute"
-                :value="attribute"></el-option>
-            </el-select>
-            <el-button
-              slot="append"
-              icon="el-icon-close"
-              @click="remove_attribute(index)"></el-button>
-          </el-input>
         </el-form-item>
-
-        <el-divider v-if="proposalForm.predicates.length > 0 && proposalForm.attributes.length > 0"></el-divider>
-
-        <!-- Dynamic Predicates -->
-        <el-form-item
-          v-for="(predicate, index) in proposalForm.predicates"
-          :label="'Predicate ' + index"
-          :label-width="formLabelWidth"
-          :key="'predicate_' + index"
-          class="additions">
-          <el-select
-            v-model="proposalForm.predicates[index].cred_def"
-            filterable
-            no-data-text="No credential definitions"
-            placeholder="Credential Definition">
-            <el-option
-              v-for="cred_def in cred_defs"
-              :key="cred_def.cred_def_id"
-              :label="cred_def.cred_def_id"
-              :value="cred_def">
-            </el-option>
-          </el-select>
-          <el-input
-            v-model="proposalForm.predicates[index].threshold"
-            placeholder="Threshold">
-            <el-select
-              slot="prepend"
-              v-if="proposalForm.predicates[index].cred_def != null"
-              v-model="proposalForm.predicates[index].name"
-              placeholder="Attribute Name"
-              style="width: 100px;">
-              <el-option
-                v-for="(attribute, index) in proposalForm.predicates[index].cred_def.attributes"
-                :key="'predicate_name_' + index"
-                :label="attribute"
-                :value="attribute"></el-option>
-            </el-select>
-            <el-select
-              v-model="proposalForm.predicates[index].predicate"
-              slot="prepend"
-              placeholder="Type"
-              class="ptype"
-              style="width: 100px;">
-              <el-option
-                v-for="opt in p_type_options"
-                :key="opt"
-                :label="opt"
-                :value="opt"></el-option>
-            </el-select>
-            <el-button
-              slot="append"
-              icon="el-icon-close"
-              @click="remove_predicate(index)"></el-button>
-          </el-input>
-        </el-form-item>
-
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="add_attribute">Add attribute</el-button>
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="add_predicate">Add predicate</el-button>
       </el-form>
+
       <span slot="footer" class="dialog-footer">
-        <el-button @click="proposalFormActive = false">Cancel</el-button>
-        <el-button type="primary" @click="send">Send</el-button>
+        <el-button @click="deactivatePresentationDialog()">Cancel</el-button>
+        <el-button :disabled="!(presentationDialog.selectedCredential >= 0)" type="primary" @click="send_presentation(presentationDialog)">Send</el-button>
       </span>
     </el-dialog>
+
+    <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 import VueJsonPretty from 'vue-json-pretty';
+import adminApi from '@/admin_api.ts'
+import { renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'presentation',
   props: [
     'title',
     'presentations',
+    'credentials',
     'connections',
-    'cred_defs',
   ],
   components: {
     VueJsonPretty,
+    PreviewComponent
   },
   data () {
     return {
@@ -254,55 +149,30 @@ export default {
       rec_req_expanded_items:[],
       sent_pres_expanded_items:[],
       expanded_items:[],
-      proposalFormActive: false,
-      proposalForm: {
-        connection_id: '', // Who
-        comment: '', // Optional comment
-        attributes: [ ],
-        predicates: [ ]
-      },
       formLabelWidth: '100px',
-      p_type_options: ['>', '<', '>=', '<=']
+      credentialsLabel: {},
+      credentialsSchema: {},
+      credentialsSchemaAlt: {},
+      schemaInput: {},
+      form: {},
+      alternatives: [],
+      presentationDialog: {
+        active: false,
+        exchangeId: null,
+        matchingCredentials: [],
+        selectedCredential: null
+      }
     }
   },
+  mixins: [adminApi],
   methods: {
-    send: function() {
-      let values = {
-        connection_id: this.proposalForm.connection_id,
-        comment: this.proposalForm.comment,
-        attributes: this.proposalForm.attributes,
-        predicates: this.proposalForm.predicates,
-        auto_present: true
+    deactivatePresentationDialog() {
+      this.presentationDialog = {
+        active: false,
+        exchangeId: null,
+        matchingCredentials: [],
+        selectedCredential: null
       }
-      this.proposalFormActive = false;
-
-      this.proposalForm.connection_id = '';
-      this.proposalForm.comment = '';
-      this.proposalForm.attributes = [];
-      this.proposalForm.predicates = [];
-
-      this.$emit('send-presentation-proposal', values);
-    },
-    add_attribute: function() {
-      this.proposalForm.attributes.push({
-        name: '',
-        cred_def: null,
-        value: '',
-      });
-    },
-    remove_attribute: function(index) {
-      this.proposalForm.attributes.splice(index, 1);
-    },
-    add_predicate: function() {
-      this.proposalForm.predicates.push({
-        name: '',
-        cred_def: null,
-        predicate: '',
-        threshold: '',
-      });
-    },
-    remove_predicate: function(index) {
-      this.proposalForm.predicates.splice(index, 1);
     },
     collapse_expanded_ver_pres: function(presentation){
       this.ver_pres_expanded_items = this.ver_pres_expanded_items.filter(
@@ -324,15 +194,159 @@ export default {
         item => item != presentation.presentation_exchange_id
       );
     },
-    update_attributes: function(cred_def) {
-      var comp = this;
-      cred_def.attributes.forEach(name => {
-        comp.proposalForm.attributes.push({
-          name: name,
-          value: ''
-        });
-      });
+    presentationTitle(presentation, dir) {
+      let title = ''
+      const label = this.credentialsLabel[presentation.presentation_exchange_id]
+      const connection = this.connection_map[presentation.connection_id]
+
+      if (label) { title += label + ' | ' }
+      title += presentation.created_at + ' | '
+      if (dir && connection) { title +=  `${dir}: ${connection.their_label}` }
+      return title
     },
+    activate_presentation_dialog(presentation) {
+      this.presentationDialog.matchingCredentials = this.credentials.filter(cred => {
+        return cred.credential.credentialSubject.oca_schema_dri == presentation.presentation_request.schema_base_dri
+      }).sort((a, b) => {
+        if(a.credential.issuanceDate > b.credential.issuanceDate) {
+          return -1
+        } else if(b.credential.issuanceDate > a.credential.issuanceDate) {
+          return 1
+        }
+        return 0
+      })
+      if (this.presentationDialog.matchingCredentials.length > 0) {
+        this.presentationDialog.selectedCredential = 0
+        this.presentationDialog.exchangeId = presentation.presentation_exchange_id
+        this.presentationDialog.active = true
+      } else {
+        this.$noty.error("You dont have matching credential.", {
+          timeout: 1000
+        })
+      }
+    },
+    send_presentation(presentationData) {
+      this.deactivatePresentationDialog()
+      this.$_adminApi_sendPresentation({
+        credential_id: presentationData.matchingCredentials[presentationData.selectedCredential].id,
+        exchange_record_id: presentationData.exchangeId
+      }).then(r => {
+        this.$emit('presentation-refresh',)
+      })
+      this.$noty.success("Presentation send!", {
+        timeout: 1000
+      })
+    },
+    async preview_presentation(presentation) {
+      const presExId = presentation.presentation_exchange_id
+
+      this.alternatives = this.credentialsSchemaAlt[presExId]
+
+      this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
+      let input = null
+      if (this.schemaInput[presExId]) {
+        console.log(this.schemaInput[presExId])
+        input = JSON.parse((await this.$_adminApi_getPayload({
+          payload_dri: this.schemaInput[presExId]
+        })).data.payload)
+      }
+      console.log(input)
+      try {
+          this.form = this.credentialsSchema[presExId]
+          this.$refs.PreviewComponent.openModal(this.form, input);
+      } catch(e) {
+          console.log(e)
+          this.$refs.PreviewComponent.closeModal()
+          this.$noty.error("ERROR! Form data are corrupted.", {
+            timeout: 1000
+          })
+      }
+    },
+    generatePreview: async function(presentationEl) {
+      const presExId = presentationEl.presentation_exchange_id
+      const presentation = presentationEl.presentation
+      if(presentation) {
+        const credential = Object.values(presentation.verifiableCredential)[0]
+        const serviceSchema = {
+          oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
+          oca_schema_dri: credential.credentialSubject.oca_schema_dri
+        }
+        axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
+          .then(r => {
+            const branch = r.data
+            this.credentialsSchemaAlt[presExId] = []
+            const langBranches = this.splitBranchPerLang(branch)
+
+            langBranches.forEach(langBranch => {
+              this.credentialsSchemaAlt[presExId].push({
+                language: langBranch.lang,
+                form: renderForm([
+                  langBranch.branch.schema_base,
+                  ...langBranch.branch.overlays]
+                ).form
+              })
+            })
+            this.credentialsSchema[presExId]= this.credentialsSchemaAlt[presExId][0].form
+            this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
+          })
+
+        if(credential.credentialSubject.data_dri) {
+          this.schemaInput[presExId] = credential.credentialSubject.data_dri
+          this.$_adminApi_askForPayload({
+            connection_id: presentationEl.connection_id,
+            payload_id: credential.credentialSubject.data_dri
+          })
+        }
+      } else {
+        axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${presentationEl.presentation_request.schema_base_dri}`)
+          .then(r => {
+            const branch = r.data
+            this.credentialsSchemaAlt[presExId] = []
+            const langBranches = this.splitBranchPerLang(branch)
+
+            langBranches.forEach(langBranch => {
+              this.credentialsSchemaAlt[presExId].push({
+                language: langBranch.lang,
+                form: renderForm([
+                  langBranch.branch.schema_base,
+                  ...langBranch.branch.overlays]
+                ).form
+              })
+            })
+            this.credentialsSchema[presExId]= this.credentialsSchemaAlt[presExId][0].form
+            this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
+          })
+      }
+    },
+    splitBranchPerLang: function(branch) {
+      const langBranches = []
+      const labelOverlays = branch.overlays.filter(o => o.type.includes("label"))
+      const languages = labelOverlays.map(o => o.language)
+      const schemaBase = branch.schema_base
+      languages.forEach(lang => {
+        langBranches.push({
+          lang: lang,
+          branch: {
+            schema_base: schemaBase,
+            overlays: branch.overlays.filter(o => {
+              if(!o.language) { return true }
+              return o.language == lang
+            })
+          }
+        })
+      })
+      return langBranches
+    },
+  },
+  watch: {
+    presentations: function() {
+      this.presentations.forEach(async (presentation) => {
+        await this.generatePreview(presentation)
+      })
+      if (this.presentations.length != Object.keys(this.credentialsLabel).length) {
+        this.$emit('presentation-refresh',)
+      }
+    }
   },
   computed: {
     connection_map: function() {
@@ -340,7 +354,6 @@ export default {
         acc[item.connection_id] = item;
         return acc;
       }, {});
-      console.log(map);
       return map;
     },
     completed_verifications: function() {
@@ -359,7 +372,7 @@ export default {
         ) &&
         //==========================================
         "role" in exchange &&
-        "prover" === exchange.role )
+        "verifier" === exchange.role )
     },
     ReceivedRequests(){
       return this.presentations.filter(
@@ -379,15 +392,18 @@ export default {
         "role" in exchange &&
         "prover" === exchange.role )
     },
-    SentProposals(){
+    SentRequest(){
       return this.presentations.filter(
         exchange =>
         "state" in exchange &&
-        exchange.state === "proposal_sent"  &&
+        exchange.state === "request_sent"  &&
         //==========================================
         "role" in exchange &&
-        "prover" === exchange.role
+        "verifier" === exchange.role
       )
+    },
+    ocaRepoUrl: function() {
+      return this.$session.get('ocaRepoUrl')
     },
   }
 }

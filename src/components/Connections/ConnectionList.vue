@@ -17,6 +17,11 @@
           <el-row>
             <div>
               <vue-json-pretty :deep=0 :data="connection" />
+              <presentation-request-button
+                title="Ask For Presentation"
+                @click="openPresentationRequest(connection.connection_id)"
+                :ref="connection.connection_id"
+                :connection="connection" />
               <connection-service-list title="Services:"
                 :ref="connection.connection_id"
                 :connection="connection"
@@ -47,6 +52,10 @@
       </span>
     </el-dialog>
 
+    <presentation-request-dialog ref="PresentationDialog"
+      title="Presentation Request"
+      @presentation-requested="sendPresentationRequest"/>
+
     <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent" />
@@ -54,12 +63,14 @@
 </template>
 
 <script>
-import axios from 'axios'
 import VueJsonPretty from 'vue-json-pretty';
+import adminApi from '@/admin_api.ts'
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
   MultiPreviewComponent } from 'odca-form'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
+import PresentationRequestButton from './ConnectionList/PresentationRequest/Button'
+import PresentationRequestDialog from './ConnectionList/PresentationRequest/Dialog'
 
 export default {
   name: 'connection-list',
@@ -67,6 +78,8 @@ export default {
   components: {
     VueJsonPretty,
     ConnectionServiceList,
+    PresentationRequestButton,
+    PresentationRequestDialog,
     MultiPreviewComponent
   },
   data () {
@@ -80,11 +93,13 @@ export default {
       },
       forms: [{ class: 'col-md-7', readonly: true, formData: {} },
         { class: 'col-md-5', readonly: true, formData: {} }],
+      currentPresentationRequest: {},
       currentApplicationService: {},
       confirmProcessing: false,
       formLabelWidth: '100px'
     }
   },
+  mixins: [adminApi],
   computed: {
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
@@ -94,7 +109,7 @@ export default {
     'expanded_items': function(a, b) {
       const connection_id = a.filter(x => !b.includes(x))[0]
       if (connection_id) {
-        this.$refs[connection_id][0].fetchServices()
+        this.$refs[connection_id][1].fetchServices()
       }
     }
   },
@@ -126,6 +141,19 @@ export default {
       this.expanded_items = this.expanded_items.filter(
         item => item != connection.connection_id
       );
+    },
+    openPresentationRequest(connection_id) {
+      this.currentPresentationRequest.connection_id = connection_id
+      this.$refs.PresentationDialog.active = true
+    },
+    sendPresentationRequest(event) {
+      this.$_adminApi_requestPresentation({
+        connection_id: this.currentPresentationRequest.connection_id,
+        oca_schema_dri: event.oca_schema_dri
+      }).then(r => {
+        console.log(r)
+        this.$noty.success("Request for presentation send!", { timeout: 2000 })
+      })
     },
     collectForms(event, options) {
       Object.assign(this.forms[0],
@@ -177,15 +205,15 @@ export default {
       if(!this.$refs.PreviewServiceComponent) { return }
       this.confirmProcessing = true
 
-      axios.post(`${this.acapyApiUrl}/verifiable-services/apply`, {
+      this.$_adminApi_applyOnService({
         connection_id: this.currentApplicationService.connection_id,
         service: this.currentApplicationService.service,
-        payload: JSON.stringify(data)
+        user_data: JSON.stringify(data)
       }).then(r => {
         console.log(r.data)
         if (r.status === 200) {
           if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
-            this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
+            this.$noty.error(`Error: ${r.data.split(':')[1]}`, { timeout: 2000 })
           } else {
             this.$noty.success("Application send!", { timeout: 1000 })
           }
@@ -194,8 +222,9 @@ export default {
         this.confirmProcessing = false
         this.$refs.PreviewServiceComponent.closeModal();
       }).catch(e => {
-        console.log(e)
-        this.$noty.error("Error occurred", { timeout: 1000 })
+        console.error(e)
+        const { status: code, statusText: msg } = e.response
+        this.$noty.error(`Error: ${code} ${msg}`, { timeout: 1000 })
 
         this.confirmProcessing = false
         this.$refs.PreviewServiceComponent.closeModal();

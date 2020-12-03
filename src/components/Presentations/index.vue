@@ -1,21 +1,18 @@
 <template >
   <el-row>
-    <presentation
-      title="Presentations"
-      v-bind:presentations= "holder_presentations"
-      v-bind:connections = "active_connections"
-      v-bind:cred_defs = "cred_defs"
-      @presentation-refresh = "fetch_holder_presentations"
-      @send-presentation-proposal= "sendPresentationProposal"
-      ></presentation>
+    <presentation title="Received Presentations"
+      :credentials="credentials"
+      :presentations="presentations"
+      :connections="active_connections"
+      @presentation-refresh="refresh_presentations"></presentation>
   </el-row>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import Presentation from './Presentation.vue';
-import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
+import adminApi from '@/admin_api.ts'
 
 export const metadata = {
   menu: {
@@ -23,30 +20,11 @@ export const metadata = {
     icon: 'el-icon-document-checked',
     group: 'Agent to Agent',
     priority: 90,
-    dev_only: true,
     required_protocols: [
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'
     ]
   }
 };
-
-export const shared = {
-  data: {
-    holder_presentations: [],
-  },
-  listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list': (share, msg) => {
-      share.holder_presentations = msg.results;
-    }
-  },
-  methods: {
-    fetch_holder_presentations: ({send}) => {
-      send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-get-list",
-      })
-    }
-  }
-}
 
 export default {
   name: 'presentations',
@@ -54,61 +32,29 @@ export default {
     VueJsonPretty,
     Presentation,
   },
+  data() {
+    return {
+      presentations: [],
+      credentials: []
+    }
+  },
   mixins: [
-    message_bus(),
     share({
-      use: [
-        'active_connections', 
-        'cred_defs',
-        'holder_presentations'
-      ],
-      actions: ['fetch_holder_presentations']
-    })
+      use: ['active_connections'],
+    }),
+    adminApi
   ],
   created: async function() {
     await this.ready();
-    this.fetch_holder_presentations();
+    this.refresh_presentations();
   },
   methods: {
-    async sendPresentationProposal(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/send-presentation-proposal",
-        "connection_id": form.connection_id,
-        "comment": form.comment,
-        "auto_present": form.auto_present , //optional, default to false
-        "presentation_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
-          /**
-           * name 
-           * cred_def_id //optional
-           * mime_type //optional
-           * value //optional
-           * */
-          attributes: form.attributes.map(attribute => {
-            return {
-              name: attribute.name,
-              cred_def_id: attribute.cred_def.cred_def_id,
-              value: attribute.value
-            };
-          }),
-          /**
-           * name
-           * cred_def_id
-           * predicate
-           * threshold
-           */
-          predicates: form.predicates.map(predicate => {
-            return {
-              name: predicate.name,
-              cred_def_id: predicate.cred_def.cred_def_id,
-              predicate: predicate.predicate,
-              threshold: predicate.threshold
-            };
-          })
-        },
-      };
-        this.send_message(query_msg);
-    },
+    refresh_presentations() {
+      this.$_adminApi_getCredentials()
+        .then(r => this.credentials = r.data.results)
+      this.$_adminApi_getPresentations()
+        .then(r => this.presentations = r.data)
+    }
   }
 }
 </script>
