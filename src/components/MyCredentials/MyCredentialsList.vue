@@ -15,10 +15,10 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in credentials"
-          :name="credential.created_at"
-          :key="credential.created_at">
+          :name="credential.credential.issuanceDate"
+          :key="credential.credential.issuanceDate">
           <template slot="title">
-            {{ credentialsLabel[credential.created_at] }} | {{ credential.created_at }} {{ credential.connection ? `| ${credential.connection.their_label}` : '' }}
+            {{ credentialsLabel[credential.credential.issuanceDate] }} | {{ credential.credential.issuanceDate }} {{ credential.connection ? `| ${credential.connection.their_label}` : '' }}
           </template>
           <el-row>
             <div>
@@ -27,8 +27,8 @@
                 :data="credential">
               </vue-json-pretty>
             </div>
-            <el-button v-if="credentialsSchema[credential.created_at]"
-              v-on:click="preview(credentialsSchema[credential.created_at], schemaInput[credential.created_at], credentialsSchemaAlt[credential.created_at])">Preview</el-button>
+            <el-button v-if="credentialsSchema[credential.credential.issuanceDate]"
+              v-on:click="preview(credentialsSchema[credential.credential.issuanceDate], schemaInput[credential.credential.issuanceDate], credentialsSchemaAlt[credential.credential.issuanceDate])">Preview</el-button>
             <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -225,19 +225,20 @@ export default {
       }
       return `${split[2]} v${split[3]} received from ${connection_name}`;
     },
-    generatePreview: async function(credential) {
+    generatePreview: async function(credentialEl) {
+      const credential = credentialEl.credential
       let hashlink = credential.credentialSubject.hashlink
       if (hashlink && hashlink.includes('hl:')) {
         const data = await hl.decode({hashlink})
         const exp = data.meta.experimental
 
         if (exp && exp['schema-base']) {
-          this.credentialsSchema[credential.created_at] = []
+          this.credentialsSchema[credential.issuanceDate] = []
           const ids = [...exp.overlays, exp['schema-base']]
           ids.forEach(id => {
             axios.get(exp.host + id)
               .then(response => {
-                this.credentialsSchema[credential.created_at].push(response.data)
+                this.credentialsSchema[credential.issuanceDate].push(response.data)
               })
           })
         } else if (exp && exp['dri']) {
@@ -245,11 +246,11 @@ export default {
           axios.get(exp.host + exp['dri'])
             .then(r => {
               const branch = r.data
-              this.credentialsSchemaAlt[credential.created_at] = []
+              this.credentialsSchemaAlt[credential.issuanceDate] = []
               const langBranches = this.splitBranchPerLang(branch)
 
               langBranches.forEach(langBranch => {
-                this.credentialsSchemaAlt[credential.created_at].push({
+                this.credentialsSchemaAlt[credential.issuanceDate].push({
                   language: langBranch.lang,
                   form: renderForm([
                     langBranch.branch.schema_base,
@@ -257,15 +258,15 @@ export default {
                   ).form
                 })
               })
-              this.credentialsSchema[credential.created_at] = this.credentialsSchemaAlt[credential.created_at][0].form
-              this.credentialsLabel[credential.created_at] = this.credentialsSchema[credential.created_at].label
+              this.credentialsSchema[credential.issuanceDate] = this.credentialsSchemaAlt[credential.issuanceDate][0].form
+              this.credentialsLabel[credential.issuanceDate] = this.credentialsSchema[credential.issuanceDate].label
             })
         }
 
         const url = data.meta.url[0]
         axios.get(url).then(response => {
           if (exp && (exp['schema-base'] || exp['dri'])) {
-            this.schemaInput[credential.created_at] = response.data
+            this.schemaInput[credential.issuanceDate] = response.data
           } else if (url.split('.').slice(-1)[0] == 'json') {
             credential.credentialSubject = {...credential.credentialSubject, ...response.data}
           }
@@ -278,11 +279,11 @@ export default {
         axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
           .then(r => {
             const branch = r.data
-            this.credentialsSchemaAlt[credential.created_at] = []
+            this.credentialsSchemaAlt[credential.issuanceDate] = []
             const langBranches = this.splitBranchPerLang(branch)
 
             langBranches.forEach(langBranch => {
-              this.credentialsSchemaAlt[credential.created_at].push({
+              this.credentialsSchemaAlt[credential.issuanceDate].push({
                 language: langBranch.lang,
                 form: renderForm([
                   langBranch.branch.schema_base,
@@ -290,12 +291,12 @@ export default {
                 ).form
               })
             })
-            this.credentialsSchema[credential.created_at] = this.credentialsSchemaAlt[credential.created_at][0].form
-            this.credentialsLabel[credential.created_at] = this.credentialsSchema[credential.created_at].label
+            this.credentialsSchema[credential.issuanceDate] = this.credentialsSchemaAlt[credential.issuanceDate][0].form
+            this.credentialsLabel[credential.issuanceDate] = this.credentialsSchema[credential.issuanceDate].label
           })
 
         if(credential.credentialSubject.data_dri) {
-          this.schemaInput[credential.created_at] = JSON.parse(
+          this.schemaInput[credential.issuanceDate] = JSON.parse(
             (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.data_dri}`)).data.payload
           )
         } else if (credential.credentialSubject.data_dri) {
@@ -303,7 +304,7 @@ export default {
             issue_id: credential.credentialSubject.data_dri
           })
             .then(response => {
-                this.schemaInput[credential.created_at] = JSON.parse(response.data[0].payload)
+                this.schemaInput[credential.issuanceDate] = JSON.parse(response.data[0].payload)
             })
         }
       }

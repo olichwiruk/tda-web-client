@@ -78,24 +78,18 @@ export default {
         })
     },
     async refreshGivenConsents() {
-      await axios.get(`${this.acapyApiUrl}/issue-credential/records`, {
-        state: 'credential_acked'
-      }).then(r => {
+      await this.$_adminApi_getGivenConsents().then(r => {
         if (r.status === 200) {
-          const givenCredentials = r.data.results.filter(el => {
-            return el.credential_offer_dict.credential_preview.attributes.some(attr => {
-              return attr.name == 'oca_schema_namespace' && attr.value == 'consent'
-            })
-          })
+          const givenCredentials = r.data.result
+            .map(el => JSON.parse(el.credential))
           this.given_consent_list = givenCredentials.map(el => {
-            const serviceConsentMatchId = el.credential_offer_dict.credential_preview.attributes.find(attr => attr.name == 'service_consent_match_id').value
-
+            const cred = el.credentialSubject
             return {
               label: '',
-              ocaSchemaNamespace: el.credential_offer_dict.credential_preview.attributes.find(attr => attr.name == 'oca_schema_namespace').value,
-              ocaSchemaDri: el.credential_offer_dict.credential_preview.attributes.find(attr => attr.name == 'oca_schema_dri').value,
-              dataDri: el.credential_offer_dict.credential_preview.attributes.find(attr => attr.name == 'data_dri').value.split('/').reverse()[0],
-              serviceConsentMatchId: serviceConsentMatchId
+              ocaSchemaNamespace: cred.oca_schema_namespace,
+              ocaSchemaDri: cred.oca_schema_dri,
+              dataDri: cred.data_dri,
+              serviceConsentMatchId: cred.oca_schema_namespace
             }
           })
         }
