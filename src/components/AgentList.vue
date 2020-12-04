@@ -88,11 +88,11 @@ export default {
       this.connectDefaultAgent()
     }
 
-    if (this.$session.exists()) {
-      this.$router.push({ name: 'agent', params: {
-        agentid: this.$session.get('agentId')
-      }})
-    }
+    if (!this.$session.get('agentId')) { return; }
+
+    this.$router.push({ name: 'agent', params: {
+      agentid: this.$session.get('agentId')
+    }});
   },
   watch: {
     agent_list: {
@@ -105,7 +105,7 @@ export default {
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
     routeParams() {
-        return (new URL(document.location)).searchParams;
+      return (new URL(document.location)).searchParams;
     },
 
     connectDefaultAgent() {
@@ -120,21 +120,18 @@ export default {
         `${this.acapyApiUrl}/connections/create-admin-invitation-url`,
         { timeout: 1000 }
       ).then(r => {
-          const invitationUrl = r.data.invitation_url
-          if (!invitationUrl) { throw 'Error' }
-          this.new_agent_invitation = invitationUrl
-          this.new_agent_invitation_process()
-          this.defaultConnectionEstablished = true
-        }
-      ).catch(() => this.defaultConnectionEstablished = false)
+        const invitationUrl = r.data.invitation_url
+        if (!invitationUrl) { throw 'Error' }
+        this.new_agent_invitation = invitationUrl
+        this.new_agent_invitation_process()
+        this.defaultConnectionEstablished = true
+      }).catch(() => this.defaultConnectionEstablished = false)
     },
     openConnection: async function(a) {
-      axios.get(`${this.acapyApiUrl}/info`)
-        .then(r => {
-            const agentWsUrl = r.data.websocket_server_url
-            this.$session.set('websocketUrl', agentWsUrl)
-          }
-        )
+      axios.get(`${this.acapyApiUrl}/info`).then(r => {
+        const agentWsUrl = r.data.websocket_server_url
+        this.$session.set('websocketUrl', agentWsUrl)
+      })
 
       this.$session.set('agentId', a.id)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
