@@ -1,4 +1,5 @@
 {
+  "extends": "@quasar/app/tsconfig-preset",
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
@@ -28,12 +29,9 @@
     ]
   },
   "include": [
-    "src/**/*.tsx",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "src/**/*.ts"
   ],
   "exclude": [
-    "src/**/*.ts",
     "src/**/*.vue",
     "node_modules"
   ]
