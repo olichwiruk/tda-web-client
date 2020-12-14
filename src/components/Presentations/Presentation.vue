@@ -128,6 +128,7 @@
 import axios from 'axios';
 import VueJsonPretty from 'vue-json-pretty';
 import adminApi from '@/admin_api.ts'
+import { mapState, mapActions } from 'vuex'
 import { renderForm, PreviewComponent } from 'odca-form'
 
 export default {
@@ -154,6 +155,7 @@ export default {
       credentialsSchema: {},
       credentialsSchemaAlt: {},
       schemaInput: {},
+      schemaPayload: {},
       form: {},
       alternatives: [],
       presentationDialog: {
@@ -166,6 +168,7 @@ export default {
   },
   mixins: [adminApi],
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
     deactivatePresentationDialog() {
       this.presentationDialog = {
         active: false,
@@ -245,12 +248,8 @@ export default {
       this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
       let input = null
       if (this.schemaInput[presExId]) {
-        console.log(this.schemaInput[presExId])
-        input = JSON.parse((await this.$_adminApi_getPayload({
-          payload_dri: this.schemaInput[presExId]
-        })).data.payload)
+        input = this.schemaPayload[this.schemaInput[presExId]]
       }
-      console.log(input)
       try {
           this.form = this.credentialsSchema[presExId]
           this.$refs.PreviewComponent.openModal(this.form, input);
@@ -292,10 +291,12 @@ export default {
 
         if(credential.credentialSubject.data_dri) {
           this.schemaInput[presExId] = credential.credentialSubject.data_dri
-          this.$_adminApi_askForPayload({
-            connection_id: presentationEl.connection_id,
-            payload_id: credential.credentialSubject.data_dri
-          })
+          if (!this.schemaPayload[credential.credentialSubject.data_dri]) {
+            this.$_adminApi_askForPayload({
+              connection_id: presentationEl.connection_id,
+              payload_id: credential.credentialSubject.data_dri
+            })
+          }
         }
       } else {
         axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${presentationEl.presentation_request.schema_base_dri}`)
@@ -339,6 +340,23 @@ export default {
     },
   },
   watch: {
+    pdsPayloadMessages: {
+      handler: function() {
+        this.pdsPayloadMessages.forEach(msg => {
+          console.log(msg);
+          this.schemaPayload[msg.content.dri] = JSON.parse(msg.content.payload)
+          this.delete_message(msg.uuid)
+        })
+      }
+    },
+    presentProofMessages: {
+      handler: function() {
+        this.presentProofMessages.forEach(msg => {
+          this.$emit('presentation-refresh',)
+          this.delete_message(msg.uuid)
+        })
+      }
+    },
     presentations: function() {
       this.presentations.forEach(async (presentation) => {
         await this.generatePreview(presentation)
@@ -349,6 +367,17 @@ export default {
     }
   },
   computed: {
+    ...mapState('WsMessages', ['messages']),
+    pdsPayloadMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/pds/payload/'
+      })
+    },
+    presentProofMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/present_proof/'
+      })
+    },
     connection_map: function() {
       let map =  this.connections.reduce((acc, item) => {
         acc[item.connection_id] = item;

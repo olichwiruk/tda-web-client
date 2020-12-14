@@ -41,7 +41,8 @@ export default {
       consent: {
         oca_schema_dri: null,
         oca_schema_namespace: null,
-        data_dri: null
+        data_dri: null,
+        usage_policy: null,
       }
     }
   },
@@ -71,6 +72,7 @@ export default {
       this.consent.oca_schema_namespace = consent.oca_schema.namespace
       this.consent.oca_schema_dri = consent.oca_schema.dri
       this.consent.data_dri = consent.payload_dri
+      this.consent.usage_policy = consent.usage_policy
     },
     resetServiceData() {
       this.label = null

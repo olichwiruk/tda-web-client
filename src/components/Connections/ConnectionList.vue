@@ -205,9 +205,11 @@ export default {
       if(!this.$refs.PreviewServiceComponent) { return }
       this.confirmProcessing = true
 
+      const { policy_validation, ...service } = this.currentApplicationService.service
+
       this.$_adminApi_applyOnService({
         connection_id: this.currentApplicationService.connection_id,
-        service: this.currentApplicationService.service,
+        service: service,
         user_data: JSON.stringify(data)
       }).then(r => {
         console.log(r.data)

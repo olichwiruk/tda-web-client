@@ -117,7 +117,9 @@ export default {
     },
     fetch_credentials: function() {
       axios.get(`${this.acapyApiUrl}/credentials`).then(r => {
-        this.credentials = r.data.results
+        this.credentials = r.data.result.map(c => {
+          return { credential: JSON.parse(c.content) }
+        })
       })
     }
   },

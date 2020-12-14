@@ -4,7 +4,8 @@
     <ul class="list">
       <li class="list-el" v-for="service in services">
         {{ service.label }}
-        <div>
+        <div class="right-container">
+          <div class="valid-policy-dot" :class="[ isPolicyValid(service) ? 'green' : 'red' ]" />
           <el-button size="medium"
             @click="preview(service)">Preview</el-button>
           <el-button size="medium" type="primary"
@@ -144,6 +145,13 @@ export default {
       })
       return langBranches
     },
+    isPolicyValid(service) {
+      const policy_validation = JSON.parse(service.policy_validation)
+      if (policy_validation.code == 0) {
+        return true
+      }
+      return false
+    },
     async preview(service) {
       this.$emit('service-preview', {
         connection_id: this.connection.connection_id,
@@ -180,4 +188,26 @@ export default {
 .list-el:hover {
   background-color: #fafafa;
 }
+
+.right-container {
+  display: flex;
+  align-items: center;
+}
+
+.valid-policy-dot {
+  height: 15px;
+  width: 15px;
+  background-color: #bbbbbb;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.valid-policy-dot.green {
+  background-color: green;
+}
+
+.valid-policy-dot.red {
+  background-color: red;
+}
+
 </style>

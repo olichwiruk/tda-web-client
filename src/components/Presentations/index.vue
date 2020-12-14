@@ -51,7 +51,14 @@ export default {
   methods: {
     refresh_presentations() {
       this.$_adminApi_getCredentials()
-        .then(r => this.credentials = r.data.results)
+        .then(r => {
+          this.credentials = r.data.result.map(c => {
+            return {
+              id: c.dri,
+              credential: JSON.parse(c.content)
+            }
+          })
+        })
       this.$_adminApi_getPresentations()
         .then(r => this.presentations = r.data)
     }
