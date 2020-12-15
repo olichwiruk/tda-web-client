@@ -11,7 +11,7 @@
             v-for="consent in consent_list"
             :key="consent.label"
             :label="consent.label"
-            :value="consent">
+            :value="consent.label">
           </el-option>
         </el-select>
       </el-form-item>
@@ -39,7 +39,8 @@ export default {
   },
   watch: {
     'selectedConsent': function() {
-      this.$emit('consentSelected', this.selectedConsent)
+      const consent = this.consent_list.find(c => c.label == this.selectedConsent)
+      this.$emit('consentSelected', consent)
     }
   },
   async mounted() {
