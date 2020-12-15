@@ -2,10 +2,10 @@
   <div v-show="services.length > 0">
     {{ title }}
     <ul class="list">
-      <li class="list-el" v-for="service in services">
+      <li class="list-el" v-for="service in services" :key="service.service_id">
         {{ service.label }}
         <div class="right-container">
-          <div class="valid-policy-dot" :class="[ isPolicyValid(service) ? 'green' : 'red' ]" />
+          <div class="valid-policy-dot" :class="[ policyColor(service) ]" />
           <el-button size="medium"
             @click="preview(service)">Preview</el-button>
           <el-button size="medium" type="primary"
@@ -38,6 +38,11 @@ export default {
         return message.topic == '/topic/verifiable-services/request-service-list/'
       })
     },
+    servicePolicyValidationMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/request-service-list/usage-policy/'
+      })
+    },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
     },
@@ -54,7 +59,24 @@ export default {
     serviceListMessages: {
       handler: function() {
         this.serviceListMessages.forEach(message => {
-          this.services = JSON.parse(message.content.services)
+          if (message.content.connection_id != this.connection.connection_id) {
+            return
+          }
+          this.services = message.content.services
+          this.delete_message(message.uuid)
+        })
+      },
+      deep: true
+    },
+    servicePolicyValidationMessages: {
+      handler: function() {
+        this.servicePolicyValidationMessages.forEach(message => {
+          var [service_id, policy_validation] = Object.entries(message.content)[0]
+          const serviceIndex = this.services.findIndex(s => s.service_id == service_id)
+          if (serviceIndex == -1) { return }
+          const service = this.services[serviceIndex]
+          service.policy_validation = JSON.parse(policy_validation)
+          this.$forceUpdate()
           this.delete_message(message.uuid)
         })
       },
@@ -145,12 +167,13 @@ export default {
       })
       return langBranches
     },
-    isPolicyValid(service) {
-      const policy_validation = JSON.parse(service.policy_validation)
+    policyColor(service) {
+      const policy_validation = service.policy_validation
+      if (!policy_validation) { return }
       if (policy_validation.code == 0) {
-        return true
+        return 'green'
       }
-      return false
+      return 'red'
     },
     async preview(service) {
       this.$emit('service-preview', {
