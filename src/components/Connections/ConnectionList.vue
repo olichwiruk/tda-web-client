@@ -206,6 +206,8 @@ export default {
       this.confirmProcessing = true
 
       const { policy_validation, ...service } = this.currentApplicationService.service
+      const { data: consent_data, ...consent_schema } = this.currentApplicationService.service.consent_schema
+      service.consent_schema = consent_schema
 
       this.$_adminApi_applyOnService({
         connection_id: this.currentApplicationService.connection_id,
