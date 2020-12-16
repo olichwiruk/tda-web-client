@@ -22,6 +22,12 @@
                 @click="openPresentationRequest(connection.connection_id)"
                 :ref="connection.connection_id"
                 :connection="connection" />
+              <connection-presentation-list title="Presentations:"
+                :ref="connection.connection_id"
+                :connection="connection"
+                :presentations="presentations"
+                :presentationPayloads="presentationPayloads"
+                @presentation-preview="presentationPreview" />
               <connection-service-list title="Services:"
                 :ref="connection.connection_id"
                 :connection="connection"
@@ -59,6 +65,7 @@
     <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent" />
+    <preview-component ref="PresentationPreviewComponent" :readonly="true" :form="presentation.form" :alternatives="presentation.alternatives"></preview-component>
   </div>
 </template>
 
@@ -66,9 +73,12 @@
 import VueJsonPretty from 'vue-json-pretty';
 import adminApi from '@/admin_api.ts'
 
+import { mapState, mapActions } from 'vuex'
+
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  MultiPreviewComponent } from 'odca-form'
+  MultiPreviewComponent, PreviewComponent } from 'odca-form'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
+import ConnectionPresentationList from './ConnectionList/ConnectionPresentationList';
 import PresentationRequestButton from './ConnectionList/PresentationRequest/Button'
 import PresentationRequestDialog from './ConnectionList/PresentationRequest/Dialog'
 
@@ -78,9 +88,11 @@ export default {
   components: {
     VueJsonPretty,
     ConnectionServiceList,
+    ConnectionPresentationList,
     PresentationRequestButton,
     PresentationRequestDialog,
-    MultiPreviewComponent
+    MultiPreviewComponent,
+    PreviewComponent
   },
   data () {
     return {
@@ -96,28 +108,63 @@ export default {
       currentPresentationRequest: {},
       currentApplicationService: {},
       confirmProcessing: false,
-      formLabelWidth: '100px'
+      formLabelWidth: '100px',
+      presentations: [],
+      presentationPayloads: {},
+      presentation: {
+        form: {},
+        alternatives: []
+      }
     }
   },
   mixins: [adminApi],
   computed: {
+    ...mapState('WsMessages', ['messages']),
+    pdsPayloadMessages: function() {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/pds/payload/'
+      })
+    },
     acapyApiUrl: function() {
       return this.$session.get('acapyApiUrl')
     },
   },
   watch: {
+    pdsPayloadMessages: {
+      handler: function() {
+        this.pdsPayloadMessages.forEach(msg => {
+          console.log(msg)
+          this.presentationPayloads[msg.content.dri] = JSON.parse(msg.content.payload)
+          this.delete_message(msg.uuid)
+        })
+      }
+    },
     'expanded_items': function(a, b) {
       const connection_id = a.filter(x => !b.includes(x))[0]
       if (connection_id) {
-        this.$refs[connection_id][1].fetchServices()
+        const serviceListIndex = this.$refs[connection_id].findIndex(ref => {
+          return ref.fetchServices
+        })
+        if (serviceListIndex != -1) {
+          this.$refs[connection_id][serviceListIndex].fetchServices()
+        }
       }
     }
   },
   mounted() {
+    this.$_adminApi_getPresentations()
+      .then(r => this.presentations = r.data.filter(p =>
+        (
+          "state" in p &&
+          ( p.state === "verified" || p.state === "presentation_acked")
+        ) &&
+        "role" in p && p.role === "verifier"
+      ))
     ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.saveApplicationHandler)
   },
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
     get_name: function(connection) {
       if('their_label' in connection) {
         return connection.their_label;
@@ -169,6 +216,22 @@ export default {
           alternatives: event.serviceForm.consent.formAlternatives,
           input: event.serviceForm.consent.answers
         }, options[1])
+    },
+    presentationPreview(event) {
+      this.presentation.form = event.presentationForm.form
+      this.presentation.alternatives = event.presentationForm.formAlternatives
+
+      try {
+        this.$refs.PresentationPreviewComponent.openModal(
+          this.presentation.form,
+          event.presentationForm.payload
+        );
+      } catch(e) {
+        console.log(e)
+        this.$noty.error("ERROR! Form data are corrupted.", {
+          timeout: 1000
+        })
+      }
     },
     servicePreview(event) {
       this.collectForms(event, [{ readonly: true }])
