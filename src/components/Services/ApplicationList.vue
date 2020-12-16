@@ -13,7 +13,10 @@
           v-for="(application, index) in list"
           :name="application.label + index"
           :key="index">
-          <template v-slot:title>{{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}</template>
+          <template v-slot:title>
+            {{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}
+            <div v-if="application.author == 'other'" class="valid-policy-dot" :class="[ policyColor(application) ]" />
+          </template>
           <el-row>
             <vue-json-pretty :deep=0 :data="application" />
             <el-button size="medium" :disabled="!application.payload"
@@ -51,6 +54,12 @@ export default {
     },
   },
   methods: {
+    policyColor(application) {
+      if (!application.usage_policies_match) { return }
+      const usage_policy = JSON.parse(application.usage_policies_match)
+      if (usage_policy.code != 0) { return 'red' }
+      return 'green'
+    },
     async renderApplicationForm(application) {
       let consentAnswers
       if(application.consent_schema.data) {
@@ -148,5 +157,20 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+.valid-policy-dot {
+  height: 15px;
+  width: 15px;
+  background-color: #bbbbbb;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+.valid-policy-dot.green {
+  background-color: green;
+}
+
+.valid-policy-dot.red {
+  background-color: red;
+}
 </style>
