@@ -396,7 +396,8 @@ export default {
           "state" in exchange &&
           (
             exchange.state === "verified" ||
-            exchange.state === "presentation_acked"
+            exchange.state === "presentation_acked" ||
+            exchange.state === "presentation_received"
           )
         ) &&
         //==========================================

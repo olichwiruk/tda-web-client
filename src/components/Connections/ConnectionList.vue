@@ -156,7 +156,9 @@ export default {
       .then(r => this.presentations = r.data.filter(p =>
         (
           "state" in p &&
-          ( p.state === "verified" || p.state === "presentation_acked")
+          ( p.state === "verified" ||
+            p.state === "presentation_acked" ||
+            p.state === "presentation_received")
         ) &&
         "role" in p && p.role === "verifier"
       ))
