@@ -94,7 +94,7 @@ export default {
 
       this.$_adminApi_askForPayload({
         connection_id: presentation.connection_id,
-        payload_id: credential.credentialSubject.data_dri
+        payload_id: credential.credentialSubject.oca_data_dri
       })
 
       return {
@@ -129,7 +129,7 @@ export default {
         presentation: presentation,
         presentationForm: {
           ...this.presentationForms[presentation.presentation_exchange_id],
-          payload: this.presentationPayloads[credential.credentialSubject.data_dri]
+          payload: this.presentationPayloads[credential.credentialSubject.oca_data_dri]
         }
       })
     }

@@ -88,7 +88,7 @@ export default {
               label: '',
               ocaSchemaNamespace: cred.oca_schema_namespace,
               ocaSchemaDri: cred.oca_schema_dri,
-              dataDri: cred.data_dri,
+              dataDri: cred.oca_data_dri,
               serviceConsentMatchId: cred.oca_schema_namespace
             }
           })

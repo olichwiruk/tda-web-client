@@ -157,7 +157,7 @@ export default {
       axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
         .then(r => {
           if (r.status === 200) {
-            this.myServices = r.data
+            this.myServices = r.data.result
           }
         }).catch(e => {
           console.log(e)

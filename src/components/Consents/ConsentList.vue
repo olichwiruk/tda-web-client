@@ -53,10 +53,10 @@ export default {
   methods: {
     async renderConsentForm(consent) {
       let consentAnswers, consentSchemaNamespace, consentSchemaDri
-      if (consent.payload) {
-        consentAnswers = consent.payload
-        consentSchemaNamespace = consent.oca_schema.namespace
-        consentSchemaDri = consent.oca_schema.dri
+      if (consent.oca_data) {
+        consentAnswers = consent.oca_data
+        consentSchemaNamespace = consent.oca_schema_namespace
+        consentSchemaDri = consent.oca_schema_dri
       } else {
         consentAnswers = JSON.parse(consent.data)
         consentSchemaNamespace = consent.ocaSchemaNamespace

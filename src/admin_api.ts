@@ -72,17 +72,15 @@ type addConsentParams = {
   label: string,
   oca_schema_namespace: string,
   oca_schema_dri: string,
-  payload: object
+  data: object
 }
 
 function addConsent(apiUrl: string, params: addConsentParams) {
     const body = {
         label: params.label,
-        oca_schema: {
-            namespace: params.oca_schema_namespace,
-            dri: params.oca_schema_dri,
-        },
-        payload: params.payload
+        oca_schema_namespace: params.oca_schema_namespace,
+        oca_schema_dri: params.oca_schema_dri,
+        oca_data: params.data
     }
     return axios.post(`${apiUrl}/verifiable-services/consents`, body)
 }

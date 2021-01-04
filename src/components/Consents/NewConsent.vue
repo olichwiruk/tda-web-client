@@ -87,7 +87,7 @@ export default {
         label: this.consent.label,
         oca_schema_namespace: this.consent.oca_schema_namespace,
         oca_schema_dri: this.consent.oca_schema_dri,
-        payload: data
+        data: data
       }).then(r => {
         this.consentData.sending = false
         if (r.data.success) {

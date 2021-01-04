@@ -295,17 +295,10 @@ export default {
             this.credentialsLabel[credential.issuanceDate] = this.credentialsSchema[credential.issuanceDate].label
           })
 
-        if(credential.credentialSubject.data_dri) {
+        if(credential.credentialSubject.oca_data_dri) {
           this.schemaInput[credential.issuanceDate] = JSON.parse(
-            (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.data_dri}`)).data.payload
+            (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
           )
-        } else if (credential.credentialSubject.data_dri) {
-          axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
-            issue_id: credential.credentialSubject.data_dri
-          })
-            .then(response => {
-                this.schemaInput[credential.issuanceDate] = JSON.parse(response.data[0].payload)
-            })
         }
       }
     },

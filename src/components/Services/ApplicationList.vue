@@ -62,10 +62,10 @@ export default {
     },
     async renderApplicationForm(application) {
       let consentAnswers
-      if(application.consent_schema.data) {
-        consentAnswers = JSON.parse(application.consent_schema.data)
+      if(application.consent_schema.oca_data) {
+        consentAnswers = application.consent_schema.oca_data
       } else {
-        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${application.consent_schema.data_dri}`)).data.payload)
+        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${application.consent_schema.oca_data_dri}`)).data.payload)
       }
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${application.consent_schema.oca_schema_namespace}/${application.consent_schema.oca_schema_dri}`

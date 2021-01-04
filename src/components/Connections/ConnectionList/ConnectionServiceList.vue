@@ -90,7 +90,7 @@ export default {
       axios.get(`${this.acapyApiUrl}/verifiable-services/request-service-list/${connId}`)
     },
     async renderServiceForm(service) {
-      const consentAnswers = JSON.parse(service.consent_schema.data)
+      const consentAnswers = service.consent_schema.oca_data
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${service.consent_schema.oca_schema_namespace}/${service.consent_schema.oca_schema_dri}`
       )).data

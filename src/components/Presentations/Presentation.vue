@@ -289,12 +289,12 @@ export default {
             this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
           })
 
-        if(credential.credentialSubject.data_dri) {
-          this.schemaInput[presExId] = credential.credentialSubject.data_dri
-          if (!this.schemaPayload[credential.credentialSubject.data_dri]) {
+        if(credential.credentialSubject.oca_data_dri) {
+          this.schemaInput[presExId] = credential.credentialSubject.oca_data_dri
+          if (!this.schemaPayload[credential.credentialSubject.oca_data_dri]) {
             this.$_adminApi_askForPayload({
               connection_id: presentationEl.connection_id,
-              payload_id: credential.credentialSubject.data_dri
+              payload_id: credential.credentialSubject.oca_data_dri
             })
           }
         }
