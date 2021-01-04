@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import adminApi from '@/admin_api.ts'
 import OcaSchemaSearch from './NewService/OcaSchemaSearch'
 import ConsentSelect from './NewService/ConsentSelect'
 
@@ -59,6 +59,7 @@ export default {
         this.consent.id != null
     }
   },
+  mixins: [adminApi],
   methods: {
     serviceSchemaSelected({ namespace, DRI, schemaName }) {
       this.label = schemaName
@@ -79,7 +80,7 @@ export default {
       }
     },
     submit() {
-      axios.post(`${this.acapyApiUrl}/verifiable-services/add`, {
+      this.$_adminApi_addService({
         label: this.label,
         consent_id: this.consent.id,
         service_schema: this.service

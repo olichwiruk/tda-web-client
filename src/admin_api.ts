@@ -28,6 +28,11 @@ export default {
           const apiUrl = this.adminApiUrl
           return getCredentials(apiUrl)
         },
+        $_adminApi_addService(params: addServiceParams): Promise<object> {
+          // @ts-ignore
+          const apiUrl = this.adminApiUrl
+          return addService(apiUrl, params)
+        },
         $_adminApi_applyOnService(params: applyOnServiceParams): Promise<object> {
           // @ts-ignore
           const apiUrl = this.adminApiUrl
@@ -99,6 +104,19 @@ function getCredentials(apiUrl: string) {
 }
 
 /* SERVICES */
+
+type addServiceParams = {
+    label: string,
+    consent_id: string,
+    service_schema: {
+        oca_schema_namespace: string,
+        oca_schema_dri: string
+    }
+}
+
+function addService(apiUrl: string, params: addServiceParams) {
+    return axios.post(`${apiUrl}/verifiable-services/add`, params)
+}
 
 type applyOnServiceParams = {
     connection_id: string,
