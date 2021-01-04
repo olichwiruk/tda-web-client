@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import adminApi from '@/admin_api.ts'
 
 export default {
   name: 'consent-select',
@@ -37,6 +37,7 @@ export default {
       return this.$session.get('acapyApiUrl')
     },
   },
+  mixins: [adminApi],
   watch: {
     'selectedConsent': function() {
       const consent = this.consent_list.find(c => c.label == this.selectedConsent)
@@ -44,7 +45,7 @@ export default {
     }
   },
   async mounted() {
-    await axios.get(`${this.acapyApiUrl}/verifiable-services/consents`)
+    await this.$_adminApi_getConsents()
       .then(r => {
         if (r.status === 200) {
           this.consent_list = r.data.result
