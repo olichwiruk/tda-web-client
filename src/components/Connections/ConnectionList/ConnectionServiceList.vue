@@ -20,7 +20,7 @@
 import axios from 'axios';
 
 import { mapState, mapActions } from 'vuex'
-import { renderForm } from 'odca-form'
+import { renderForm } from 'oca.js-vue'
 
 export default {
   name: 'connection-service-list',

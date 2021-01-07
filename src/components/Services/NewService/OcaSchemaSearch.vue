@@ -32,7 +32,7 @@
 import axios from 'axios'
 
 import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
-import { renderForm, PreviewComponent } from 'odca-form'
+import { renderForm, PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'oca-schema-search',

@@ -128,7 +128,7 @@ import share from '@/share.ts';
 import axios from 'axios';
 const hl = require('hashlink');
 
-import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
+import { resolveZipFile, renderForm, PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'my-credentials-list',

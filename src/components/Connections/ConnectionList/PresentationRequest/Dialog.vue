@@ -43,7 +43,7 @@
 
 <script>
 import axios from 'axios'
-import { renderForm, PreviewComponent } from 'odca-form'
+import { renderForm, PreviewComponent } from 'oca.js-vue'
 
 import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
 

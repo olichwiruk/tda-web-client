@@ -17,7 +17,7 @@
 import axios from 'axios';
 
 import adminApi from '@/admin_api.ts'
-import { renderForm } from 'odca-form'
+import { renderForm } from 'oca.js-vue'
 
 export default {
   name: 'connection-presentation-list',

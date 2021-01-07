@@ -98,7 +98,7 @@ import message_bus from '../../message_bus.ts';
 import share from '../../share.ts';
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  renderForm, PreviewComponent } from 'odca-form'
+  renderForm, PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'oca-schema-list',

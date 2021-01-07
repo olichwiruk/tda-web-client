@@ -23,7 +23,7 @@ import CurrentPds from './PdsSettings/CurrentPds'
 import PdsPlugins from './PdsSettings/PdsPlugins'
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  PreviewComponent } from 'odca-form'
+  PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'pds-settings',

@@ -76,7 +76,7 @@ import adminApi from '@/admin_api.ts'
 import { mapState, mapActions } from 'vuex'
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  MultiPreviewComponent, PreviewComponent } from 'odca-form'
+  MultiPreviewComponent, PreviewComponent } from 'oca.js-vue'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
 import ConnectionPresentationList from './ConnectionList/ConnectionPresentationList';
 import PresentationRequestButton from './ConnectionList/PresentationRequest/Button'

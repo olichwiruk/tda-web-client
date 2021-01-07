@@ -129,7 +129,7 @@ import axios from 'axios';
 import VueJsonPretty from 'vue-json-pretty';
 import adminApi from '@/admin_api.ts'
 import { mapState, mapActions } from 'vuex'
-import { renderForm, PreviewComponent } from 'odca-form'
+import { renderForm, PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'presentation',

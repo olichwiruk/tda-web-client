@@ -35,7 +35,7 @@ import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  MultiPreviewComponent } from 'odca-form'
+  MultiPreviewComponent } from 'oca.js-vue'
 
 import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
