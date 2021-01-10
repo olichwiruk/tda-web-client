@@ -250,7 +250,7 @@ export default {
       leftDrawerOpen: false,
       search: '',
       links1: [
-        { icon: 'home', text: 'Home', path: '/' },
+        { icon: 'home', text: 'Home', path: `/agent/${this.agentid}/wall` },
         { icon: 'subscriptions', text: 'My Documents', path: `/agent/${this.agentid}/my-credentials` },
         { icon: 'contacts', text: 'Address Book', path: `/agent/${this.agentid}/connections` }
       ],
