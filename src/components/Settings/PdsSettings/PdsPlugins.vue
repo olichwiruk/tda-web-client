@@ -21,7 +21,7 @@
 
 <script>
 import axios from 'axios';
-import { renderForm } from 'odca-form'
+//import { renderForm } from 'odca-form'
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {

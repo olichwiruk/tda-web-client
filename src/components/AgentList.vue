@@ -1,4 +1,5 @@
 <template>
+  <!--
   <el-row>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">Aries Toolbox</a>
@@ -26,6 +27,7 @@
       </div>
     </el-card>
   </el-row>
+  -->
 </template>
 
 <script>

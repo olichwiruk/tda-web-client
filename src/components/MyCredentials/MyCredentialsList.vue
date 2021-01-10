@@ -117,7 +117,7 @@
       </span>
     </el-dialog>
 
-    <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component>
+    <!-- <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component> -->
   </div>
 </template>
 
@@ -128,7 +128,7 @@ import share from '@/share.ts';
 import axios from 'axios';
 const hl = require('hashlink');
 
-import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
+//import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'my-credentials-list',
@@ -142,7 +142,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
-    PreviewComponent
+    //PreviewComponent
   },
   data: () => ({
     expanded_items:[],

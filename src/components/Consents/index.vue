@@ -20,7 +20,7 @@
 <script>
 import axios from 'axios';
 import adminApi from '@/admin_api.ts'
-import { PreviewComponent, MultiPreviewComponent } from 'odca-form'
+//import { PreviewComponent, MultiPreviewComponent } from 'odca-form'
 import NewConsent from './NewConsent'
 import ConsentList from './ConsentList'
 import share from '@/share.ts';
@@ -40,8 +40,8 @@ export default {
   components: {
     NewConsent,
     ConsentList,
-    PreviewComponent,
-    MultiPreviewComponent
+    /*PreviewComponent,
+    MultiPreviewComponent*/
   },
   mixins: [
     share({

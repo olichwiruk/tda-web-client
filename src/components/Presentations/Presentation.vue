@@ -120,7 +120,7 @@
       </span>
     </el-dialog>
 
-    <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component>
+    <!-- <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component> -->
   </div>
 </template>
 
@@ -128,7 +128,7 @@
 import axios from 'axios';
 import VueJsonPretty from 'vue-json-pretty';
 import adminApi from '@/admin_api.ts'
-import { renderForm, PreviewComponent } from 'odca-form'
+//import { renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'presentation',
@@ -140,7 +140,7 @@ export default {
   ],
   components: {
     VueJsonPretty,
-    PreviewComponent
+    //PreviewComponent
   },
   data () {
     return {

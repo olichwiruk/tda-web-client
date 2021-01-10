@@ -22,8 +22,8 @@ import axios from 'axios';
 import CurrentPds from './PdsSettings/CurrentPds'
 import PdsPlugins from './PdsSettings/PdsPlugins'
 
-import { eventBus as ocaEventBus, EventHandlerConstant,
-  PreviewComponent } from 'odca-form'
+//import { eventBus as ocaEventBus, EventHandlerConstant,
+//  PreviewComponent } from 'odca-form'
 
 export default {
   name: 'pds-settings',
@@ -31,7 +31,7 @@ export default {
   components: {
     CurrentPds,
     PdsPlugins,
-    PreviewComponent
+//    PreviewComponent
   },
   data() {
     return {

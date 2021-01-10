@@ -29,7 +29,7 @@
 import axios from 'axios';
 
 import VueJsonPretty from 'vue-json-pretty';
-import { renderForm } from 'odca-form'
+//import { renderForm } from 'odca-form'
 
 export default {
   name: 'application-list',

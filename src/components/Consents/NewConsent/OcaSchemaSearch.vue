@@ -1,28 +1,28 @@
 <template>
   <div style="display: flex;">
     <label class="el-form-item__label">{{ label }}</label>
-    <vue-typeahead-bootstrap
-      v-model="search.query"
-      :minMatchingChars="0"
-      :showOnFocus="true"
-      :data="search.matching.length == 0 ? search.all : search.matching"
-      :serializer="s => `${s.namespace} / ${s.schemaName}`"
-      @hit="getOcaSchema"
-      style="width: 500px;">
+    <!-- <vue-typeahead-bootstrap -->
+    <!--   v-model="search.query" -->
+    <!--   :minMatchingChars="0" -->
+    <!--   :showOnFocus="true" -->
+    <!--   :data="search.matching.length == 0 ? search.all : search.matching" -->
+    <!--   :serializer="s => `${s.namespace} / ${s.schemaName}`" -->
+    <!--   @hit="getOcaSchema" -->
+    <!--   style="width: 500px;"> -->
 
-      <template slot="append">
-        <el-button
-        slot="append"
-        class="btn-sm"
-        icon="el-icon-search"
-        v-show="search.query"
-        @click="preview()">Preview</el-button>
-      </template>
+    <!--   <template slot="append"> -->
+    <!--     <el-button -->
+    <!--     slot="append" -->
+    <!--     class="btn-sm" -->
+    <!--     icon="el-icon-search" -->
+    <!--     v-show="search.query" -->
+    <!--     @click="preview()">Preview</el-button> -->
+    <!--   </template> -->
 
-      <template slot="suggestion" slot-scope="{ data, htmlText }">
-        <span v-html="htmlText"></span>
-      </template>
-    </vue-typeahead-bootstrap>
+    <!--   <template slot="suggestion" slot-scope="{ data, htmlText }"> -->
+    <!--     <span v-html="htmlText"></span> -->
+    <!--   </template> -->
+    <!-- </vue-typeahead-bootstrap> -->
 
     <preview-component style="z-index: 9999;" ref="PreviewComponent" :readonly="true" :form="ocaForm" :alternatives="ocaFormAlternatives"></preview-component>
   </div>
@@ -31,16 +31,16 @@
 <script>
 import axios from 'axios'
 
-import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
-import { renderForm, PreviewComponent } from 'odca-form'
+//import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
+//import { renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'oca-schema-search',
   props: ['ocaRepoHost', 'label'],
-  components: {
+  /*components: {
     VueTypeaheadBootstrap,
     PreviewComponent
-  },
+  },*/
   data() {
     return {
       search: {

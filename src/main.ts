@@ -1,8 +1,8 @@
 import Vue from 'vue'
 
-import BootstrapVue from 'bootstrap-vue'
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import BootstrapVue from 'bootstrap-vue'
+// import 'bootstrap/dist/css/bootstrap.css'
+// import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import axios from 'axios'
 import VueSession from 'vue-session'
@@ -15,6 +15,7 @@ import store from './store'
 import './styles/quasar.sass'
 import '@quasar/extras/material-icons/material-icons.css'
 import { Quasar } from 'quasar'
+import './quasar'
 
 Vue.use(VueSession)
 Vue.use(VueNoty)

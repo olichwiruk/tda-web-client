@@ -66,8 +66,8 @@
 import VueJsonPretty from 'vue-json-pretty';
 import adminApi from '@/admin_api.ts'
 
-import { eventBus as ocaEventBus, EventHandlerConstant,
-  MultiPreviewComponent } from 'odca-form'
+//import { eventBus as ocaEventBus, EventHandlerConstant,
+//  MultiPreviewComponent } from 'odca-form'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
 import PresentationRequestButton from './ConnectionList/PresentationRequest/Button'
 import PresentationRequestDialog from './ConnectionList/PresentationRequest/Dialog'
@@ -80,7 +80,7 @@ export default {
     ConnectionServiceList,
     PresentationRequestButton,
     PresentationRequestDialog,
-    MultiPreviewComponent
+    //MultiPreviewComponent
   },
   data () {
     return {

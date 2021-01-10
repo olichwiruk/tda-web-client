@@ -18,11 +18,11 @@
       @applications-refresh="refreshSubmittedApplications"
       @application-preview="previewApplication($event, { readonly: true })" />
 
-    <multi-preview-component :label="previewLabel" :readonly="readonlyPreview"
-      confirmLabel="Confirm" :confirmProcessing="confirmProcessing"
-      rejectLabel="Reject" :rejectProcessing="rejectProcessing"
-      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
-      ref="PreviewApplicationComponent" />
+    <!-- <multi-preview-component :label="previewLabel" :readonly="readonlyPreview" -->
+    <!--   confirmLabel="Confirm" :confirmProcessing="confirmProcessing" -->
+    <!--   rejectLabel="Reject" :rejectProcessing="rejectProcessing" -->
+    <!--   :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')" -->
+    <!--   ref="PreviewApplicationComponent" /> -->
   </el-row>
 </template>
 
@@ -34,8 +34,8 @@ import { mapState, mapActions } from 'vuex'
 import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
-import { eventBus as ocaEventBus, EventHandlerConstant,
-  MultiPreviewComponent } from 'odca-form'
+//import { eventBus as ocaEventBus, EventHandlerConstant,
+//  MultiPreviewComponent } from 'odca-form'
 
 import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
@@ -61,7 +61,7 @@ export default {
     NewService,
     ServiceList,
     ApplicationList,
-    MultiPreviewComponent
+    //MultiPreviewComponent
   },
   data() {
     return {

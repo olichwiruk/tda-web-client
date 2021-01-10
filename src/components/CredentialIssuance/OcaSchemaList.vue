@@ -90,23 +90,23 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
-import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
+//import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 import axios from 'axios'
 
 import { generateDri } from '@/dri_generator'
 import message_bus from '../../message_bus.ts';
 import share from '../../share.ts';
 
-import { eventBus as ocaEventBus, EventHandlerConstant,
-  renderForm, PreviewComponent } from 'odca-form'
+//import { eventBus as ocaEventBus, EventHandlerConstant,
+//  renderForm, PreviewComponent } from 'odca-form'
 
 export default {
   name: 'oca-schema-list',
   props: ['title', 'connections'],
   components: {
     VueJsonPretty,
-    VueBootstrapTypeahead,
-    PreviewComponent
+    //VueBootstrapTypeahead,
+//    PreviewComponent
   },
   mixins: [
     message_bus({

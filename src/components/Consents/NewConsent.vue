@@ -24,15 +24,15 @@
 import adminApi from '@/admin_api.ts'
 import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
 
-import { eventBus as ocaEventBus, EventHandlerConstant,
-  PreviewComponent } from 'odca-form'
+//import { eventBus as ocaEventBus, EventHandlerConstant,
+//  PreviewComponent } from 'odca-form'
 
 export default {
   name: 'new-consent',
   props: ['title'],
   components: {
     OcaSchemaSearch,
-    PreviewComponent
+    //PreviewComponent
   },
   data () {
     return {

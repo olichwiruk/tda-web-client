@@ -6,28 +6,28 @@
           label="OCA Schema:"
           :label-width="formLabelWidth">
 
-          <vue-typeahead-bootstrap
-            v-model="search.query"
-            :minMatchingChars="0"
-            :showOnFocus="true"
-            :data="search.matching.length == 0 ? search.all : search.matching"
-            :serializer="s => `${s.namespace} / ${s.schemaName}`"
-            @hit="getOcaSchema"
-            style="width: 100%;">
+          <!-- <vue-typeahead-bootstrap -->
+          <!--   v-model="search.query" -->
+          <!--   :minMatchingChars="0" -->
+          <!--   :showOnFocus="true" -->
+          <!--   :data="search.matching.length == 0 ? search.all : search.matching" -->
+          <!--   :serializer="s => `${s.namespace} / ${s.schemaName}`" -->
+          <!--   @hit="getOcaSchema" -->
+          <!--   style="width: 100%;"> -->
 
-            <template slot="append">
-              <el-button
-              slot="append"
-              class="btn-sm"
-              icon="el-icon-search"
-              v-show="search.query && ocaForm"
-              @click="preview()">Preview</el-button>
-            </template>
+          <!--   <template slot="append"> -->
+          <!--     <el-button -->
+          <!--     slot="append" -->
+          <!--     class="btn-sm" -->
+          <!--     icon="el-icon-search" -->
+          <!--     v-show="search.query && ocaForm" -->
+          <!--     @click="preview()">Preview</el-button> -->
+          <!--   </template> -->
 
-            <template slot="suggestion" slot-scope="{ data, htmlText }">
-              <span v-html="htmlText"></span>
-            </template>
-          </vue-typeahead-bootstrap>
+          <!--   <template slot="suggestion" slot-scope="{ data, htmlText }"> -->
+          <!--     <span v-html="htmlText"></span> -->
+          <!--   </template> -->
+          <!-- </vue-typeahead-bootstrap> -->
         </el-form-item>
       </el-form>
 
@@ -43,14 +43,14 @@
 
 <script>
 import axios from 'axios'
-import { renderForm, PreviewComponent } from 'odca-form'
+//import { renderForm, PreviewComponent } from 'odca-form'
 
-import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
+//import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
 
 export default {
   name: 'presentation-request-dialog',
   props: { title: String },
-  components: { VueTypeaheadBootstrap, PreviewComponent },
+  //components: { VueTypeaheadBootstrap, PreviewComponent },
   data() {
     return {
       active: false,
