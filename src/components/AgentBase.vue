@@ -251,17 +251,16 @@ export default {
       search: '',
       links1: [
         { icon: 'home', text: 'Home', path: '/' },
-        { icon: 'message', text: 'Messages', path: '/messages' },
-        { icon: 'subscriptions', text: 'My Documents', path: 'documents' }
+        { icon: 'subscriptions', text: 'My Documents', path: `/agent/${this.agentid}/my-credentials` },
+        { icon: 'contacts', text: 'Address Book', path: `/agent/${this.agentid}/connections` }
       ],
       links2: [
-        { icon: 'store', text: 'Services', path: '/services' },
-        { icon: 'restore', text: 'Data Store', path: '/data_store' },
-        { icon: 'query_stats', text: 'Personal Analytics', path: '/analytics' },
-        { icon: 'health_and_safety', text: 'Consent management', path: '/consent' }
+        { icon: 'store', text: 'Services', path: `/agent/${this.agentid}/services` },
+//        { icon: 'restore', text: 'Data Store', path: '/data_store' },
+        { icon: 'health_and_safety', text: 'Consent management', path: `/agent/${this.agentid}/consents` }
       ],
       links4: [
-        { icon: 'settings', text: 'Settings', path: '/settings' },
+        { icon: 'settings', text: 'Settings', path: `/agent/${this.agentid}/settings` },
         { icon: 'help', text: 'Help', path: '/help' }
       ],
       buttons1: [
@@ -361,45 +360,4 @@ export default {
 </script>
 
 <style>
-  #top-bar {
-    position:absolute;
-    right: 0px;
-    left:200px;
-    height: 60px;
-  }
-
-  #main-display {
-    position: absolute;
-    right:0px;
-    bottom: 0px;
-    top: 60px;
-    left: 200px;
-  }
-
-  #side-menu {
-    height: 100%;
-    width: 200px;
-    position: absolute;
-
-  }
-  #side-menu .menu-title {
-    color: #fff
-  }
-  #side-menu i {
-    color: #409EFF;
-  }
-
-  .el-menu-item-group__title {
-    font-size: 18px;
-  }
-
-  .el-menu-item {
-    height: 36px;
-    line-height: 36px;
-  }
-
-  .problem-report-notification {
-    cursor: pointer;
-  }
-
 </style>

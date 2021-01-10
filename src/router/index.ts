@@ -19,6 +19,8 @@ each agent component is listed like this
 },
 */
 
+console.log(agent_routes);
+
 export default new Router({
     routes: [
         {
