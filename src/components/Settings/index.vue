@@ -1,15 +1,13 @@
 <template>
-  <el-row>
+  <q-page>
     <pds-settings title="Personal Data Storage" />
     <controller-settings title="Controller Configuration" />
-    <tda-settings title="TDA Configuration" />
-  </el-row>
+  </q-page>
 </template>
 
 <script>
 import PdsSettings from './PdsSettings.vue'
 import ControllerSettings from './ControllerSettings.vue'
-import TdaSettings from './TdaSettings.vue'
 
 export const metadata = {
   menu: {
@@ -31,7 +29,6 @@ export default {
   components: {
     PdsSettings,
     ControllerSettings,
-    TdaSettings
   },
   data() {
     return {

@@ -1,37 +1,47 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
-    </nav>
-
-    <div class="content">
-      <el-form label-width="auto">
-        <el-form-item label="Acapy admin API URL:">
-          <el-input
-            style="width: 300px;"
-            v-model="acapyApiUrl">
-          </el-input>
-        </el-form-item>
-        <el-form-item label="WebSocket server URL:">
-          <el-input
-            style="width: 300px;"
-            v-model="websocketUrl">
-          </el-input>
-        </el-form-item>
-        <el-form-item label="OCA Repo URL:">
-          <el-input
-            style="width: 300px;"
-            v-model="ocaRepoUrl">
-          </el-input>
-        </el-form-item>
-        <el-form-item label="DataVault URL:">
-          <el-input
-            style="width: 300px;"
-            v-model="localDataVaultUrl">
-          </el-input>
-        </el-form-item>
-      </el-form>
+  <div class="q-pa-md" style="max-width: 400px">
+    <div class="text-h5">
+      {{ title }}
     </div>
+
+    <q-form
+      @submit="onSubmit"
+      @reset="onReset"
+      class="q-gutter-md"
+    >
+      <q-input
+        filled
+        v-model="acapyApiUrl"
+        label="Acapy admin API URL"
+        lazy-rules
+        :rules="[ val => val && val.length > 0 || 'Please type something']"
+      />
+
+      <q-input
+        filled
+        v-model="websocketUrl"
+        label="WebSocket server URL"
+        lazy-rules
+        :rules="[ val => val && val.length > 0 || 'Please type something']"
+      />
+
+      <q-input
+        filled
+        v-model="ocaRepoUrl"
+        label="OCA Repo URL"
+        lazy-rules
+        :rules="[ val => val && val.length > 0 || 'Please type something']"
+      />
+
+      <q-input
+        filled
+        v-model="localDataVaultUrl"
+        label="DataVault URL"
+        lazy-rules
+        :rules="[ val => val && val.length > 0 || 'Please type something']"
+      />
+
+    </q-form>
   </div>
 </template>
 
@@ -67,7 +77,4 @@ export default {
 </script>
 
 <style scoped>
-.content {
-  padding: 10px 20px;
-}
 </style>

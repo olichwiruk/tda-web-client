@@ -1,17 +1,21 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
-    </nav>
-
-    <div class="content">
-      <el-form label-width="auto">
-        <el-form-item label="Developer mode:">
-          <el-checkbox v-model="isDevUi">
-          </el-checkbox>
-        </el-form-item>
-      </el-form>
+  <div class="q-pa-md" style="max-width: 400px">
+    <div class="text-h5">
+      {{ title }}
     </div>
+
+    <q-form
+      @submit="onSubmit"
+      @reset="onReset"
+      class="q-gutter-md"
+    >
+      <q-toggle
+        v-model="isDevUi"
+        label="Developer mode"
+        left-label
+      />
+
+    </q-form>
   </div>
 </template>
 
