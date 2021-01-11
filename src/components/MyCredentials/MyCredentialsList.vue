@@ -296,9 +296,8 @@ export default {
           })
 
         if(credential.credentialSubject.oca_data_dri) {
-          this.schemaInput[credential.issuanceDate] = JSON.parse(
-            (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
-          )
+          const schemaPayload = (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
+          this.schemaInput[credential.issuanceDate] = Object.values(schemaPayload)[0].p
         }
       }
     },
@@ -360,6 +359,13 @@ export default {
           item.connection = null;
         }
         return item;
+      }).sort((a, b) => {
+        if (a.credential.issuanceDate < b.credential.issuanceDate) {
+          return 1
+        } else if (a.credential.issuanceDate > b.credential.issuanceDate) {
+          return -1
+        }
+        return 0
       });
     },
     ocaRepoUrl: function() {

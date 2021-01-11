@@ -109,7 +109,7 @@ export default {
         langBranches.forEach(langBranch => {
           this.ocaFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], branchBase.DRI).form
           })
         })
 

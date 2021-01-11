@@ -60,7 +60,7 @@ export default {
           })
         })
       this.$_adminApi_getPresentations()
-        .then(r => this.presentations = r.data)
+        .then(r => this.presentations = r.data.result)
     }
   }
 }

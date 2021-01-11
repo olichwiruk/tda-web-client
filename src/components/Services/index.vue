@@ -168,8 +168,8 @@ export default {
       this.$_adminApi_getServiceApplications({
         state: "pending", author: "self"
       }).then(r => {
-        if (r.status === 200) {
-          this.submitted_applications = r.data.map(application => {
+        if (r.data.success) {
+          this.submitted_applications = r.data.result.map(application => {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
@@ -190,13 +190,15 @@ export default {
       this.$_adminApi_getServiceApplications({
         state: "pending", author: "other"
       }).then(r => {
-        if (r.status === 200) {
-          this.pending_applications = r.data.map(application => {
+        if (r.data.success) {
+          this.pending_applications = r.data.result.map(application => {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
+            const service_user_data = JSON.parse(application.service_user_data)
+            const payload = Object.values(service_user_data)[0].p
             return Object.assign(application, {
-              payload: JSON.parse(application.service_user_data),
+              payload,
               service_schema: JSON.parse(application.service_schema),
               consent_schema: JSON.parse(application.consent_schema),
               connection: connection

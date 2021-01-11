@@ -89,7 +89,7 @@ export default {
               ocaSchemaNamespace: cred.oca_schema_namespace,
               ocaSchemaDri: cred.oca_schema_dri,
               dataDri: cred.oca_data_dri,
-              serviceConsentMatchId: cred.oca_schema_namespace
+              serviceConsentMatchId: cred.service_consent_match_id
             }
           })
         }

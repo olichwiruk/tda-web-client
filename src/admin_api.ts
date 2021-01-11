@@ -68,6 +68,16 @@ export default {
           const apiUrl = this.adminApiUrl
           return getPayload(apiUrl, params)
         },
+        $_adminApi_saveCurrentData(params: saveCurrentDataParams): Promise<object> {
+          // @ts-ignore
+          const apiUrl = this.adminApiUrl
+          return saveCurrentData(apiUrl, params)
+        },
+        $_adminApi_getCurrentData(params: getCurrentDataParams): Promise<object> {
+          // @ts-ignore
+          const apiUrl = this.adminApiUrl
+          return getCurrentData(apiUrl, params)
+        },
     }
 }
 
@@ -196,4 +206,22 @@ type getPayloadParams = {
 
 function getPayload(apiUrl: string, params: getPayloadParams) {
   return axios.get(`${apiUrl}/pds/${params.payload_dri}`)
+}
+
+type saveCurrentDataParams = {
+    data: object
+}
+
+function saveCurrentData(apiUrl: string, params: saveCurrentDataParams) {
+  return axios.post(`${apiUrl}/pds/current/`, params)
+}
+
+type getCurrentDataParams = {
+    schemaDris: string[]
+}
+
+function getCurrentData(apiUrl: string, params: getCurrentDataParams) {
+  const queryParams = params.schemaDris
+    .map(dri => `oca_schema_base_dris=${dri}`).join('&')
+  return axios.get(`${apiUrl}/pds/current/?${queryParams}`)
 }

@@ -153,7 +153,7 @@ export default {
   },
   mounted() {
     this.$_adminApi_getPresentations()
-      .then(r => this.presentations = r.data.filter(p =>
+      .then(r => this.presentations = r.data.result.filter(p =>
         (
           "state" in p &&
           ( p.state === "verified" ||
@@ -209,7 +209,8 @@ export default {
         {
           label: event.serviceForm.schema.form.label,
           formData: event.serviceForm.schema.form,
-          alternatives: event.serviceForm.schema.formAlternatives
+          alternatives: event.serviceForm.schema.formAlternatives,
+          input: null
         }, options[0])
       Object.assign(this.forms[1],
         {
@@ -249,21 +250,32 @@ export default {
     },
     serviceApply(event) {
       this.currentApplicationService = event
-      this.collectForms(event, [{ readonly: false }])
+      const schemaDri = event.service.service_schema.oca_schema_dri
+      this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
+        .then(r => {
+          let input = null
+          const schemaFillings = r.data.result[schemaDri]
+          if (schemaFillings.length > 0) {
+            input = schemaFillings[0].content.p
+          }
 
-      try {
-        this.$refs.PreviewServiceComponent.openModal();
-      } catch(e) {
-        console.log(e)
-        this.$noty.error("ERROR! Form data are corrupted.", {
-          timeout: 1000
+          this.collectForms(event, [{ readonly: false, input }])
+
+          try {
+            this.$refs.PreviewServiceComponent.openModal();
+          } catch(e) {
+            console.log(e)
+            this.$noty.error("ERROR! Form data are corrupted.", {
+              timeout: 1000
+            })
+          }
         })
-      }
     },
     saveApplicationHandler(data) {
       const ref = this.$parent.$children.find(child => (
         child.$el.className == 'activeConnections'
       ))
+      this.$_adminApi_saveCurrentData({ data })
       if(ref) { ref.sendApplication(data) }
     },
     sendApplication(data) {

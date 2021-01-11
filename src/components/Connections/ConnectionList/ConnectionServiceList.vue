@@ -102,7 +102,7 @@ export default {
         consentLangBranches.forEach(langBranch => {
           consentFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.consent_schema.oca_schema_dri).form
           })
         })
         consentForm = consentFormAlternatives[0].form
@@ -124,7 +124,7 @@ export default {
         serviceLangBranches.forEach(langBranch => {
           serviceFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.service_schema.oca_schema_dri).form
           })
         })
         serviceForm = serviceFormAlternatives[0].form
