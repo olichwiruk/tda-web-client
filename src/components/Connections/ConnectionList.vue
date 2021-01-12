@@ -226,7 +226,7 @@ export default {
           label: event.serviceForm.usagePolicy.form.label,
           formData: event.serviceForm.usagePolicy.form,
           alternatives: event.serviceForm.usagePolicy.formAlternatives,
-          input: null
+          input: event.serviceForm.usagePolicy.answers
         }, options[1][1])
     },
     presentationPreview(event) {

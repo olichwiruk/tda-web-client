@@ -1,4 +1,4 @@
-export function usagePolicyToOca(usagePolicy) {
+export function toOca(usagePolicy) {
     const oca = []
     const schemaBase = {
       "issued_by": "",
@@ -40,9 +40,9 @@ export function usagePolicyToOca(usagePolicy) {
       "attr_character_encoding": {}
     }
 
-    Object.entries(usagePolicy).forEach(([attr_name, attr]) => {
-      schemaBase.attributes[attr_name] = "Text"
-      labelOverlay.attr_labels[attr_name] = attr[0].value
+  Object.entries(usagePolicy).forEach(([attr_name, _attr]) => {
+    schemaBase.attributes[attr_name] = "Text"
+      labelOverlay.attr_labels[attr_name] = attr_name.charAt(0).toUpperCase() + attr_name.slice(1) + ':'
       labelOverlay.cat_attributes['_cat-1_'].push(attr_name)
       encodingOverlay.attr_character_encoding[attr_name] = "utf-8"
     })
@@ -52,4 +52,13 @@ export function usagePolicyToOca(usagePolicy) {
     oca.push(encodingOverlay)
 
     return oca
+}
+
+export function serializeInput(usagePolicy) {
+  const input = {}
+  Object.entries(usagePolicy).forEach(([attr_name, attr]) => {
+    input[attr_name] = attr[0].value
+  })
+
+  return input
 }

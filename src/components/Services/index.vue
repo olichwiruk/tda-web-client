@@ -233,7 +233,8 @@ export default {
         {
           label: application.usagePolicy.form.label,
           formData: application.usagePolicy.form,
-          alternatives: application.usagePolicy.formAlternatives
+          alternatives: application.usagePolicy.formAlternatives,
+          input: application.usagePolicy.answers
         }, options[1][1])
     },
     previewService(service, options={}) {

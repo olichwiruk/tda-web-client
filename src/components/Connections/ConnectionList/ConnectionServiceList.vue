@@ -21,7 +21,10 @@ import axios from 'axios';
 
 import { mapState, mapActions } from 'vuex'
 import { renderForm } from 'oca.js-vue'
-import { usagePolicyToOca } from '@/usage_policy_to_oca';
+import {
+  toOca as usagePolicyToOca,
+  serializeInput as  serializeUsagePolicyInput
+} from '@/usage_policy_helper';
 
 export default {
   name: 'connection-service-list',
@@ -145,7 +148,8 @@ export default {
         formAlternatives: [{
           language: form.translations[0].language,
           form: form
-        }]
+        }],
+        answers: serializeUsagePolicyInput(usagePolicyData)
       }
 
       return {
