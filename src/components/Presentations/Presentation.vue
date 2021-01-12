@@ -343,8 +343,8 @@ export default {
     pdsPayloadMessages: {
       handler: function() {
         this.pdsPayloadMessages.forEach(msg => {
-          console.log(msg);
-          this.schemaPayload[msg.content.dri] = JSON.parse(msg.content.payload)
+          const payload = JSON.parse(msg.content.payload)
+          this.schemaPayload[msg.content.dri] = Object.values(payload)[0].p
           this.delete_message(msg.uuid)
         })
       }
