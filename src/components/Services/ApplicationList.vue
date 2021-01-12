@@ -33,6 +33,7 @@ import axios from 'axios';
 
 import VueJsonPretty from 'vue-json-pretty';
 import { renderForm } from 'oca.js-vue'
+import { usagePolicyToOca } from '@/usage_policy_to_oca';
 
 export default {
   name: 'application-list',
@@ -111,6 +112,18 @@ export default {
         })
       }
 
+      const usagePolicyData = (await axios.post('https://governance.ownyourdata.eu/api/usage-policy/parse', {
+        'ttl': application.consent_schema.usage_policy
+      })).data
+      const form = renderForm(usagePolicyToOca(usagePolicyData)).form
+      const usagePolicy ={
+        form: form,
+        formAlternatives: [{
+          language: form.translations[0].language,
+          form: form
+        }]
+      }
+
       return {
         service_id: application.service_id,
         consent: {
@@ -122,7 +135,8 @@ export default {
           form: serviceForm,
           formAlternatives: serviceFormAlternatives,
           answers: application.payload
-        }
+        },
+        usagePolicy
       }
     },
     splitBranchPerLang(branch) {

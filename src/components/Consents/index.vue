@@ -12,7 +12,7 @@
     <preview-component :readonly="true" ref="PreviewConsentComponent" :form="{}" :alternatives="alternatives"></preview-component>
 
     <multi-preview-component :label="previewLabel" :readonly="readonlyPreview"
-      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
+      :forms="forms" :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       ref="PreviewApplicationComponent" />
   </el-row>
 </template>
@@ -57,8 +57,9 @@ export default {
       readonlyPreview: true,
       currentApplication: {},
       forms: [
-        { class: "col-md-7", readonly: true, formData: {} },
-        { class: "col-md-5", readonly: true, formData: {} }
+        [ { class: "col-md-7", readonly: true, formData: {} } ],
+        [ { class: "col-md-5", readonly: true, formData: {} },
+        { class: "col-md-5", readonly: true, formData: {} } ]
       ],
       alternatives: [],
     }
@@ -123,30 +124,37 @@ export default {
     previewApplication(event, options={}) {
       const application = {
         schema: event.service,
-        consent: event.consent
+        consent: event.consent,
+        usagePolicy: event.usagePolicy
       }
       this.currentApplication = application
       this.previewLabel = 'Application'
       this.collectForms(application)
       this.$refs.PreviewApplicationComponent.openModal()
     },
-    collectForms(application, options=[]) {
-      Object.assign(this.forms[0],
+    collectForms(application, options=[[], []]) {
+      Object.assign(this.forms[0][0],
         {
           label: application.schema.form.label,
           formData: application.schema.form,
           alternatives: application.schema.formAlternatives
-        }, options[0])
+        }, options[0][0])
       if(application.schema.answers) {
-        Object.assign(this.forms[0], { input: application.schema.answers })
+        Object.assign(this.forms[0][0], { input: application.schema.answers })
       }
-      Object.assign(this.forms[1],
+      Object.assign(this.forms[1][0],
         {
           label: application.consent.form.label,
           formData: application.consent.form,
           alternatives: application.consent.formAlternatives,
           input: application.consent.answers
-        }, options[1])
+        }, options[1][0])
+      Object.assign(this.forms[1][1],
+        {
+          label: application.usagePolicy.form.label,
+          formData: application.usagePolicy.form,
+          alternatives: application.usagePolicy.formAlternatives
+        }, options[1][1])
     },
   },
   mounted() {

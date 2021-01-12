@@ -63,7 +63,7 @@
       @presentation-requested="sendPresentationRequest"/>
 
     <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
-      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
+      :forms="forms" :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent" />
     <preview-component ref="PresentationPreviewComponent" :readonly="true" :form="presentation.form" :alternatives="presentation.alternatives"></preview-component>
   </div>
@@ -103,8 +103,10 @@ export default {
         role: '',
         label: '',
       },
-      forms: [{ class: 'col-md-7', readonly: true, formData: {} },
-        { class: 'col-md-5', readonly: true, formData: {} }],
+      forms: [[{ class: 'col-md-7', readonly: true, formData: {} }],
+        [{ class: 'col-md-5', readonly: true, formData: {} },
+        { class: 'col-md-5', readonly: true, formData: {} }]
+      ],
       currentPresentationRequest: {},
       currentApplicationService: {},
       confirmProcessing: false,
@@ -205,20 +207,27 @@ export default {
       })
     },
     collectForms(event, options) {
-      Object.assign(this.forms[0],
+      Object.assign(this.forms[0][0],
         {
           label: event.serviceForm.schema.form.label,
           formData: event.serviceForm.schema.form,
           alternatives: event.serviceForm.schema.formAlternatives,
           input: null
-        }, options[0])
-      Object.assign(this.forms[1],
+        }, options[0][0])
+      Object.assign(this.forms[1][0],
         {
           label: event.serviceForm.consent.form.label,
           formData: event.serviceForm.consent.form,
           alternatives: event.serviceForm.consent.formAlternatives,
           input: event.serviceForm.consent.answers
-        }, options[1])
+        }, options[1][0])
+      Object.assign(this.forms[1][1],
+        {
+          label: event.serviceForm.usagePolicy.form.label,
+          formData: event.serviceForm.usagePolicy.form,
+          alternatives: event.serviceForm.usagePolicy.formAlternatives,
+          input: null
+        }, options[1][1])
     },
     presentationPreview(event) {
       this.presentation.form = event.presentationForm.form
@@ -237,7 +246,7 @@ export default {
       }
     },
     servicePreview(event) {
-      this.collectForms(event, [{ readonly: true }])
+      this.collectForms(event, [[{ readonly: true }], []])
 
       try {
         this.$refs.PreviewServiceComponent.openModal();
@@ -259,7 +268,7 @@ export default {
             input = schemaFillings[0].content.p
           }
 
-          this.collectForms(event, [{ readonly: false, input }])
+          this.collectForms(event, [[{ readonly: false, input }], []])
 
           try {
             this.$refs.PreviewServiceComponent.openModal();
@@ -283,7 +292,7 @@ export default {
       this.confirmProcessing = true
 
       const { policy_validation, ...service } = this.currentApplicationService.service
-      const { consent_id, data: consent_data, ...consent_schema } = this.currentApplicationService.service.consent_schema
+      const { consent_id, data: consent_data, usage_policy, ...consent_schema } = this.currentApplicationService.service.consent_schema
       service.consent_schema = consent_schema
 
       this.$_adminApi_applyOnService({

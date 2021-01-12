@@ -21,7 +21,7 @@
     <multi-preview-component :label="previewLabel" :readonly="readonlyPreview"
       confirmLabel="Confirm" :confirmProcessing="confirmProcessing"
       rejectLabel="Reject" :rejectProcessing="rejectProcessing"
-      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
+      :forms="forms" :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       ref="PreviewApplicationComponent" />
   </el-row>
 </template>
@@ -72,8 +72,9 @@ export default {
       confirmProcessing: false,
       rejectProcessing: false,
       forms: [
-        { class: "col-md-7", readonly: true, formData: {} },
-        { class: "col-md-5", readonly: true, formData: {} }
+        [ { class: "col-md-7", readonly: true, formData: {} } ],
+        [ { class: "col-md-5", readonly: true, formData: {} },
+        { class: "col-md-5", readonly: true, formData: {} } ]
       ],
       submitted_applications: [],
       pending_applications: []
@@ -210,23 +211,30 @@ export default {
         this.$noty.error("Error occurred", { timeout: 1000 })
       })
     },
-    collectForms(application, options=[]) {
-      Object.assign(this.forms[0],
+    collectForms(application, options=[[], []]) {
+      console.log(application)
+      Object.assign(this.forms[0][0],
         {
           label: application.schema.form.label,
           formData: application.schema.form,
           alternatives: application.schema.formAlternatives
-        }, options[0])
+        }, options[0][0])
       if(application.schema.answers) {
-        Object.assign(this.forms[0], { input: application.schema.answers })
+        Object.assign(this.forms[0][0], { input: application.schema.answers })
       }
-      Object.assign(this.forms[1],
+      Object.assign(this.forms[1][0],
         {
           label: application.consent.form.label,
           formData: application.consent.form,
           alternatives: application.consent.formAlternatives,
           input: application.consent.answers
-        }, options[1])
+        }, options[1][0])
+      Object.assign(this.forms[1][1],
+        {
+          label: application.usagePolicy.form.label,
+          formData: application.usagePolicy.form,
+          alternatives: application.usagePolicy.formAlternatives
+        }, options[1][1])
     },
     previewService(service, options={}) {
       this.previewLabel = 'Service'

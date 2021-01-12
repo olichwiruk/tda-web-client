@@ -21,6 +21,7 @@ import axios from 'axios';
 
 import { mapState, mapActions } from 'vuex'
 import { renderForm } from 'oca.js-vue'
+import { usagePolicyToOca } from '@/usage_policy_to_oca';
 
 export default {
   name: 'connection-service-list',
@@ -135,6 +136,18 @@ export default {
         })
       }
 
+      const usagePolicyData = (await axios.post('https://governance.ownyourdata.eu/api/usage-policy/parse', {
+        'ttl': service.consent_schema.usage_policy
+      })).data
+      const form = renderForm(usagePolicyToOca(usagePolicyData)).form
+      const usagePolicy ={
+        form: form,
+        formAlternatives: [{
+          language: form.translations[0].language,
+          form: form
+        }]
+      }
+
       return {
         id: service.service_id,
         consent: {
@@ -145,7 +158,8 @@ export default {
         schema: {
           form: serviceForm,
           formAlternatives: serviceFormAlternatives
-        }
+        },
+        usagePolicy
       }
     },
     splitBranchPerLang(branch) {
@@ -222,7 +236,9 @@ export default {
   width: 15px;
   background-color: #bbbbbb;
   border-radius: 50%;
+  margin-left: 5px;
   margin-right: 10px;
+  cursor: pointer;
 }
 
 .valid-policy-dot.green {
