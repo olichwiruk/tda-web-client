@@ -29,6 +29,7 @@
     "vue-cli": "^2.9.6",
     "vue-json-pretty": "^1.6.0",
     "vue-property-decorator": "^8.4.2",
+    "vue-qrcode-reader": "^2.3.16",
     "vue-router": "^3.0.1",
     "vue-session": "^1.0.0",
     "vuejs-noty": "^0.1.3",

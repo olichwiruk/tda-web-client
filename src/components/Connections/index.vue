@@ -1,5 +1,29 @@
 <template>
   <q-card class="q-ma-xl">
+    <q-dialog v-model="isQrDialogVisible">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Scan QR-Code</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <qrcode-stream
+            v-if="isQrDialogVisible"
+            @decode="onQrScan"
+          ></qrcode-stream>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Cancel"
+            color="primary"
+            v-close-popup
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-dialog v-model="isUrlDialogVisible">
       <q-card style="min-width: 50vw">
         <q-card-section>
@@ -41,6 +65,11 @@
         flat
         icon="add"
         @click="isUrlDialogVisible = true"
+      ></q-btn>
+      <q-btn
+        flat
+        icon="qr_code_scanner"
+        @click="isQrDialogVisible = true"
       ></q-btn>
       <q-btn
         flat
@@ -90,6 +119,8 @@
 
 <script>
 import ConnectionList from './ConnectionList.vue';
+import { QrcodeStream } from 'vue-qrcode-reader'
+
 import share from '@/share.ts';
 import message_bus from '@/message_bus.ts';
 
@@ -157,7 +188,8 @@ export const shared = {
 export default {
   name: 'connections',
   components: {
-    ConnectionList
+    ConnectionList,
+    QrcodeStream,
   },
   mixins: [
     message_bus(),
@@ -218,6 +250,18 @@ export default {
         return this.fetch_connections();
       }, 4000);
     },
+    onQrScan: function (decodedString) {
+      try {
+        // only if string can be parsed as url, we will accept it
+        new URL(decodedString);
+      } catch {
+        return;
+      }
+
+      this.isQrDialogVisible = false;
+      this.invitation = decodedString;
+      this.recieve_invitation();
+    }
   },
 }
 </script>
