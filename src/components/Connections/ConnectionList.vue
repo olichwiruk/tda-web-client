@@ -1,19 +1,55 @@
 <template >
   <div v-if="list.length">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">{{ title }}</a>
+    <q-list bordered>
+
+      <q-item-label header>{{title}}</q-item-label>
+      <q-item
+        clickable
+        ripple
+        v-for="connection in list"
+        :key="title+connection.connection_id"
+      >
+        <q-item-section avatar>
+          <q-avatar
+            :color="getConnectionColor(connection)"
+            text-color="white"
+            :icon="getConnectionIcon(connection)"
+          />
+        </q-item-section>
+        <q-item-section>{{get_name(connection)}}</q-item-section>
+        <q-item-section side>
+
+          <q-btn
+            flat
+            round
+            icon="delete"
+            @click="delete_conn(connection)"
+          >
+
+          </q-btn>
+        </q-item-section>
+      </q-item>
+    </q-list>
+
+    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a
+        class="navbar-brand"
+        href="#"
+      >{{ title }}</a>
       <el-button
         type="primary"
         icon="el-icon-refresh"
-        @click="$emit('refresh',)"></el-button>
-    </nav>
-    <el-collapse v-model="expanded_items">
+        @click="$emit('refresh',)"
+      ></el-button>
+    </nav> -->
+    <!-- <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
           v-for="(connection) in list"
           v-bind:title="get_name(connection)"
           :name="connection.connection_id"
-          :key="title+connection.connection_id">
+          :key="title+connection.connection_id"
+        >
           <el-row>
             <div>
               <vue-json-pretty :deep=0 :data="connection" />
@@ -36,8 +72,11 @@
           </el-row>
         </el-collapse-item>
       </ul>
-    </el-collapse>
-    <el-dialog title="Edit Connection" :visible.sync="editFormActive">
+    </el-collapse> -->
+    <!-- <el-dialog
+      title="Edit Connection"
+      :visible.sync="editFormActive"
+    >
       <el-form :model="editForm">
         <el-form-item label="Role:" :label-width="formLabelWidth">
           <el-input v-model="editForm.role" autocomplete="off"></el-input>
@@ -50,15 +89,18 @@
         <el-button @click="editFormActive = false">Cancel</el-button>
         <el-button type="primary" @click="update">Confirm</el-button>
       </span>
-    </el-dialog>
+    </el-dialog> -->
 
-    <presentation-request-dialog ref="PresentationDialog"
+    <!-- <presentation-request-dialog
+      ref="PresentationDialog"
       title="Presentation Request"
-      @presentation-requested="sendPresentationRequest"/>
+      @presentation-requested="sendPresentationRequest"
+    />
 
     <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent" />
+    /> -->
   </div>
 </template>
 
@@ -71,6 +113,7 @@ import adminApi from '@/admin_api.ts'
 import ConnectionServiceList from './ConnectionList/ConnectionServiceList';
 import PresentationRequestButton from './ConnectionList/PresentationRequest/Button'
 import PresentationRequestDialog from './ConnectionList/PresentationRequest/Dialog'
+import { isConnectionActive, isConnectionFailed, isConnectionPending } from './index.vue';
 
 export default {
   name: 'connection-list',
@@ -229,7 +272,23 @@ export default {
         this.confirmProcessing = false
         this.$refs.PreviewServiceComponent.closeModal();
       })
-    }
+    },
+    getConnectionColor(connection) {
+      if (isConnectionActive(connection))
+        return 'teal';
+      else if (isConnectionPending(connection))
+        return 'orange';
+      else
+        return 'red';
+    },
+    getConnectionIcon(connection) {
+      if (isConnectionActive(connection))
+        return 'done';
+      else if (isConnectionPending(connection))
+        return 'sync';
+      else
+        return 'error_outline';
+    },
   }
 }
 </script>

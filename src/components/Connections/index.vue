@@ -1,5 +1,53 @@
 <template>
-  <el-row>
+  <q-card class="q-ma-xl">
+    <q-dialog v-model="isUrlDialogVisible">
+      <q-card style="min-width: 50vw">
+        <q-card-section>
+          <div class="text-h6">Invitation URL</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            dense
+            v-model="invitation"
+            autofocus
+            hint="https://example.com"
+            @keyup.enter="prompt = false"
+          />
+        </q-card-section>
+
+        <q-card-actions
+          align="right"
+          class="text-primary"
+        >
+          <q-btn
+            flat
+            label="Cancel"
+            v-close-popup
+          />
+          <q-btn
+            flat
+            label="Connect"
+            @click="recieve_invitation"
+            v-close-popup
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-toolbar class="bg-primary text-white">
+      <q-toolbar-title>Contacts</q-toolbar-title>
+      <q-btn
+        flat
+        icon="add"
+        @click="isUrlDialogVisible = true"
+      ></q-btn>
+      <q-btn
+        flat
+        icon="refresh"
+        @click="fetch_connections"
+      ></q-btn>
+    </q-toolbar>
     <connection-list
       title="Active Connections:"
       editable="true"
@@ -21,7 +69,7 @@
       @connection-editted="update_connection"
       @connection-deleted="delete_connection"></connection-list>
 
-    <p>Add connection from invitation:</p>
+    <!-- <p>Add connection from invitation:</p>
     <el-form @submit.native.prevent>
       <el-form-item
         label="Invitation URL:">
@@ -36,13 +84,27 @@
         </el-input>
       </el-form-item>
     </el-form>
-  </el-row>
+  </el-row> -->
+  </q-card>
 </template>
 
 <script>
 import ConnectionList from './ConnectionList.vue';
 import share from '@/share.ts';
 import message_bus from '@/message_bus.ts';
+
+export const isConnection = (conn) => "state" in conn;
+
+export const isConnectionActive = (conn) => isConnection(conn) &&
+  conn.their_label !== 'ToolBox' &&
+  (conn.state === "active" || conn.state === "response");
+export const isConnectionPending = (conn) => isConnection(conn) &&
+  conn.state !== "active" &&
+  conn.state !== "invitation" &&
+  conn.state !== "error" &&
+  conn.state !== "response"
+export const isConnectionFailed = (conn) => isConnection(conn) &&
+  conn.state === "error"
 
 export const metadata = {
   menu: {
@@ -62,17 +124,9 @@ export const shared = {
   },
   computed: {
     active_connections: function() {
-        return Object.values(this.connections).filter(
-          conn => {
-            if (!("state" in conn)) {
-              return false;
-            }
-            if (conn.their_label == 'ToolBox') {
-              return false;
-            }
-            return conn.state === "active" || conn.state === "response"
-          }
-        );
+      return Object.values(this.connections).filter(
+        conn => isConnectionActive(conn)
+      );
     },
     id_to_connection: function(connection_id) {
       let map = {};
@@ -115,6 +169,8 @@ export default {
   data: function() {
     return {
       'invitation': '',
+      isQrDialogVisible: false,
+      isUrlDialogVisible: false,
     }
   },
   created: async function() {
@@ -124,15 +180,12 @@ export default {
   computed: {
     pending_connections: function() {
       return Object.values(this.connections).filter(
-        conn => "state" in conn &&
-        conn.state !== "active" &&
-        conn.state !== "invitation" &&
-        conn.state !== "error"
+        conn => isConnectionPending(conn)
       );
     },
     failed_connections: function() {
       return Object.values(this.connections).filter(
-        conn => "state" in conn && conn.state === "error"
+        conn => isConnectionFailed(conn)
       );
     }
   },
