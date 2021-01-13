@@ -1,6 +1,6 @@
 <template >
   <div v-if="list.length">
-    <q-list bordered>
+    <q-list>
 
       <q-item-label header>{{title}}</q-item-label>
       <q-item
