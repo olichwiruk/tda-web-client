@@ -1,4 +1,31 @@
+<style scoped>
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.space-between {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
+
 <template>
+  <q-layout>
+    <q-page-container>
+      <q-page class="center">
+        <q-card flat>
+          <header class="text-h4 text-center q-pa-lg">Trusted Digital Assistant</header>
+          <q-linear-progress indeterminate />
+          <div class="q-pa-lg space-between">
+            <q-img class="q-ma-md" :src="hcfImageUrl" />
+            <q-img class="q-ma-md" :src="oydImageUrl" />
+          </div>
+        </q-card>
+      </q-page>
+    </q-page-container>
+  </q-layout>
   <!--
   <el-row>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -76,6 +103,12 @@ export default {
       } else {
         return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
       }
+    },
+    hcfImageUrl: function () {
+      return require('../assets/logo_hcf.png');
+    },
+    oydImageUrl: function () {
+      return require('../assets/logo_oyd.png');
     }
   },
   created() {
