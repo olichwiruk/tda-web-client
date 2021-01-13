@@ -10,7 +10,7 @@
     <el-collapse v-model="ver_pres_expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="presentation in VerifiedPresentations"
+          v-for="presentation in ReceivedPresentations"
           :title="presentationTitle(presentation, 'From')"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
@@ -21,7 +21,7 @@
                 :data="presentation">
               </vue-json-pretty>
             </div>
-            <el-button @click="preview_presentation(presentation)">Preview</el-button>
+            <el-button @click="preview_presentation(presentation, 'review')">Preview</el-button>
             <el-button v-on:click="collapse_expanded_ver_pres(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
@@ -120,7 +120,11 @@
       </span>
     </el-dialog>
 
-    <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component>
+    <preview-component ref="PreviewComponent" :readonly="true" :reviewable="reviewablePreview"
+      :form="form" :alternatives="alternatives"
+      confirmLabel="Confirm" :confirmProcessing="confirmProcessing"
+      rejectLabel="Reject" :rejectProcessing="rejectProcessing">
+    </preview-component>
   </div>
 </template>
 
@@ -129,7 +133,8 @@ import axios from 'axios';
 import VueJsonPretty from 'vue-json-pretty';
 import adminApi from '@/admin_api.ts'
 import { mapState, mapActions } from 'vuex'
-import { renderForm, PreviewComponent } from 'oca.js-vue'
+import { eventBus as ocaEventBus, EventHandlerConstant,
+  renderForm, PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'presentation',
@@ -158,15 +163,27 @@ export default {
       schemaPayload: {},
       form: {},
       alternatives: [],
+      confirmProcessing: false,
+      rejectProcessing: false,
+      reviewablePreview: false,
       presentationDialog: {
         active: false,
         exchangeId: null,
         matchingCredentials: [],
         selectedCredential: null
+      },
+      openedPresentation: {
+        exchangeId: null
       }
     }
   },
   mixins: [adminApi],
+  mounted() {
+    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmPresentationHandler)
+    ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
+    ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectPresentationHandler)
+  },
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
     deactivatePresentationDialog() {
@@ -209,7 +226,7 @@ export default {
     },
     activate_presentation_dialog(presentation) {
       this.presentationDialog.matchingCredentials = this.credentials.filter(cred => {
-        return cred.credential.credentialSubject.oca_schema_dri == presentation.presentation_request.schema_base_dri
+        return presentation.list_of_matching_credentials.includes(cred.id)
       }).sort((a, b) => {
         if(a.credential.issuanceDate > b.credential.issuanceDate) {
           return -1
@@ -240,8 +257,10 @@ export default {
         timeout: 1000
       })
     },
-    async preview_presentation(presentation) {
+    async preview_presentation(presentation, context = null) {
+      this.reviewablePreview = (context == 'review')
       const presExId = presentation.presentation_exchange_id
+      this.openedPresentation.exchangeId = presExId
 
       this.alternatives = this.credentialsSchemaAlt[presExId]
 
@@ -338,6 +357,41 @@ export default {
       })
       return langBranches
     },
+    examinePresentation(decision) {
+      if(decision == 'accept') { this.confirmProcessing = true }
+      else if (decision == 'reject') { this.rejectProcessing = true }
+
+      const status = (decision == 'accept')
+
+      this.$_adminApi_verifyPresentation({
+        status: status, exchange_record_id: this.openedPresentation.exchangeId
+      }).then(r => {
+        if (r.data.success) {
+          this.$noty.success(`Presentation ${decision}ed!`, { timeout: 1000 })
+          this.$emit('presentation-refresh',)
+        } else {
+          console.warning(r.data)
+          this.$noty.error(`Error occurred. ${r.data}`, { timeout: 2000 })
+        }
+
+        if(decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
+        this.$refs.PreviewComponent.closeModal()
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+
+        if(decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
+        this.$refs.PreviewComponent.closeModal()
+      })
+    },
+    confirmPresentationHandler() {
+      this.examinePresentation('accept')
+    },
+    rejectPresentationHandler() {
+      this.examinePresentation('reject')
+    }
   },
   watch: {
     pdsPayloadMessages: {
@@ -388,15 +442,13 @@ export default {
     completed_verifications: function() {
       return this.presentations.filter(pres_exch => pres_exch.state === 'verified');
     },
-    VerifiedPresentations() {
+    ReceivedPresentations() {
       console.log('PRESENTATIONS', this.presentations);
       return this.presentations.filter(
         exchange =>
         (
           "state" in exchange &&
           (
-            exchange.state === "verified" ||
-            exchange.state === "presentation_acked" ||
             exchange.state === "presentation_received"
           )
         ) &&

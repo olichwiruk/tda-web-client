@@ -65,7 +65,12 @@
     <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
       :forms="forms" :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent" />
-    <preview-component ref="PresentationPreviewComponent" :readonly="true" :form="presentation.form" :alternatives="presentation.alternatives"></preview-component>
+    <preview-component ref="PresentationPreviewComponent" :readonly="true"
+      :reviewable="true"
+      :form="presentation.form" :alternatives="presentation.alternatives"
+      confirmLabel="Confirm" :confirmProcessing="confirmProcessing"
+      rejectLabel="Reject" :rejectProcessing="rejectProcessing">
+      </preview-component>
   </div>
 </template>
 
@@ -110,12 +115,17 @@ export default {
       currentPresentationRequest: {},
       currentApplicationService: {},
       confirmProcessing: false,
+      rejectProcessing: false,
       formLabelWidth: '100px',
       presentations: [],
       presentationPayloads: {},
       presentation: {
         form: {},
         alternatives: []
+      },
+      dialogContext: null,
+      openedPresentation: {
+        exchangeId: null
       }
     }
   },
@@ -154,18 +164,11 @@ export default {
     }
   },
   mounted() {
-    this.$_adminApi_getPresentations()
-      .then(r => this.presentations = r.data.result.filter(p =>
-        (
-          "state" in p &&
-          ( p.state === "verified" ||
-            p.state === "presentation_acked" ||
-            p.state === "presentation_received")
-        ) &&
-        "role" in p && p.role === "verifier"
-      ))
+    this.refreshPresentations()
     ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.saveApplicationHandler)
+    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmPreviewHandler)
+    ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
+    ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectPreviewHandler)
   },
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
@@ -192,6 +195,16 @@ export default {
       this.expanded_items = this.expanded_items.filter(
         item => item != connection.connection_id
       );
+    },
+    refreshPresentations() {
+      this.$_adminApi_getPresentations()
+        .then(r => this.presentations = r.data.result.filter(p =>
+          (
+            "state" in p &&
+            (p.state === "presentation_received")
+          ) &&
+          "role" in p && p.role === "verifier"
+        ))
     },
     openPresentationRequest(connection_id) {
       this.currentPresentationRequest.connection_id = connection_id
@@ -230,6 +243,8 @@ export default {
         }, options[1][1])
     },
     presentationPreview(event) {
+      this.dialogContext = 'presentation'
+      this.openedPresentation.exchangeId = event.presentation.presentation_exchange_id
       this.presentation.form = event.presentationForm.form
       this.presentation.alternatives = event.presentationForm.formAlternatives
 
@@ -246,6 +261,7 @@ export default {
       }
     },
     servicePreview(event) {
+      this.dialogContext = 'service'
       this.collectForms(event, [[{ readonly: true }], []])
 
       try {
@@ -279,6 +295,53 @@ export default {
             })
           }
         })
+    },
+    confirmPreviewHandler(data) {
+      const ref = this.$parent.$children.find(child => (
+        child.$el.className == 'activeConnections'
+      ))
+      if (ref.dialogContext == 'presentation') {
+        ref.examinePresentation('accept')
+      } else if (ref.dialogContext == 'service') {
+        this.$_adminApi_saveCurrentData({ data })
+        if(ref) { ref.sendApplication(data) }
+      }
+    },
+    rejectPreviewHandler() {
+      const ref = this.$parent.$children.find(child => (
+        child.$el.className == 'activeConnections'
+      ))
+      if (ref.dialogContext == 'presentation') {
+        ref.examinePresentation('reject')
+      }
+    },
+    examinePresentation(decision) {
+      if(decision == 'accept') { this.confirmProcessing = true }
+      else if (decision == 'reject') { this.rejectProcessing = true }
+
+      const status = (decision == 'accept')
+
+      this.$_adminApi_verifyPresentation({
+        status: status, exchange_record_id: this.openedPresentation.exchangeId
+      }).then(r => {
+        if (r.data.success) {
+          this.$noty.success(`Presentation ${decision}ed!`, { timeout: 1000 })
+          this.refreshPresentations()
+        } else {
+          console.warning(r.data)
+          this.$noty.error(`Error occurred. ${r.data}`, { timeout: 2000 })
+        }
+
+        if(decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
+        this.$refs.PresentationPreviewComponent.closeModal()
+      }).catch(e => {
+        this.$noty.error("Error occurred", { timeout: 1000 })
+
+        if(decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
+        this.$refs.PresentationPreviewComponent.closeModal()
+      })
     },
     saveApplicationHandler(data) {
       const ref = this.$parent.$children.find(child => (

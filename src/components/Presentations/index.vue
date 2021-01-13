@@ -55,7 +55,7 @@ export default {
           this.credentials = r.data.result.map(c => {
             return {
               id: c.dri,
-              credential: JSON.parse(c.content)
+              credential: c.content
             }
           })
         })
