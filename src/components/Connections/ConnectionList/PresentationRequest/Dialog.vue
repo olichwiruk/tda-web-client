@@ -1,11 +1,16 @@
 <template>
   <div>
-    <el-dialog :title="title" :visible.sync="active" @close="deactivate()">
-      <el-form>
-        <el-form-item
-          label="OCA Schema:"
-          :label-width="formLabelWidth">
+    <q-dialog
+      v-model="active"
+      persistent
+      @close="deactivate()"
+    >
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">{{title}}</div>
+        </q-card-section>
 
+        <q-card-section class="q-pt-none">
           <!-- <vue-typeahead-bootstrap -->
           <!--   v-model="search.query" -->
           <!--   :minMatchingChars="0" -->
@@ -28,16 +33,34 @@
           <!--     <span v-html="htmlText"></span> -->
           <!--   </template> -->
           <!-- </vue-typeahead-bootstrap> -->
-        </el-form-item>
-      </el-form>
+        </q-card-section>
 
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="deactivate()">Cancel</el-button>
-        <el-button :disabled="!ocaForm" type="primary" @click="request_pesentation">Request</el-button>
-      </span>
-    </el-dialog>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Cancel"
+            color="primary"
+            v-close-popup
+          />
+          <q-btn
+            flat
+            label="Request"
+            color="primary"
+            :disable="!ocaForm"
+            v-close-popup
+            @click="request_pesentation"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
-    <preview-component style="z-index: 9999;" ref="PreviewComponent" :readonly="true" :form="ocaForm" :alternatives="ocaFormAlternatives"></preview-component>
+    <preview-component
+      style="z-index: 9999;"
+      ref="PreviewComponent"
+      :readonly="true"
+      :form="ocaForm"
+      :alternatives="ocaFormAlternatives"
+    ></preview-component>
   </div>
 </template>
 

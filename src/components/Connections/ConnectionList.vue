@@ -54,7 +54,7 @@
       </q-item>
     </q-list>
 
-    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <presentation-request-dialog
       <a
         class="navbar-brand"
         href="#"
@@ -116,14 +116,17 @@
 
     <!-- <presentation-request-dialog
       ref="PresentationDialog"
-      title="Presentation Request"
+      title="Request Credential"
       @presentation-requested="sendPresentationRequest"
     />
 
-    <multi-preview-component confirmLabel="Apply" :confirmProcessing="confirmProcessing"
-      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
-      ref="PreviewServiceComponent" />
-    /> -->
+    <multi-preview-component
+      confirmLabel="Apply"
+      :confirmProcessing="confirmProcessing"
+      :forms="forms"
+      :key="forms.map(f => f.formData._uniqueId).join('-')"
+      ref="PreviewServiceComponent"
+    />
   </div>
 </template>
 
