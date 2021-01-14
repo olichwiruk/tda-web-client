@@ -276,7 +276,7 @@ export default {
           oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
           oca_schema_dri: credential.credentialSubject.oca_schema_dri
         }
-        axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
+        axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${serviceSchema.oca_schema_dri}`)
           .then(r => {
             const branch = r.data
             this.credentialsSchemaAlt[credential.issuanceDate] = []
@@ -298,6 +298,16 @@ export default {
         if(credential.credentialSubject.oca_data_dri) {
           const schemaPayload = (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
           this.schemaInput[credential.issuanceDate] = Object.values(schemaPayload)[0].p
+        } else if(credential.credentialSubject.oca_data) {
+          const data = {}
+          Object.entries(credential.credentialSubject.oca_data).forEach(([key, value]) => {
+            if (value === "true" || value === "false") {
+              data[key] = JSON.parse(value)
+            } else {
+              data[key] = value
+            }
+          })
+          this.schemaInput[credential.issuanceDate] = data
         }
       }
     },
