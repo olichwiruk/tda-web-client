@@ -111,23 +111,6 @@
         @connection-deleted="delete_connection"
       ></connection-list>
     </div>
-
-    <!-- <p>Add connection from invitation:</p>
-    <el-form @submit.native.prevent>
-      <el-form-item
-        label="Invitation URL:">
-        <el-input
-          style="width: 300px;"
-          v-model="invitation">
-          <el-button
-            slot="append"
-            type="primary"
-            icon="el-icon-plus"
-            @click="recieve_invitation">Add</el-button>
-        </el-input>
-      </el-form-item>
-    </el-form>
-  </el-row> -->
   </q-card>
 </template>
 

@@ -55,66 +55,6 @@
     </q-list>
 
     <presentation-request-dialog
-      <a
-        class="navbar-brand"
-        href="#"
-      >{{ title }}</a>
-      <el-button
-        type="primary"
-        icon="el-icon-refresh"
-        @click="$emit('refresh',)"
-      ></el-button>
-    </nav> -->
-    <!-- <el-collapse v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="(connection) in list"
-          v-bind:title="get_name(connection)"
-          :name="connection.connection_id"
-          :key="title+connection.connection_id"
-        >
-          <el-row>
-            <div>
-              <vue-json-pretty :deep=0 :data="connection" />
-              <presentation-request-button
-                title="Ask For Presentation"
-                @click="openPresentationRequest(connection.connection_id)"
-                :ref="connection.connection_id"
-                :connection="connection" />
-              <connection-service-list title="Services:"
-                :ref="connection.connection_id"
-                :connection="connection"
-                @service-preview="servicePreview"
-                @service-apply="serviceApply" />
-            </div>
-            <template v-if="editable">
-              <el-button @click="edit(connection)">Edit</el-button>
-            </template>
-            <el-button type="danger" @click="delete_conn(connection)">Delete</el-button>
-            <el-button v-on:click="collapse_expanded(connection)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse> -->
-    <!-- <el-dialog
-      title="Edit Connection"
-      :visible.sync="editFormActive"
-    >
-      <el-form :model="editForm">
-        <el-form-item label="Role:" :label-width="formLabelWidth">
-          <el-input v-model="editForm.role" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="Label:" :label-width="formLabelWidth">
-          <el-input v-model="editForm.label" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="editFormActive = false">Cancel</el-button>
-        <el-button type="primary" @click="update">Confirm</el-button>
-      </span>
-    </el-dialog> -->
-
-    <!-- <presentation-request-dialog
       ref="PresentationDialog"
       title="Request Credential"
       @presentation-requested="sendPresentationRequest"
@@ -161,7 +101,7 @@ export default {
         label: '',
       },
       forms: [{ class: 'col-md-7', readonly: true, formData: {} },
-        { class: 'col-md-5', readonly: true, formData: {} }],
+      { class: 'col-md-5', readonly: true, formData: {} }],
       currentPresentationRequest: {},
       currentApplicationService: {},
       confirmProcessing: false,
