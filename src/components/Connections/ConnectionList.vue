@@ -22,10 +22,33 @@
           <q-btn
             flat
             round
-            icon="delete"
-            @click="delete_conn(connection)"
+            icon="more_vert"
           >
-
+            <q-menu>
+              <q-list style="min-width: 200px;">
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="openPresentationRequest(connection.connection_id)"
+                >
+                  <q-item-section side>
+                    <q-icon name="verified" />
+                  </q-item-section>
+                  <q-item-section>Request Credential</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="delete_conn(connection)"
+                >
+                  <q-item-section side>
+                    <q-icon name="delete" />
+                  </q-item-section>
+                  <q-item-section>Delete</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
           </q-btn>
         </q-item-section>
       </q-item>
