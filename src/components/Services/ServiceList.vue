@@ -1,28 +1,24 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
-
-      <el-button type="primary" icon="el-icon-refresh"
-        @click="$emit('services-refresh')"></el-button>
-    </nav>
-
-    <el-collapse v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="(service, index) in services"
-          :title="service.label"
-          :name="service.label + index"
-          :key="index">
-          <el-row>
-            <vue-json-pretty :deep=0 :data="service" />
-            <el-button size="medium"
-              @click="preview(service)">Preview</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-  </div>
+  <q-list>
+    <q-item
+      v-for="(service, index) in services"
+      :key="service.label + index"
+    >
+      <q-item-section>
+        {{service.label}}
+        <vue-json-pretty
+          :deep=0
+          :data="service"
+        />
+      </q-item-section>
+      <q-item-section side>
+        <q-btn
+          flat
+          @click="preview(service)"
+        >Preview</q-btn>
+      </q-item-section>
+    </q-item>
+  </q-list>
 </template>
 
 <script>

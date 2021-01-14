@@ -1,29 +1,78 @@
 <template>
-  <el-row>
-    <new-service title="Create new service"
-      @services-refresh="refreshServices" />
-    <service-list title="My services" :services="myServicesSorted"
-      @services-refresh="refreshServices"
-      @service-preview="previewService($event)" />
-    <application-list
-      title="Pending applications:"
-      :list="pending_applications"
-      label='From:'
-      @applications-refresh="refreshPendingApplications"
-      @application-preview="previewApplication($event, { readonly: false })" />
-    <application-list
-      title="Submitted applications:"
-      :list="submitted_applications"
-      label='To:'
-      @applications-refresh="refreshSubmittedApplications"
-      @application-preview="previewApplication($event, { readonly: true })" />
+  <div class="row">
+    <q-dialog v-model="isCreateServiceDialogVisible">
+      <q-card>
+        <new-service
+          title="Create new service"
+          @services-refresh="refreshServices"
+        />
+      </q-card>
+    </q-dialog>
 
-    <!-- <multi-preview-component :label="previewLabel" :readonly="readonlyPreview" -->
-    <!--   confirmLabel="Confirm" :confirmProcessing="confirmProcessing" -->
-    <!--   rejectLabel="Reject" :rejectProcessing="rejectProcessing" -->
-    <!--   :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')" -->
-    <!--   ref="PreviewApplicationComponent" /> -->
-  </el-row>
+    <div class="col">
+      <q-card class="q-ma-xl">
+        <q-banner inline-actions>
+          <span class="text-h5">Services</span>
+          <template v-slot:action>
+            <q-btn
+              flat
+              icon="add"
+              @click="isCreateServiceDialogVisible = true"
+            ></q-btn>
+            <q-btn
+              flat
+              icon="refresh"
+              @click="refreshServices"
+            ></q-btn>
+          </template>
+        </q-banner>
+
+        <service-list
+          title="My services"
+          :services="myServicesSorted"
+          @services-refresh="refreshServices"
+          @service-preview="previewService($event)"
+        />
+      </q-card>
+    </div>
+
+    <div class="col">
+      <q-card class="q-ma-xl">
+        <q-banner inline-actions>
+          <span class="text-h5">Applications</span>
+          <template v-slot:action>
+            <!-- <q-btn
+            flat
+            icon="add"
+            @click="isCreateServiceDialogVisible = true"
+          ></q-btn> -->
+            <q-btn
+              flat
+              icon="refresh"
+              @click="() => { refreshPendingApplications(); refreshSubmittedApplications(); }"
+            ></q-btn>
+          </template>
+        </q-banner>
+
+        <application-list
+          title="Pending applications:"
+          :list="pending_applications"
+          type="pending"
+          label='From:'
+          @applications-refresh="refreshPendingApplications"
+          @application-preview="previewApplication($event, { readonly: false })"
+        />
+        <application-list
+          title="Submitted applications:"
+          :list="submitted_applications"
+          type="submitted"
+          label='To:'
+          @applications-refresh="refreshSubmittedApplications"
+          @application-preview="previewApplication($event, { readonly: true })"
+        />
+      </q-card>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -76,7 +125,8 @@ export default {
         { class: "col-md-5", readonly: true, formData: {} }
       ],
       submitted_applications: [],
-      pending_applications: []
+      pending_applications: [],
+      isCreateServiceDialogVisible: false,
     }
   },
   computed: {

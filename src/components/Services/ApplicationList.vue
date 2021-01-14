@@ -1,10 +1,37 @@
 <template>
   <div v-if="list.length">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
+    <q-list>
 
-      <el-button type="primary" icon="el-icon-refresh"
-        @click="$emit('applications-refresh')"></el-button>
+      <q-item-label header>{{title}}</q-item-label>
+      <q-item
+        clickable
+        ripple
+        v-for="(application, index) in list"
+        :key="application.label + index"
+        @click="preview(application)"
+      >
+        <q-item-section avatar>
+          <q-avatar
+            :color="applicationColor"
+            :icon="applicationIcon"
+            text-color="white"
+          />
+        </q-item-section>
+        <q-item-section>{{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}</q-item-section>
+      </q-item>
+    </q-list>
+
+    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a
+        class="navbar-brand"
+        href="#"
+      > {{ title }} </a>
+
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('applications-refresh')"
+      ></el-button>
     </nav>
 
     <el-collapse v-model="expanded_items">
@@ -12,16 +39,23 @@
         <el-collapse-item
           v-for="(application, index) in list"
           :name="application.label + index"
-          :key="index">
+          :key="index"
+        >
           <template v-slot:title>{{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}</template>
           <el-row>
-            <vue-json-pretty :deep=0 :data="application" />
-            <el-button size="medium" :disabled="!application.payload"
-              @click="preview(application)">Preview</el-button>
+            <vue-json-pretty
+              :deep=0
+              :data="application"
+            />
+            <el-button
+              size="medium"
+              :disabled="!application.payload"
+              @click="preview(application)"
+            >Preview</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
-    </el-collapse>
+    </el-collapse> -->
   </div>
 </template>
 
@@ -33,7 +67,7 @@ import VueJsonPretty from 'vue-json-pretty';
 
 export default {
   name: 'application-list',
-  props: { title: String, list: Array, label: String },
+  props: { title: String, list: Array, label: String, type: String },
   components: {
     VueJsonPretty
   },
@@ -49,6 +83,18 @@ export default {
     ocaRepoUrl: function() {
       return this.$session.get('ocaRepoUrl')
     },
+    applicationColor: function() {
+      if (this.type === 'pending')
+        return 'orange';
+
+      return 'teal';
+    },
+    applicationIcon: function() {
+      if (this.type === 'pending')
+        return 'sync';
+
+      return 'done';
+    }
   },
   methods: {
     async renderApplicationForm(application) {
