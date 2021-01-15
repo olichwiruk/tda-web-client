@@ -29,8 +29,12 @@
         </q-banner>
 
         <service-list
-          title="My services"
           :services="myServicesSorted"
+          @services-refresh="refreshServices"
+          @service-preview="previewService($event)"
+        />
+        <service-list
+          :services="otherServices"
           @services-refresh="refreshServices"
           @service-preview="previewService($event)"
         />
@@ -116,6 +120,8 @@ export default {
   data() {
     return {
       myServices: [],
+      otherServices: [],
+      connections: [],
       previewLabel: '',
       readonlyPreview: true,
       currentApplication: {},
@@ -132,38 +138,46 @@ export default {
   },
   computed: {
     ...mapState('WsMessages', ['messages']),
-    stateUpdateMessages: function() {
+    stateUpdateMessages: function () {
       return this.messages.filter(message => {
         return message.topic == '/topic/verifiable-services/issue-state-update/'
       })
     },
-    incomingApplicationMessages: function() {
+    incomingApplicationMessages: function () {
       return this.messages.filter(message => {
         return message.topic == '/topic/verifiable-services/incoming-pending-application/'
       })
     },
-    acapyApiUrl: function() {
+    acapyApiUrl: function () {
       return this.$session.get('acapyApiUrl')
     },
-    fileserverUrl: function() {
+    fileserverUrl: function () {
       return this.$session.get('localDataVaultUrl')
     },
-    myServicesSorted: function() {
-      return this.myServices.sort((a, b) => {
-        return new Date(b.created_at) - new Date(a.created_at)
+    myServicesSorted: function () {
+      if (Array.isArray(this.myServices))
+        return this.myServices.sort((a, b) => {
+          return new Date(b.created_at) - new Date(a.created_at)
+        })
+
+      return [];
+    },
+    serviceListMessages: function () {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/request-service-list/'
       })
     },
   },
   watch: {
     connections: {
-      handler: function() {
+      handler: function () {
         this.refreshSubmittedApplications()
         this.refreshPendingApplications()
       },
       deep: true
     },
     stateUpdateMessages: {
-      handler: function() {
+      handler: function () {
         this.stateUpdateMessages.forEach(message => {
           this.refreshSubmittedApplications()
           this.refreshPendingApplications()
@@ -173,11 +187,29 @@ export default {
       deep: true
     },
     incomingApplicationMessages: {
-      handler: function() {
+      handler: function () {
         this.incomingApplicationMessages.forEach(message => {
           this.refreshPendingApplications()
           this.delete_message(message.uuid)
         })
+      },
+      deep: true
+    },
+    serviceListMessages: {
+      handler: function () {
+        if (this.serviceListMessages.length > 0)
+          this.otherServices = [];
+
+        this.serviceListMessages.forEach(message => {
+          const { connection_id, services } = message.content;
+          const conn = this.connections.find(c => c.connection_id === connection_id);
+
+          this.otherServices.push({
+            label: conn ? conn.their_label : connection_id,
+            services: message.content.services,
+          });
+          this.delete_message(message.uuid);
+        });
       },
       deep: true
     }
@@ -190,7 +222,7 @@ export default {
     }),
     adminApi
   ],
-  created: async function() {
+  created: async function () {
     await this.ready();
     this.refreshServices()
     this.refreshSubmittedApplications()
@@ -205,125 +237,150 @@ export default {
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
     refreshServices() {
+      this.refreshMyServices();
+      this.refreshOtherServices();
+    },
+    refreshMyServices() {
       axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
         .then(r => {
           if (r.status === 200) {
-            this.myServices = r.data
+            this.myServices = [];
+
+            if (r.data.result.length > 0) {
+              this.myServices.push({
+                label: 'Offered by me',
+                services: r.data.result
+              });
+            }
           }
         }).catch(e => {
           console.log(e)
           this.$noty.error("Error occurrde", { timeout: 1000 })
         })
     },
-    refreshSubmittedApplications() {
-      this.$_adminApi_getServiceApplications({
-        state: "pending", author: "self"
-      }).then(r => {
-        if (r.status === 200) {
-          this.submitted_applications = r.data.map(application => {
-            const connection = this.connections.find(conn =>
-              conn.connection_id == application.connection_id
-            )
-            return Object.assign(application, {
-              payload: JSON.parse(application.service_user_data),
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
-              connection: connection
-            })
-          })
-        }
-      }).catch(e => {
-        console.log(e)
-        this.$noty.error("Error occurred", { timeout: 1000 })
-      })
-    },
-    refreshPendingApplications() {
-      this.$_adminApi_getServiceApplications({
-        state: "pending", author: "other"
-      }).then(r => {
-        if (r.status === 200) {
-          this.pending_applications = r.data.map(application => {
-            const connection = this.connections.find(conn =>
-              conn.connection_id == application.connection_id
-            )
-            return Object.assign(application, {
-              payload: JSON.parse(application.service_user_data),
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
-              connection: connection
-            })
-          })
-        }
-      }).catch(e => {
-        console.log(e)
-        this.$noty.error("Error occurred", { timeout: 1000 })
-      })
-    },
-    collectForms(application, options=[]) {
-      Object.assign(this.forms[0],
-        {
-          label: application.schema.form.label,
-          formData: application.schema.form,
-          alternatives: application.schema.formAlternatives
-        }, options[0])
-      if(application.schema.answers) {
-        Object.assign(this.forms[0], { input: application.schema.answers })
+    async refreshOtherServices() {
+      try {
+        const { data: { results } } = await axios.get(`${this.acapyApiUrl}/connections`);
+
+        this.connections = results;
+        results
+          .filter((conn) => conn.state === 'active' && conn.their_label !== 'ToolBox')
+          .forEach((conn) => axios.get(`${this.acapyApiUrl}/verifiable-services/request-service-list/${conn.connection_id}`));
       }
-      Object.assign(this.forms[1],
-        {
-          label: application.consent.form.label,
-          formData: application.consent.form,
-          alternatives: application.consent.formAlternatives,
-          input: application.consent.answers
-        }, options[1])
-    },
-    previewService(service, options={}) {
-      this.previewLabel = 'Service'
-      this.readonlyPreview = true
-      this.collectForms(service)
-      this.$refs.PreviewApplicationComponent.openModal()
-    },
-    previewApplication(application, options={}) {
-      this.currentApplication = application
-      this.previewLabel = 'Application'
-      this.readonlyPreview = options.readonly
-      this.collectForms(application)
-      this.$refs.PreviewApplicationComponent.openModal()
-    },
-    examineApplication(decision) {
-      if(decision == 'accept') { this.confirmProcessing = true }
-      else if (decision == 'reject') { this.rejectProcessing = true }
-
-      axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
-        decision: decision, issue_id: this.currentApplication.issue_id
-      }).then(r => {
-        if (r.status === 200) {
-          if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
-            this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
-          } else {
-            this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
-            this.refreshPendingApplications()
-          }
-        }
-
-        if(decision == 'accept') { this.confirmProcessing = false }
-        else if (decision == 'reject') { this.rejectProcessing = false }
-        this.$refs.PreviewApplicationComponent.closeModal()
-      }).catch(e => {
+      catch (e) {
+        this.$noty.error("Could not fetch connections", { timeout: 1000 })
         console.log(e)
-        this.$noty.error("Error occurred", { timeout: 1000 })
+      }
+    }
+  },
+  refreshSubmittedApplications() {
+    this.$_adminApi_getServiceApplications({
+      state: "pending", author: "self"
+    }).then(r => {
+      if (r.status === 200) {
+        this.submitted_applications = r.data.map(application => {
+          const connection = this.connections.find(conn =>
+            conn.connection_id == application.connection_id
+          )
+          return Object.assign(application, {
+            payload: JSON.parse(application.service_user_data),
+            service_schema: JSON.parse(application.service_schema),
+            consent_schema: JSON.parse(application.consent_schema),
+            connection: connection
+          })
+        })
+      }
+    }).catch(e => {
+      console.log(e)
+      this.$noty.error("Error occurred", { timeout: 1000 })
+    })
+  },
+  refreshPendingApplications() {
+    this.$_adminApi_getServiceApplications({
+      state: "pending", author: "other"
+    }).then(r => {
+      if (r.status === 200) {
+        this.pending_applications = r.data.map(application => {
+          const connection = this.connections.find(conn =>
+            conn.connection_id == application.connection_id
+          )
+          return Object.assign(application, {
+            payload: JSON.parse(application.service_user_data),
+            service_schema: JSON.parse(application.service_schema),
+            consent_schema: JSON.parse(application.consent_schema),
+            connection: connection
+          })
+        })
+      }
+    }).catch(e => {
+      console.log(e)
+      this.$noty.error("Error occurred", { timeout: 1000 })
+    })
+  },
+  collectForms(application, options = []) {
+    Object.assign(this.forms[0],
+      {
+        label: application.schema.form.label,
+        formData: application.schema.form,
+        alternatives: application.schema.formAlternatives
+      }, options[0])
+    if (application.schema.answers) {
+      Object.assign(this.forms[0], { input: application.schema.answers })
+    }
+    Object.assign(this.forms[1],
+      {
+        label: application.consent.form.label,
+        formData: application.consent.form,
+        alternatives: application.consent.formAlternatives,
+        input: application.consent.answers
+      }, options[1])
+  },
+  previewService(service, options = {}) {
+    this.previewLabel = 'Service'
+    this.readonlyPreview = true
+    this.collectForms(service)
+    this.$refs.PreviewApplicationComponent.openModal()
+  },
+  previewApplication(application, options = {}) {
+    this.currentApplication = application
+    this.previewLabel = 'Application'
+    this.readonlyPreview = options.readonly
+    this.collectForms(application)
+    this.$refs.PreviewApplicationComponent.openModal()
+  },
+  examineApplication(decision) {
+    if (decision == 'accept') { this.confirmProcessing = true }
+    else if (decision == 'reject') { this.rejectProcessing = true }
 
-        if(decision == 'accept') { this.confirmProcessing = false }
-        else if (decision == 'reject') { this.rejectProcessing = false }
-        this.$refs.PreviewApplicationComponent.closeModal()
-      })
-    },
-    confirmApplicationHandler() {
-      this.examineApplication('accept')
-    },
-    rejectApplicationHandler() {
-      this.examineApplication('reject')
-    },
-  }
+    axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
+      decision: decision, issue_id: this.currentApplication.issue_id
+    }).then(r => {
+      if (r.status === 200) {
+        if (typeof r.data === 'string' && r.data.startsWith('-1:')) {
+          this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
+        } else {
+          this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
+          this.refreshPendingApplications()
+        }
+      }
+
+      if (decision == 'accept') { this.confirmProcessing = false }
+      else if (decision == 'reject') { this.rejectProcessing = false }
+      this.$refs.PreviewApplicationComponent.closeModal()
+    }).catch(e => {
+      console.log(e)
+      this.$noty.error("Error occurred", { timeout: 1000 })
+
+      if (decision == 'accept') { this.confirmProcessing = false }
+      else if (decision == 'reject') { this.rejectProcessing = false }
+      this.$refs.PreviewApplicationComponent.closeModal()
+    })
+  },
+  confirmApplicationHandler() {
+    this.examineApplication('accept')
+  },
+  rejectApplicationHandler() {
+    this.examineApplication('reject')
+  },
 }
 </script>

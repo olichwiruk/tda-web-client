@@ -1,23 +1,35 @@
 <template>
-  <q-list>
-    <q-item
-      v-for="(service, index) in services"
-      :key="service.label + index"
-    >
-      <q-item-section>
-        {{service.label}}
-        <vue-json-pretty
-          :deep=0
-          :data="service"
-        />
-      </q-item-section>
-      <q-item-section side>
-        <q-btn
+  <q-list v-if="services.length > 0">
+    <q-item-label
+      header
+      class="text-h6"
+      v-if="title"
+    >{{title}}</q-item-label>
+
+    <template v-for="(group, groupIndex) in services">
+
+      <q-separator :key="group.label + groupIndex" />
+      <q-item-label
+        header
+        :key="group.label + groupIndex"
+      >{{group.label}}</q-item-label>
+
+      <q-item
+        v-for="(service, index) in group.services"
+        :key="service.label + index"
+        clickable
+      >
+        <q-item-section>
+          {{service.label}}
+        </q-item-section>
+        <q-item-section side>
+          <q-btn
           flat
           @click="preview(service)"
-        >Preview</q-btn>
-      </q-item-section>
-    </q-item>
+          >Preview</q-btn>
+        </q-item-section>
+      </q-item>
+    </template>
   </q-list>
 </template>
 
