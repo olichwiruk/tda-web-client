@@ -1,48 +1,144 @@
 <template>
-  <el-row>
-    <connection-list
-      title="Active Connections:"
-      editable="true"
-      class="activeConnections"
-      :list="active_connections"
-      @connection-editted="update_connection"
-      @connection-deleted="delete_connection"
-      @refresh="fetch_connections"></connection-list>
-    <connection-list
-      title="Pending Connections:"
-      editable="true"
-      :list="pending_connections"
-      @connection-editted="update_connection"
-      @connection-deleted="delete_connection"></connection-list>
-    <connection-list
-      title="Failed Connections:"
-      editable="false"
-      :list="failed_connections"
-      @connection-editted="update_connection"
-      @connection-deleted="delete_connection"></connection-list>
+  <q-card class="q-ma-xl">
+    <q-dialog v-model="isQrDialogVisible">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Scan QR-Code</div>
+        </q-card-section>
 
-    <p>Add connection from invitation:</p>
-    <el-form @submit.native.prevent>
-      <el-form-item
-        label="Invitation URL:">
-        <el-input
-          style="width: 300px;"
-          v-model="invitation">
-          <el-button
-            slot="append"
-            type="primary"
-            icon="el-icon-plus"
-            @click="recieve_invitation">Add</el-button>
-        </el-input>
-      </el-form-item>
-    </el-form>
-  </el-row>
+        <q-card-section class="q-pt-none">
+          <qrcode-stream
+            v-if="isQrDialogVisible"
+            @decode="onQrScan"
+          ></qrcode-stream>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            label="Cancel"
+            color="primary"
+            v-close-popup
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="isUrlDialogVisible">
+      <q-card class="invitation-url-card">
+        <q-card-section>
+          <div class="text-h6">Invitation URL</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            dense
+            v-model="invitation"
+            autofocus
+            hint="https://example.com"
+            @keyup.enter="prompt = false"
+          />
+        </q-card-section>
+
+        <q-card-actions
+          align="right"
+          class="text-primary"
+        >
+          <q-btn
+            flat
+            label="Cancel"
+            v-close-popup
+          />
+          <q-btn
+            flat
+            label="Connect"
+            @click="recieve_invitation"
+            v-close-popup
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-banner inline-actions>
+      <span class="text-h5"> Contacts</span>
+      <template v-slot:action>
+        <q-btn
+          flat
+          icon="add"
+          @click="isUrlDialogVisible = true"
+        ></q-btn>
+        <q-btn
+          flat
+          icon="qr_code_scanner"
+          @click="isQrDialogVisible = true"
+        ></q-btn>
+        <q-btn
+          flat
+          icon="refresh"
+          @click="fetch_connections"
+        ></q-btn>
+      </template>
+    </q-banner>
+
+    <div class="list-container">
+      <q-list v-if="all_connections.length === 0">
+        <q-item>
+          Add your first contact by scanning a QR-Code or adding it manually.
+        </q-item>
+      </q-list>
+
+      <connection-list
+        title="Active Connections:"
+        editable="true"
+        class="activeConnections"
+        :list="active_connections"
+        @connection-editted="update_connection"
+        @connection-deleted="delete_connection"
+        @refresh="fetch_connections"
+      ></connection-list>
+      <connection-list
+        title="Pending Connections:"
+        editable="true"
+        :list="pending_connections"
+        @connection-editted="update_connection"
+        @connection-deleted="delete_connection"
+      ></connection-list>
+      <connection-list
+        title="Failed Connections:"
+        editable="false"
+        :list="failed_connections"
+        @connection-editted="update_connection"
+        @connection-deleted="delete_connection"
+      ></connection-list>
+    </div>
+  </q-card>
 </template>
+
+<style scoped>
+.invitation-url-card {
+  min-width: 40vw;
+}
+</style>
 
 <script>
 import ConnectionList from './ConnectionList.vue';
+import { QrcodeStream } from 'vue-qrcode-reader'
+
 import share from '@/share.ts';
 import message_bus from '@/message_bus.ts';
+
+export const isConnection = (conn) => "state" in conn;
+
+export const isConnectionActive = (conn) => isConnection(conn) &&
+  conn.their_label !== 'ToolBox' &&
+  (conn.state === "active" || conn.state === "response");
+export const isConnectionPending = (conn) => isConnection(conn) &&
+  conn.state !== "active" &&
+  conn.state !== "invitation" &&
+  conn.state !== "error" &&
+  conn.state !== "response"
+export const isConnectionFailed = (conn) => isConnection(conn) &&
+  conn.state === "error"
 
 export const metadata = {
   menu: {
@@ -62,17 +158,9 @@ export const shared = {
   },
   computed: {
     active_connections: function() {
-        return Object.values(this.connections).filter(
-          conn => {
-            if (!("state" in conn)) {
-              return false;
-            }
-            if (conn.their_label == 'ToolBox') {
-              return false;
-            }
-            return conn.state === "active" || conn.state === "response"
-          }
-        );
+      return Object.values(this.connections).filter(
+        conn => isConnectionActive(conn)
+      );
     },
     id_to_connection: function(connection_id) {
       let map = {};
@@ -85,9 +173,9 @@ export const shared = {
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
-    (share, msg) => share.connections = msg.results,
+      (share, msg) => share.connections = msg.results,
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
-    (share, msg) => share.fetch_connections(),
+      (share, msg) => share.fetch_connections(),
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/ack":
     (share, msg) => share.fetch_connections(),
   },
@@ -103,7 +191,8 @@ export const shared = {
 export default {
   name: 'connections',
   components: {
-    ConnectionList
+    ConnectionList,
+    QrcodeStream,
   },
   mixins: [
     message_bus(),
@@ -115,6 +204,8 @@ export default {
   data: function() {
     return {
       'invitation': '',
+      isQrDialogVisible: false,
+      isUrlDialogVisible: false,
     }
   },
   created: async function() {
@@ -124,16 +215,20 @@ export default {
   computed: {
     pending_connections: function() {
       return Object.values(this.connections).filter(
-        conn => "state" in conn &&
-        conn.state !== "active" &&
-        conn.state !== "invitation" &&
-        conn.state !== "error"
+        conn => isConnectionPending(conn)
       );
     },
     failed_connections: function() {
       return Object.values(this.connections).filter(
-        conn => "state" in conn && conn.state === "error"
+        conn => isConnectionFailed(conn)
       );
+    },
+    all_connections: function () {
+      return [
+        ...this.active_connections,
+        ...this.pending_connections,
+        ...this.failed_connections,
+      ];
     }
   },
   methods: {
@@ -165,6 +260,18 @@ export default {
         return this.fetch_connections();
       }, 4000);
     },
+    onQrScan: function (decodedString) {
+      try {
+        // only if string can be parsed as url, we will accept it
+        new URL(decodedString);
+      } catch {
+        return;
+      }
+
+      this.isQrDialogVisible = false;
+      this.invitation = decodedString;
+      this.recieve_invitation();
+    }
   },
 }
 </script>
