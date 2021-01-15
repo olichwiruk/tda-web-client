@@ -1,4 +1,31 @@
+<style scoped>
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.space-between {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
+
 <template>
+  <q-layout>
+    <q-page-container>
+      <q-page class="center">
+        <q-card flat>
+          <header class="text-h4 text-center q-pa-lg">Trusted Digital Assistant</header>
+          <q-linear-progress indeterminate />
+          <div class="q-pa-lg space-between">
+            <q-img class="q-ma-md" :src="hcfImageUrl" />
+            <q-img class="q-ma-md" :src="oydImageUrl" />
+          </div>
+        </q-card>
+      </q-page>
+    </q-page-container>
+  </q-layout>
   <!--
   <el-row>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -51,7 +78,8 @@ export default {
       invitation_url: this.routeParams().get('invitation_url'),
       agentServiceEndpoint: '',
       defaultConnectionEstablished: null,
-      new_agent_invitation: ""
+      new_agent_invitation: "",
+      splashScreenTimeout: null,
     }
   },
   computed: {
@@ -76,9 +104,18 @@ export default {
       } else {
         return `${config.env.VUE_APP_PROTOCOL}://${config.env.VUE_APP_OCA_REPO}.${config.env.VUE_APP_HOST}`
       }
+    },
+    hcfImageUrl: function () {
+      return require('../assets/logo_hcf.png');
+    },
+    oydImageUrl: function () {
+      return require('../assets/logo_oyd.png');
     }
   },
   created() {
+    // this is the minimum time the splash screen must be shown
+    this.splashScreenTimeout = new Promise(resolve => setTimeout(() => resolve(), 1000));
+
     if(this.invitation_url) {
       this.agentServiceEndpoint = (new URL(this.invitation_url)).origin
       this.new_agent_invitation = this.invitation_url
@@ -92,9 +129,7 @@ export default {
 
     if (!this.$session.get('agentId')) { return; }
 
-    this.$router.push({ name: 'agent', params: {
-      agentid: this.$session.get('agentId')
-    }});
+    this.routeToMainScreen(this.$session.get('agentId'));
   },
   watch: {
     agent_list: {
@@ -109,7 +144,17 @@ export default {
     routeParams() {
       return (new URL(document.location)).searchParams;
     },
+    async routeToMainScreen(agentid) {
+      // we have wait for our timeout
+      // otherwise the splash screen might be flickery for users
+      await this.splashScreenTimeout;
 
+      this.$router.push({
+        name: 'agent', params: {
+          agentid,
+        }
+      });
+    },
     connectDefaultAgent() {
       const axiosInstance = axios.create()
       axiosRetry(axiosInstance, {
@@ -139,7 +184,8 @@ export default {
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$session.set('localDataVaultUrl', this.localDataVaultUrl)
       this.$session.set('ocaRepoUrl', this.ocaRepoUrl)
-      this.$router.push({ name: 'agent', params: { agentid: a.id} })
+
+      this.routeToMainScreen(a.id);
     },
     deleteConnection: async function(a){
       this.delete_agent(a);
