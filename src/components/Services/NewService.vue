@@ -65,9 +65,7 @@ export default {
         oca_schema_namespace: null
       },
       consent: {
-        oca_schema_dri: null,
-        oca_schema_namespace: null,
-        data_dri: null
+        id: null
       }
     }
   },
@@ -84,7 +82,7 @@ export default {
     dataFilled: function() {
       return this.label != null &&
         this.service.oca_schema_dri != null &&
-        this.consent.data_dri != null
+        this.consent.id != null
     }
   },
   methods: {
@@ -94,9 +92,7 @@ export default {
       this.service.oca_schema_namespace = namespace
     },
     consentSelected(consent) {
-      this.consent.oca_schema_namespace = consent.oca_schema_namespace
-      this.consent.oca_schema_dri = consent.oca_schema_dri
-      this.consent.data_dri = consent.oca_data_dri
+      this.consent.id = consent.consent_id
     },
     resetServiceData() {
       this.label = null
@@ -105,16 +101,14 @@ export default {
         oca_schema_namespace: null
       }
       this.consent = {
-        oca_schema_dri: null,
-        oca_schema_namespace: null,
-        data_dri: null
+        id: null
       }
     },
     submit() {
       axios.post(`${this.acapyApiUrl}/verifiable-services/add`, {
         label: this.label,
+        consent_id: this.consent.id,
         service_schema: this.service,
-        consent_schema: this.consent
       }).then(r => {
         if (r.status === 200) {
           this.$noty.success("Service created!", { timeout: 1000 })
