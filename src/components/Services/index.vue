@@ -1,12 +1,13 @@
 <template>
   <div class="row">
-    <q-dialog v-model="isCreateServiceDialogVisible">
-      <q-card>
-        <new-service
-          title="Create new service"
-          @services-refresh="refreshServices"
-        />
-      </q-card>
+    <q-dialog
+      v-model="isCreateServiceDialogVisible"
+      persistent
+    >
+      <new-service
+        title="Offer new service"
+        @services-refresh="refreshServices"
+      />
     </q-dialog>
 
     <div class="col">

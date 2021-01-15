@@ -1,6 +1,37 @@
 <template>
-  <div style="display: flex;">
-    <label class="el-form-item__label">{{ label }}</label>
+  <div>
+    <q-select
+      outlined
+      v-model="search.query"
+      use-input
+      input-debounce="250"
+      :label="label"
+      :option-label="s => !!s ? `${s.namespace} / ${s.schemaName}`: ''"
+      :options="search.matching.length == 0 ? search.all : search.matching"
+      @filter="fetchOcaSchemas"
+    >
+      <template v-slot:no-option>
+        <q-item>
+          <q-item-section class="text-grey">
+            No results
+          </q-item-section>
+        </q-item>
+      </template>
+
+      <template v-slot:after>
+        <q-btn
+          :disable="!ocaForm"
+          round
+          dense
+          flat
+          icon="preview"
+          @click="preview"
+        />
+      </template>
+    </q-select>
+
+    <!-- <div style="display: flex;">
+    <label class="el-form-item__label">{{ label }}</label> -->
     <!-- <vue-typeahead-bootstrap -->
     <!--   v-model="search.query" -->
     <!--   :minMatchingChars="0" -->
@@ -24,7 +55,14 @@
     <!--   </template> -->
     <!-- </vue-typeahead-bootstrap> -->
 
-    <preview-component style="z-index: 9999;" ref="PreviewComponent" :readonly="true" :form="ocaForm" :alternatives="ocaFormAlternatives"></preview-component>
+    <!-- TODO: Include again! -->
+    <!-- <preview-component
+      style="z-index: 9999;"
+      ref="PreviewComponent"
+      :readonly="true"
+      :form="ocaForm"
+      :alternatives="ocaFormAlternatives"
+    ></preview-component> -->
   </div>
 </template>
 
@@ -32,7 +70,8 @@
 import axios from 'axios'
 
 //import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
-//import { renderForm, PreviewComponent } from 'odca-form'
+// TODO: include oca form library
+import { renderForm, PreviewComponent } from 'oca.js-vue'
 
 export default {
   name: 'oca-schema-search',
@@ -54,9 +93,8 @@ export default {
     }
   },
   watch: {
-    'search.query': function(input) {
-      if(input.length == 0) {}
-      this.fetchOcaSchemas(input)
+    'search.query': function (input) {
+      this.getOcaSchema(input);
     },
   },
   created() {
@@ -72,49 +110,64 @@ export default {
       })
   },
   methods: {
-    fetchOcaSchemas: function(input) {
-      axios.get(`${this.ocaRepoHost}/api/v2/schemas?suggest=${input}`)
-        .then(r => {
-          this.search.matching = r.data.map(x => {
-            return {
-              namespace: x.namespace,
-              DRI: x.DRI,
-              schemaName: x.schema.name
-            }
-          })
+    fetchOcaSchemas: async function (input, update) {
+      const r = await axios.get(`${this.ocaRepoHost}/api/v2/schemas?suggest=${input}`);
+
+      update(() => {
+        this.search.matching = r.data.map(x => {
+          return {
+            namespace: x.namespace,
+            DRI: x.DRI,
+            schemaName: x.schema.name
+          }
         })
-    },
-    getOcaSchema: async function(schema) {
-      this.ocaFormAlternatives = []
-      const result = await axios.get(`${this.ocaRepoHost}/api/v2/schemas?_index=branch&schema_base=${schema.DRI}`)
-      const branchesBase = result.data.filter(e => e.namespace == schema.namespace)
-      const branchBase = branchesBase[0]
-      this.$emit('serviceSchemaSelected', {
-        namespace: branchBase.namespace,
-        DRI: branchBase.DRI,
-        schemaName: schema.schemaName
       })
-
-      const branchResponse = await axios.get(`${this.ocaRepoHost}/api/v2/schemas/${branchBase.namespace}/${branchBase.DRI}`)
-      const branch = branchResponse.data
-      const langBranches = this.splitBranchPerLang(branch)
-
-      try {
-        langBranches.forEach(langBranch => {
-          this.ocaFormAlternatives.push({
-            language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
-          })
-        })
-
-        this.ocaForm = this.ocaFormAlternatives[0].form
-      } catch(e) {
-        this.$noty.error("ERROR! Form data are corrupted.", {
-          timeout: 1000
-        })
-      }
     },
-    splitBranchPerLang: function(branch) {
+    getOcaSchema: async function (schema) {
+      let namespace, dri, schemaName, ocaForm = null;
+
+      if (schema) {
+        this.ocaFormAlternatives = []
+        const result = await axios.get(`${this.ocaRepoHost}/api/v2/schemas?_index=branch&schema_base=${schema.DRI}`)
+
+        const branchesBase = result.data.filter(e => e.namespace == schema.namespace)
+        const branchBase = branchesBase[0]
+
+        if (branchBase) {
+          const branchResponse = await axios.get(`${this.ocaRepoHost}/api/v2/schemas/${branchBase.namespace}/${branchBase.DRI}`)
+          const branch = branchResponse.data
+          const langBranches = this.splitBranchPerLang(branch)
+
+          namespace = branchBase.namespace;
+          dri = branchBase.DRI;
+          schemaName = schema.schemaName;
+
+          try {
+            langBranches.forEach(langBranch => {
+              this.ocaFormAlternatives.push({
+                language: langBranch.lang,
+                form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+              })
+            })
+
+            ocaForm = this.ocaFormAlternatives[0].form
+          } catch (e) {
+            this.$noty.error("ERROR! Form data are corrupted.", {
+              timeout: 1000
+            })
+          }
+        }
+      }
+
+      this.$emit('serviceSchemaSelected', {
+        namespace,
+        DRI: dri,
+        schemaName,
+      });
+
+      this.ocaForm = ocaForm;
+    },
+    splitBranchPerLang: function (branch) {
       const langBranches = []
       const labelOverlays = branch.overlays.filter(o => o.type.includes("label"))
       const languages = labelOverlays.map(o => o.language)
@@ -125,7 +178,7 @@ export default {
           branch: {
             schema_base: schemaBase,
             overlays: branch.overlays.filter(o => {
-              if(!o.language) { return true }
+              if (!o.language) { return true }
               return o.language == lang
             })
           }
@@ -136,7 +189,7 @@ export default {
     preview(formInput = null) {
       try {
         this.$refs.PreviewComponent.openModal(this.ocaForm, formInput);
-      } catch(e) {
+      } catch (e) {
         this.$noty.error("ERROR! Form data are corrupted.", {
           timeout: 1000
         })
