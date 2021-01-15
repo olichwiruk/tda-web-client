@@ -1,5 +1,5 @@
 <template>
-  <q-card class="q-ma-xl">
+  <div class="q-ma-xl">
     <q-dialog v-model="isQrDialogVisible">
       <q-card>
         <q-card-section>
@@ -59,9 +59,12 @@
       </q-card>
     </q-dialog>
 
-    <q-banner inline-actions>
-      <span class="text-h5"> Contacts</span>
-      <template v-slot:action>
+    <div class="row">
+      <div class="col-12 col-md-8">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5"> Contacts</span>
+            <template v-slot:action>
         <q-btn
           flat
           icon="add"
@@ -77,13 +80,12 @@
           icon="refresh"
           @click="fetch_connections"
         ></q-btn>
-      </template>
-    </q-banner>
+            </template>
+          </q-banner>
 
-    <div class="list-container">
-      <q-list v-if="all_connections.length === 0">
-        <q-item>
-          Add your first contact by scanning a QR-Code or adding it manually.
+          <q-list v-if="all_connections.length === 0">
+            <q-item>
+              Add your first contact by scanning a QR-Code or adding it manually.
         </q-item>
       </q-list>
 
@@ -107,11 +109,28 @@
         title="Failed Connections:"
         editable="false"
         :list="failed_connections"
-        @connection-editted="update_connection"
-        @connection-deleted="delete_connection"
-      ></connection-list>
+            @connection-editted="update_connection"
+            @connection-deleted="delete_connection"
+          ></connection-list>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-1" />
+      <div class="col-12 col-md-3">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5">QR-Code Invitation</span>
+            <template v-slot:action>
+              <q-btn
+                flat
+                icon="add"
+              >Create</q-btn>
+            </template>
+          </q-banner>
+
+        </q-card>
+      </div>
     </div>
-  </q-card>
+  </div>
 </template>
 
 <style scoped>
