@@ -1,10 +1,5 @@
 <template>
-  <el-row>
-    <!-- <cred-def-list -->
-    <!--   title="Retrieved Credential Definitions" -->
-    <!--   v-bind:retrievable="true" -->
-    <!--   v-bind:can_create="false" -->
-    <!--   v-bind:list="proposal_cred_defs"></cred-def-list> -->
+  <div class="row">
     <my-credentials-list
       title="Documents"
       editable="false"
@@ -13,7 +8,7 @@
       v-bind:connections="active_connections"
       @cred-refresh="fetch_credentials"
       @propose="send_proposal"></my-credentials-list>
-  </el-row>
+  </div>
 </template>
 
 <script>
@@ -117,7 +112,7 @@ export default {
     },
     fetch_credentials: function() {
       axios.get(`${this.acapyApiUrl}/credentials`).then(r => {
-        this.credentials = r.data.results
+        this.credentials = r.data.result
       })
     }
   },

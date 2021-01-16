@@ -1,134 +1,71 @@
 <template >
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">{{ title }}</a>
-      <!-- <el-button -->
-      <!--   type="primary" -->
-      <!--   icon="el-icon-plus" -->
-      <!--   @click="proposalFormActive = true">Send Credential Proposal</el-button> -->
-      <el-button
-        type="primary"
-        icon="el-icon-refresh"
-        @click="$emit('cred-refresh',)"></el-button>
-    </nav>
-    <el-collapse v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="credential in credentials"
-          :name="credential.credential.issuanceDate"
-          :key="credential.credential.issuanceDate">
-          <template slot="title">
-            {{ credentialsLabel[credential.credential.issuanceDate] }} | {{ credential.credential.issuanceDate }} {{ credential.connection ? `| ${credential.connection.their_label}` : '' }}
-          </template>
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=0
-                :data="credential">
-              </vue-json-pretty>
-            </div>
-            <el-button v-if="credentialsSchema[credential.credential.issuanceDate]"
-              v-on:click="preview(credentialsSchema[credential.credential.issuanceDate], schemaInput[credential.credential.issuanceDate], credentialsSchemaAlt[credential.credential.issuanceDate])">Preview</el-button>
-            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <nav
-      v-if="offerReceivedStateCredentials.length"
-      class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Offers</a>
-      <!-- <el-button
-        type="primary"
-        icon="el-icon-plus"
-        @click="offerFormActive = true">Accept Offer</el-button> -->
-    </nav>
-    <el-collapse
-      v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="credential in offerReceivedStateCredentials"
-          v-bind:title="credential.cred_def_id"
-          :name="credential.cred_def_id"
-          :key="credential.cred_def_id">
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=0
-                :data="credential">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive" @close="deActivateForm()">
-      <el-form :model="proposalForm">
-        <el-form-item label="Connection:" :label-width="formLabelWidth">
-          <el-select
-            v-model="proposalForm.connection_id"
-            filterable
-            value-key="proposalForm.connection_id"
-            placeholder="Select">
-            <el-option
-              v-for="connection in connections"
-              :key="connection.connection_id"
-              :label="connection.their_label"
-              :value="connection.connection_id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
-          <el-select
-            v-model="proposalForm.selected_cred_def"
-            filterable
-            value-key="proposalForm.selected_cred_def"
-            placeholder="Select"
-            :disabled="!proposalForm.connection_id"
-            @change="update_attributes">
-            <el-option
-              v-for="cred_def in cred_defs"
-              :key="cred_def.cred_def_id"
-              :label="cred_def.cred_def_id"
-              :value="cred_def">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          label="Comment (optional)"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="proposalForm.comment"
-            type="textarea"></el-input>
-        </el-form-item>
-        <el-form-item
-          v-for="attribute in proposalForm.attributes"
-          :label="attribute.name"
-          :label-width="formLabelWidth"
-          :key="attribute.name">
-          <el-input
-            v-model="attribute.value"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="deActivateForm()">Cancel</el-button>
-        <el-button :disabled="!proposalForm.selected_cred_def" type="primary" @click="propose">Confirm</el-button>
-      </span>
-    </el-dialog>
+  <div class="q-pa-md q-gutter-md col">
+    <div class="row">
+      <div class="bg-white text-grey-8 col">
+        <q-toolbar>
+          <div class="row wrap">
+            <q-input dense outlined square v-model="search" placeholder="Search" class="bg-white col" />
+            <q-btn class="" color="grey-3" text-color="grey-8" icon="search" unelevated />
+          </div>
+        <q-btn
+          color="primary"
+          icon="refresh"
+          @click="$emit('cred-refresh',)"></q-btn>
+        </q-toolbar>
+      </div>
+    </div>
+  <div class="row">
+    <div class="col col-md-4">
+      <FlipCard v-for="credential in credentials">
+        <template slot="front">
+          <q-card-section horizontal>
+            <div class="text-overline">{{credential.content.type}}</div>
+          </q-card-section>
+          <q-separator/>
 
-    <!-- <preview-component ref="PreviewComponent" :readonly="true" :form="form" :alternatives="alternatives"></preview-component> -->
+          <q-card-actions>
+            <q-btn flat>
+              Valid until 2025-10-13
+            </q-btn>
+            <q-btn flat color="primary">
+              Issued by {{credential.content.issuer}}
+              on
+              {{credential.content.issuanceDate}}
+            </q-btn>
+          </q-card-actions>
+        </template>
+        <template slot="back">
+          <q-card-section horizontal>
+            <q-expansion-item
+      icon="perm_identity"
+      label="Raw data"
+    >
+      <q-card>
+        <q-card-section>
+          <vue-json-pretty
+            :deep=0
+            :data="credential">
+          </vue-json-pretty>
+          </q-card-section>
+          </q-card>
+            </q-expansion-item>
+          </q-card-section>
+        </template>
+      </FlipCard>
+    </div>
+  </div>
   </div>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import FlipCard from '@/components/FlipCard';
 import { mapState, mapActions } from 'vuex'
 import share from '@/share.ts';
 import axios from 'axios';
 const hl = require('hashlink');
 
-//import { resolveZipFile, renderForm, PreviewComponent } from 'odca-form'
+//import { resolveZipFile, renderForm, PreviewComponent } from 'oca-form'
 
 export default {
   name: 'my-credentials-list',
@@ -142,9 +79,11 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    FlipCard
     //PreviewComponent
   },
   data: () => ({
+    search: "",
     expanded_items:[],
     proposalFormActive: false,
     proposalForm: {
@@ -163,11 +102,6 @@ export default {
   }),
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
-    collapse_expanded: function(credential){
-      this.expanded_items = this.expanded_items.filter(
-        item => item != credential.id
-      );
-    },
     deActivateForm: function() {
       this.proposalFormActive = false;
       this.proposalForm = {
@@ -226,7 +160,7 @@ export default {
       return `${split[2]} v${split[3]} received from ${connection_name}`;
     },
     generatePreview: async function(credentialEl) {
-      const credential = credentialEl.credential
+      const credential = credentialEl.content
       let hashlink = credential.credentialSubject.hashlink
       if (hashlink && hashlink.includes('hl:')) {
         const data = await hl.decode({hashlink})
@@ -272,6 +206,7 @@ export default {
           }
         })
       } else if (credential.credentialSubject.oca_schema_dri) {
+        console.log(credential, "<<<<<<<<<<<<<<<<<<<<<")
         const serviceSchema = {
           oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
           oca_schema_dri: credential.credentialSubject.oca_schema_dri
@@ -343,10 +278,10 @@ export default {
     },
     credentials: function() {
       this.credentials.forEach(async (credential) => {
-        await this.generatePreview(credential)
+        //await this.generatePreview(credential)
       })
       if (this.credentials.length != Object.keys(this.credentialsLabel).length) {
-        this.$emit('cred-refresh',)
+     //   this.$emit('cred-refresh',)
       }
     },
   },
@@ -380,18 +315,6 @@ export default {
     },
     sentRequestStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "request_sent")
-    },
-    receivedStateCredentials(){
-      return this.credentials
-      /*
-        .filter(
-        cred =>
-          "state" in cred &&
-          cred.state === "credential_received" ||
-          cred.state === "stored" ||
-          cred.state === "credential_acked"
-      )
-      */
     },
     storedStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "stored")
