@@ -3,25 +3,25 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#"> {{ title }} </a>
 
-      <el-button type="primary" icon="el-icon-refresh"
-        @click="$emit('consents-refresh')"></el-button>
+      <q-btn type="primary" icon="el-icon-refresh"
+        @click="$emit('consents-refresh')"></q-btn>
     </nav>
 
-    <el-collapse v-model="expanded_items">
+    <!-- <el-collapse v-model="expanded_items"> -->
       <ul class="list">
-        <el-collapse-item
+        <li
           v-for="(consent, index) in consents"
           :name="consent.label + index"
           :key="index">
-          <template v-slot:title>{{ consent.label }} {{ consent.created_at ? '| ' + consent.created_at : '' }} {{ consent.connection ? '| ' + consent.connection.their_label : '' }}</template>
-          <el-row>
+          <p>{{ consent.label }} {{ consent.created_at ? '| ' + consent.created_at : '' }} {{ consent.connection ? '| ' + consent.connection.their_label : '' }}</p>
+          <div>
             <vue-json-pretty :deep=0 :data="consent" />
-            <el-button size="medium"
-              @click="preview(consent)">Preview</el-button>
-          </el-row>
-        </el-collapse-item>
+            <q-btn size="medium"
+              @click="preview(consent)">Preview</q-btn>
+          </div>
+        </li>
       </ul>
-    </el-collapse>
+    <!-- </el-collapse> -->
   </div>
 </template>
 
@@ -29,7 +29,7 @@
 import axios from 'axios';
 
 import VueJsonPretty from 'vue-json-pretty';
-//import { renderForm } from 'odca-form'
+import { renderForm } from 'oca.js-vue'
 
 export default {
   name: 'consent-list',

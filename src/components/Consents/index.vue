@@ -1,5 +1,5 @@
 <template>
-  <el-row>
+  <div>
     <new-consent title="Create new consent"
       @consents-refresh="refreshDefinedConsents" />
     <consent-list title="Defined consents" :consents="defined_consent_list"
@@ -14,13 +14,13 @@
     <multi-preview-component :label="previewLabel" :readonly="readonlyPreview"
       :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
       ref="PreviewApplicationComponent" />
-  </el-row>
+  </div>
 </template>
 
 <script>
 import axios from 'axios';
 import adminApi from '@/admin_api.ts'
-//import { PreviewComponent, MultiPreviewComponent } from 'odca-form'
+import { PreviewComponent, MultiPreviewComponent } from 'oca.js-vue'
 import NewConsent from './NewConsent'
 import ConsentList from './ConsentList'
 import share from '@/share.ts';
@@ -40,8 +40,8 @@ export default {
   components: {
     NewConsent,
     ConsentList,
-    /*PreviewComponent,
-    MultiPreviewComponent*/
+    PreviewComponent,
+    MultiPreviewComponent
   },
   mixins: [
     share({
