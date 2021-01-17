@@ -133,19 +133,20 @@
             >
               <template v-slot:append>
                 <q-btn
-                  round
-                  dense
-                  flat
-                  icon="content_copy"
-                  @click="copyToClipboard(invite.invitation_url)"
-                />
-                <q-btn
                   v-if="canShare"
                   round
                   dense
                   flat
                   icon="share"
                   @click="shareWithSystemDialog(invite.invitation_url)"
+                />
+                <q-btn
+                  v-else
+                  round
+                  dense
+                  flat
+                  icon="content_copy"
+                  @click="copyToClipboard(invite.invitation_url)"
                 />
               </template>
             </q-input>
