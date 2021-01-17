@@ -181,6 +181,7 @@ export default {
       })
 
       this.$session.set('agentId', a.id)
+      this.$session.set('agentLabel', a.label)
       this.$session.set('acapyApiUrl', this.acapyApiUrl)
       this.$session.set('localDataVaultUrl', this.localDataVaultUrl)
       this.$session.set('ocaRepoUrl', this.ocaRepoUrl)
