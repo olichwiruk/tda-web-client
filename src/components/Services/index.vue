@@ -44,7 +44,7 @@
     <div class="col">
       <q-card class="q-ma-xl">
         <q-banner inline-actions>
-          <span class="text-h5">Applications</span>
+          <span class="text-h5">Applications (WIP)</span>
           <template v-slot:action>
             <!-- <q-btn
             flat
@@ -59,7 +59,8 @@
           </template>
         </q-banner>
 
-        <application-list
+        <!-- TODO: WIP -->
+        <!-- <application-list
           title="Pending applications:"
           :list="pending_applications"
           type="pending"
@@ -74,7 +75,7 @@
           label='To:'
           @applications-refresh="refreshSubmittedApplications"
           @application-preview="previewApplication($event, { readonly: true })"
-        />
+        /> -->
       </q-card>
     </div>
   </div>
