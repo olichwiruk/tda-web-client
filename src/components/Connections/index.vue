@@ -139,6 +139,14 @@
                   icon="content_copy"
                   @click="copyToClipboard(invite.invitation_url)"
                 />
+                <q-btn
+                  v-if="canShare"
+                  round
+                  dense
+                  flat
+                  icon="share"
+                  @click="shareWithSystemDialog(invite.invitation_url)"
+                />
               </template>
             </q-input>
 
@@ -293,6 +301,9 @@ export default {
         ...this.pending_connections,
         ...this.failed_connections,
       ];
+    },
+    canShare() {
+      return !!navigator.canShare;
     }
   },
   methods: {
@@ -379,6 +390,16 @@ export default {
       printWin.document.close();
       printWin.focus();
       printWin.print();
+    },
+    shareWithSystemDialog(text) {
+      try {
+        navigator.share(text);
+      }
+      catch {
+        this.$noty.success('Could not share URL.', {
+          timeout: 5000
+        })
+      }
     }
   },
 }
