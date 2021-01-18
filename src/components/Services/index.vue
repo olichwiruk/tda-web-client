@@ -44,7 +44,7 @@
     <div class="col">
       <q-card class="q-ma-xl">
         <q-banner inline-actions>
-          <span class="text-h5">Applications (WIP)</span>
+          <span class="text-h5">Applications</span>
           <template v-slot:action>
             <!-- <q-btn
             flat
@@ -59,8 +59,7 @@
           </template>
         </q-banner>
 
-        <!-- TODO: WIP -->
-        <!-- <application-list
+        <application-list
           title="Pending applications:"
           :list="pending_applications"
           type="pending"
@@ -75,7 +74,7 @@
           label='To:'
           @applications-refresh="refreshSubmittedApplications"
           @application-preview="previewApplication($event, { readonly: true })"
-        /> -->
+        />
       </q-card>
     </div>
   </div>
@@ -89,8 +88,17 @@ import { mapState, mapActions } from 'vuex'
 import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
-//import { eventBus as ocaEventBus, EventHandlerConstant,
+// import { eventBus as ocaEventBus, EventHandlerConstant,
 //  MultiPreviewComponent } from 'odca-form'
+
+// TODO: remove this dummy method
+// it just replaces missing items from odca-form
+const EventHandlerConstant = {};
+const ocaEventBus = {
+  $on: () => undefined,
+  $off: () => undefined,
+}
+
 
 import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
@@ -218,7 +226,6 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['connections'],
       actions: []
     }),
     adminApi
@@ -272,17 +279,16 @@ export default {
         this.$noty.error("Could not fetch connections", { timeout: 1000 })
         console.log(e)
       }
-    }
-  },
-  refreshSubmittedApplications() {
+    },
+    refreshSubmittedApplications() {
     this.$_adminApi_getServiceApplications({
-      state: "pending", author: "self"
-    }).then(r => {
-      if (r.status === 200) {
-        this.submitted_applications = r.data.map(application => {
-          const connection = this.connections.find(conn =>
-            conn.connection_id == application.connection_id
-          )
+        state: "pending", author: "self"
+      }).then(r => {
+        if (r.status === 200) {
+          this.submitted_applications = r.data.result.map(application => {
+            const connection = this.connections.find(conn =>
+              conn.connection_id == application.connection_id
+            )
           return Object.assign(application, {
             payload: JSON.parse(application.service_user_data),
             service_schema: JSON.parse(application.service_schema),
@@ -298,13 +304,13 @@ export default {
   },
   refreshPendingApplications() {
     this.$_adminApi_getServiceApplications({
-      state: "pending", author: "other"
-    }).then(r => {
-      if (r.status === 200) {
-        this.pending_applications = r.data.map(application => {
-          const connection = this.connections.find(conn =>
-            conn.connection_id == application.connection_id
-          )
+        state: "pending", author: "other"
+      }).then(r => {
+        if (r.status === 200) {
+          this.pending_applications = r.data.result.map(application => {
+            const connection = this.connections.find(conn =>
+              conn.connection_id == application.connection_id
+            )
           return Object.assign(application, {
             payload: JSON.parse(application.service_user_data),
             service_schema: JSON.parse(application.service_schema),
@@ -380,8 +386,9 @@ export default {
   confirmApplicationHandler() {
     this.examineApplication('accept')
   },
-  rejectApplicationHandler() {
-    this.examineApplication('reject')
+    rejectApplicationHandler() {
+      this.examineApplication('reject')
+    },
   },
 }
 </script>

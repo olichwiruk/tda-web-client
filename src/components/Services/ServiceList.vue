@@ -8,10 +8,10 @@
 
     <template v-for="(group, groupIndex) in services">
 
-      <q-separator :key="group.label + groupIndex" />
+      <q-separator :key="'separator' + group.label + groupIndex" />
       <q-item-label
         header
-        :key="group.label + groupIndex"
+        :key="'service' + group.label + groupIndex"
       >{{group.label}}</q-item-label>
 
       <q-item
