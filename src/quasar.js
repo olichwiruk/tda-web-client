@@ -4,6 +4,8 @@ import './styles/quasar.sass'
 import '@quasar/extras/material-icons/material-icons.css'
 import { Quasar } from 'quasar'
 
+console.log(Quasar);
+
 Vue.use(Quasar, {
   config: {},
   plugins: {

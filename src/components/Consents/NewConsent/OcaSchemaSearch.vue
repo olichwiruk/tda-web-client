@@ -24,6 +24,7 @@
     <!--   </template> -->
     <!-- </vue-typeahead-bootstrap> -->
 
+    <q-btn label="Confirm" color="primary" @click="preview()" />
     <preview-component style="z-index: 9999;" ref="PreviewComponent" :readonly="true" :form="ocaForm" :alternatives="ocaFormAlternatives"></preview-component>
   </div>
 </template>
@@ -31,16 +32,14 @@
 <script>
 import axios from 'axios'
 
-//import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
-//import { renderForm, PreviewComponent } from 'odca-form'
+import { renderForm, PreviewComponent } from '@/oca.js-vue'
 
 export default {
   name: 'oca-schema-search',
   props: ['ocaRepoHost', 'label'],
-  /*components: {
-    VueTypeaheadBootstrap,
+  components: {
     PreviewComponent
-  },*/
+  },
   data() {
     return {
       search: {
@@ -62,7 +61,7 @@ export default {
       this.getOcaSchema(this.search.selected)
     }
   },
-  created() {
+  async created() {
     axios.get(`${this.ocaRepoHost}/api/v2/schemas/consent?_index=schema_base&limit=7`)
       .then(r => {
         this.search.all = r.data.map(x => {
@@ -75,6 +74,12 @@ export default {
         this.search.matching = this.search.all
         this.search.selected = this.search.all[0]
       })
+
+
+    let schema = ( await axios.get(`https://repository.oca.argo.colossi.network/api/v3/schemas/8crS4tLkgghLfCrp7hePBN7M61SLqixvtfq1CMvhUHjW`) ).data;
+
+    console.log(schema);
+    this.ocaForm = renderForm([schema.schema_base, ...schema.overlays]).form;
   },
   methods: {
     fetchOcaSchemas: function(input) {
