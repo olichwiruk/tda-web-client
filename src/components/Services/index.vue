@@ -34,6 +34,7 @@
           @service-preview="previewService($event)"
         />
         <service-list
+          ref="otherServices"
           :services="otherServices"
           @services-refresh="refreshServices"
           @service-preview="previewService($event)"
@@ -236,8 +237,10 @@ export default {
             const found = serviceGroup.services.find(s => s.service_id == service_id);
 
             if (found) {
-              found.policy_validation = JSON.parse(policy_validation)
-              this.$forceUpdate()
+              found.policy_validation = JSON.parse(policy_validation);
+              // i think due to vue's reactivity system and the nested object, it does not get there was an update
+              // therfore we have to force an update in order for the ui to change
+              this.$refs.otherServices.$forceUpdate();
               this.delete_message(message.uuid)
               return;
             }
