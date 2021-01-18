@@ -176,6 +176,11 @@ export default {
         return message.topic == '/topic/verifiable-services/request-service-list/'
       })
     },
+    servicePolicyValidationMessages: function () {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/request-service-list/usage-policy/'
+      })
+    },
   },
   watch: {
     connections: {
@@ -221,7 +226,26 @@ export default {
         });
       },
       deep: true
-    }
+    },
+    servicePolicyValidationMessages: {
+      handler: function () {
+        this.servicePolicyValidationMessages.forEach(message => {
+          var [service_id, policy_validation] = Object.entries(message.content)[0]
+
+          for (const serviceGroup of this.otherServices) {
+            const found = serviceGroup.services.find(s => s.service_id == service_id);
+
+            if (found) {
+              found.policy_validation = JSON.parse(policy_validation)
+              this.$forceUpdate()
+              this.delete_message(message.uuid)
+              return;
+            }
+          }
+        })
+      },
+      deep: true
+    },
   },
   mixins: [
     message_bus(),
@@ -281,7 +305,7 @@ export default {
       }
     },
     refreshSubmittedApplications() {
-    this.$_adminApi_getServiceApplications({
+      this.$_adminApi_getServiceApplications({
         state: "pending", author: "self"
       }).then(r => {
         if (r.status === 200) {
@@ -289,21 +313,21 @@ export default {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
-          return Object.assign(application, {
-            payload: JSON.parse(application.service_user_data),
-            service_schema: JSON.parse(application.service_schema),
-            consent_schema: JSON.parse(application.consent_schema),
-            connection: connection
+            return Object.assign(application, {
+              payload: JSON.parse(application.service_user_data),
+              service_schema: JSON.parse(application.service_schema),
+              consent_schema: JSON.parse(application.consent_schema),
+              connection: connection
+            })
           })
-        })
-      }
-    }).catch(e => {
-      console.log(e)
-      this.$noty.error("Error occurred", { timeout: 1000 })
-    })
-  },
-  refreshPendingApplications() {
-    this.$_adminApi_getServiceApplications({
+        }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
+    },
+    refreshPendingApplications() {
+      this.$_adminApi_getServiceApplications({
         state: "pending", author: "other"
       }).then(r => {
         if (r.status === 200) {
@@ -311,81 +335,81 @@ export default {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
-          return Object.assign(application, {
-            payload: JSON.parse(application.service_user_data),
-            service_schema: JSON.parse(application.service_schema),
-            consent_schema: JSON.parse(application.consent_schema),
-            connection: connection
+            return Object.assign(application, {
+              payload: JSON.parse(application.service_user_data),
+              service_schema: JSON.parse(application.service_schema),
+              consent_schema: JSON.parse(application.consent_schema),
+              connection: connection
+            })
           })
-        })
-      }
-    }).catch(e => {
-      console.log(e)
-      this.$noty.error("Error occurred", { timeout: 1000 })
-    })
-  },
-  collectForms(application, options = []) {
-    Object.assign(this.forms[0],
-      {
-        label: application.schema.form.label,
-        formData: application.schema.form,
-        alternatives: application.schema.formAlternatives
-      }, options[0])
-    if (application.schema.answers) {
-      Object.assign(this.forms[0], { input: application.schema.answers })
-    }
-    Object.assign(this.forms[1],
-      {
-        label: application.consent.form.label,
-        formData: application.consent.form,
-        alternatives: application.consent.formAlternatives,
-        input: application.consent.answers
-      }, options[1])
-  },
-  previewService(service, options = {}) {
-    this.previewLabel = 'Service'
-    this.readonlyPreview = true
-    this.collectForms(service)
-    this.$refs.PreviewApplicationComponent.openModal()
-  },
-  previewApplication(application, options = {}) {
-    this.currentApplication = application
-    this.previewLabel = 'Application'
-    this.readonlyPreview = options.readonly
-    this.collectForms(application)
-    this.$refs.PreviewApplicationComponent.openModal()
-  },
-  examineApplication(decision) {
-    if (decision == 'accept') { this.confirmProcessing = true }
-    else if (decision == 'reject') { this.rejectProcessing = true }
-
-    axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
-      decision: decision, issue_id: this.currentApplication.issue_id
-    }).then(r => {
-      if (r.status === 200) {
-        if (typeof r.data === 'string' && r.data.startsWith('-1:')) {
-          this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
-        } else {
-          this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
-          this.refreshPendingApplications()
         }
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+      })
+    },
+    collectForms(application, options = []) {
+      Object.assign(this.forms[0],
+        {
+          label: application.schema.form.label,
+          formData: application.schema.form,
+          alternatives: application.schema.formAlternatives
+        }, options[0])
+      if (application.schema.answers) {
+        Object.assign(this.forms[0], { input: application.schema.answers })
       }
+      Object.assign(this.forms[1],
+        {
+          label: application.consent.form.label,
+          formData: application.consent.form,
+          alternatives: application.consent.formAlternatives,
+          input: application.consent.answers
+        }, options[1])
+    },
+    previewService(service, options = {}) {
+      this.previewLabel = 'Service'
+      this.readonlyPreview = true
+      this.collectForms(service)
+      this.$refs.PreviewApplicationComponent.openModal()
+    },
+    previewApplication(application, options = {}) {
+      this.currentApplication = application
+      this.previewLabel = 'Application'
+      this.readonlyPreview = options.readonly
+      this.collectForms(application)
+      this.$refs.PreviewApplicationComponent.openModal()
+    },
+    examineApplication(decision) {
+      if (decision == 'accept') { this.confirmProcessing = true }
+      else if (decision == 'reject') { this.rejectProcessing = true }
 
-      if (decision == 'accept') { this.confirmProcessing = false }
-      else if (decision == 'reject') { this.rejectProcessing = false }
-      this.$refs.PreviewApplicationComponent.closeModal()
-    }).catch(e => {
-      console.log(e)
-      this.$noty.error("Error occurred", { timeout: 1000 })
+      axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
+        decision: decision, issue_id: this.currentApplication.issue_id
+      }).then(r => {
+        if (r.status === 200) {
+          if (typeof r.data === 'string' && r.data.startsWith('-1:')) {
+            this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
+          } else {
+            this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
+            this.refreshPendingApplications()
+          }
+        }
 
-      if (decision == 'accept') { this.confirmProcessing = false }
-      else if (decision == 'reject') { this.rejectProcessing = false }
-      this.$refs.PreviewApplicationComponent.closeModal()
-    })
-  },
-  confirmApplicationHandler() {
-    this.examineApplication('accept')
-  },
+        if (decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
+        this.$refs.PreviewApplicationComponent.closeModal()
+      }).catch(e => {
+        console.log(e)
+        this.$noty.error("Error occurred", { timeout: 1000 })
+
+        if (decision == 'accept') { this.confirmProcessing = false }
+        else if (decision == 'reject') { this.rejectProcessing = false }
+        this.$refs.PreviewApplicationComponent.closeModal()
+      })
+    },
+    confirmApplicationHandler() {
+      this.examineApplication('accept')
+    },
     rejectApplicationHandler() {
       this.examineApplication('reject')
     },

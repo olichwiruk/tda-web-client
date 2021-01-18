@@ -20,12 +20,18 @@
         clickable
       >
         <q-item-section>
-          {{service.label}}
+          <div>{{service.label}}
+            <q-icon
+              class="q-ml-sm"
+              name="shield"
+              :color="getPolicyValidationColor(service)"
+            />
+          </div>
         </q-item-section>
         <q-item-section side>
           <q-btn
-          flat
-          @click="preview(service)"
+            flat
+            @click="preview(service)"
           >Preview</q-btn>
         </q-item-section>
       </q-item>
@@ -141,7 +147,15 @@ export default {
     },
     async preview(service) {
       this.$emit('service-preview', await this.renderServiceForm(service))
-    }
+    },
+    getPolicyValidationColor(service) {
+      const policy_validation = service.policy_validation
+      if (!policy_validation) { return 'grey' }
+      if (policy_validation.code == 0) {
+        return 'green'
+      }
+      return 'red'
+    },
   },
 }
 </script>
