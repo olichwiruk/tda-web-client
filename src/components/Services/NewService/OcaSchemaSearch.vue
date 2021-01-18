@@ -25,60 +25,31 @@
           dense
           flat
           icon="preview"
-          @click="preview"
+          @click="preview()"
         />
       </template>
     </q-select>
 
-    <!-- <div style="display: flex;">
-    <label class="el-form-item__label">{{ label }}</label> -->
-    <!-- <vue-typeahead-bootstrap -->
-    <!--   v-model="search.query" -->
-    <!--   :minMatchingChars="0" -->
-    <!--   :showOnFocus="true" -->
-    <!--   :data="search.matching.length == 0 ? search.all : search.matching" -->
-    <!--   :serializer="s => `${s.namespace} / ${s.schemaName}`" -->
-    <!--   @hit="getOcaSchema" -->
-    <!--   style="width: 500px;"> -->
-
-    <!--   <template slot="append"> -->
-    <!--     <el-button -->
-    <!--     slot="append" -->
-    <!--     class="btn-sm" -->
-    <!--     icon="el-icon-search" -->
-    <!--     v-show="search.query" -->
-    <!--     @click="preview()">Preview</el-button> -->
-    <!--   </template> -->
-
-    <!--   <template slot="suggestion" slot-scope="{ data, htmlText }"> -->
-    <!--     <span v-html="htmlText"></span> -->
-    <!--   </template> -->
-    <!-- </vue-typeahead-bootstrap> -->
-
-    <!-- TODO: Include again! -->
-    <!-- <preview-component
+    <preview-component
       style="z-index: 9999;"
       ref="PreviewComponent"
       :readonly="true"
       :form="ocaForm"
       :alternatives="ocaFormAlternatives"
-    ></preview-component> -->
+    ></preview-component>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
 
-//import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
-// TODO: include oca form library
-import { renderForm, PreviewComponent } from 'oca.js-vue'
+import { renderForm, PreviewComponent } from '@/oca.js-vue'
 
 export default {
   name: 'oca-schema-search',
   props: ['ocaRepoHost', 'label'],
   components: {
-    //VueTypeaheadBootstrap,
-    //PreviewComponent
+    PreviewComponent,
   },
   data() {
     return {
