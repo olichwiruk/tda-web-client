@@ -25,7 +25,7 @@ import adminApi from '@/admin_api.ts'
 import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
 
 import { eventBus as ocaEventBus, EventHandlerConstant,
-  PreviewComponent } from 'oca.js-vue'
+  PreviewComponent } from '@/oca.js-vue'
 
 export default {
   name: 'new-consent',

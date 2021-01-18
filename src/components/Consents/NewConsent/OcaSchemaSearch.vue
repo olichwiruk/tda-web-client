@@ -31,7 +31,7 @@
 <script>
 import axios from 'axios'
 
-import { renderForm, PreviewComponent } from 'oca.js-vue'
+import { renderForm, PreviewComponent } from '@/oca.js-vue'
 
 export default {
   name: 'oca-schema-search',
