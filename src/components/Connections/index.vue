@@ -1,5 +1,5 @@
 <template>
-  <q-card class="q-ma-xl">
+  <div class="q-ma-xl">
     <q-dialog v-model="isQrDialogVisible">
       <q-card>
         <q-card-section>
@@ -59,59 +59,119 @@
       </q-card>
     </q-dialog>
 
-    <q-banner inline-actions>
-      <span class="text-h5"> Contacts</span>
-      <template v-slot:action>
-        <q-btn
-          flat
-          icon="add"
-          @click="isUrlDialogVisible = true"
-        ></q-btn>
-        <q-btn
-          flat
-          icon="qr_code_scanner"
-          @click="isQrDialogVisible = true"
-        ></q-btn>
-        <q-btn
-          flat
-          icon="refresh"
-          @click="fetch_connections"
-        ></q-btn>
-      </template>
-    </q-banner>
+    <div class="row">
+      <div class="col-12 col-md-8">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5"> Contacts</span>
+            <template v-slot:action>
+              <q-btn
+                flat
+                icon="add"
+                @click="isUrlDialogVisible = true"
+              ></q-btn>
+              <q-btn
+                flat
+                icon="qr_code_scanner"
+                @click="isQrDialogVisible = true"
+              ></q-btn>
+              <q-btn
+                flat
+                icon="refresh"
+                @click="fetch_connections"
+              ></q-btn>
+            </template>
+          </q-banner>
 
-    <div class="list-container">
-      <q-list v-if="all_connections.length === 0">
-        <q-item>
-          Add your first contact by scanning a QR-Code or adding it manually.
-        </q-item>
-      </q-list>
+          <q-list v-if="all_connections.length === 0">
+            <q-item>
+              Add your first contact by scanning a QR-Code or adding it manually.
+            </q-item>
+          </q-list>
 
-      <connection-list
-        title="Active Connections:"
-        editable="true"
-        class="activeConnections"
-        :list="active_connections"
-        @connection-editted="update_connection"
-        @connection-deleted="delete_connection"
-        @refresh="fetch_connections"
-      ></connection-list>
-      <connection-list
-        title="Pending Connections:"
-        editable="true"
-        :list="pending_connections"
-        @connection-editted="update_connection"
-        @connection-deleted="delete_connection"
-      ></connection-list>
-      <connection-list
-        title="Failed Connections:"
-        editable="false"
-        :list="failed_connections"
-        @connection-editted="update_connection"
-        @connection-deleted="delete_connection"
-      ></connection-list>
+          <connection-list
+            title="Active Connections:"
+            editable="true"
+            class="activeConnections"
+            :list="active_connections"
+            @connection-editted="update_connection"
+            @connection-deleted="delete_connection"
+            @refresh="fetch_connections"
+          ></connection-list>
+          <connection-list
+            title="Pending Connections:"
+            editable="true"
+            :list="pending_connections"
+            @connection-editted="update_connection"
+            @connection-deleted="delete_connection"
+          ></connection-list>
+          <connection-list
+            title="Failed Connections:"
+            editable="false"
+            :list="failed_connections"
+            @connection-editted="update_connection"
+            @connection-deleted="delete_connection"
+          ></connection-list>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-1" />
+      <div class="col-12 col-md-3">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5">Invitation</span>
+          </q-banner>
+
+          <q-card-section v-if="invite">
+            <p>
+              This invitation can be used to share with other contacts.
+            </p>
+
+            <q-input
+              v-model="invite.invitation_url"
+              readonly
+              filled
+            >
+              <template v-slot:append>
+                <q-btn
+                  v-if="canShare"
+                  round
+                  dense
+                  flat
+                  icon="share"
+                  @click="shareWithSystemDialog(invite.invitation_url)"
+                />
+                <q-btn
+                  v-else
+                  round
+                  dense
+                  flat
+                  icon="content_copy"
+                  @click="copyToClipboard(invite.invitation_url)"
+                />
+              </template>
+            </q-input>
+
+            <div class="q-my-xl" />
+
+            <div class="text-center">
+              <div>
+                <qrcode
+                  :value="invite.invitation_url"
+                  :options="{ width: qrCodeSize }"
+                  ref="qrcode"
+                ></qrcode>
+              </div>
+              <q-btn
+                flat
+                icon="print"
+                @click="printQrCode"
+              >Print QR-Code</q-btn>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
-  </q-card>
+  </div>
 </template>
 
 <style scoped>
@@ -122,10 +182,15 @@
 
 <script>
 import ConnectionList from './ConnectionList.vue';
+
+import VueQrcode from '@chenfengyuan/vue-qrcode';
 import { QrcodeStream } from 'vue-qrcode-reader'
 
 import share from '@/share.ts';
 import message_bus from '@/message_bus.ts';
+import { copyToClipboard } from 'quasar';
+import { from_store } from '@/connection_detail';
+import { mapActions } from 'vuex';
 
 export const isConnection = (conn) => "state" in conn;
 
@@ -154,7 +219,8 @@ export const metadata = {
 
 export const shared = {
   data: {
-    connections: []
+    connections: [],
+    invite: null,
   },
   computed: {
     active_connections: function() {
@@ -177,7 +243,9 @@ export const shared = {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
       (share, msg) => share.fetch_connections(),
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/ack":
-    (share, msg) => share.fetch_connections(),
+      (share, msg) => share.fetch_connections(),
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation':
+      (share, msg) => share.invite = msg,
   },
   methods: {
     fetch_connections: ({send}) => {
@@ -193,11 +261,12 @@ export default {
   components: {
     ConnectionList,
     QrcodeStream,
+    qrcode: VueQrcode,
   },
   mixins: [
     message_bus(),
     share({
-      use: ['connections', 'active_connections'],
+      use: ['connections', 'active_connections', 'invite'],
       actions: ['fetch_connections']
     })
   ],
@@ -206,11 +275,15 @@ export default {
       'invitation': '',
       isQrDialogVisible: false,
       isUrlDialogVisible: false,
+      qrCodeSize: 250,
     }
   },
   created: async function() {
     await this.ready();
     this.fetch_connections();
+
+    if (!this.invite)
+      this.fetchNewInvite();
   },
   computed: {
     pending_connections: function() {
@@ -229,6 +302,9 @@ export default {
         ...this.pending_connections,
         ...this.failed_connections,
       ];
+    },
+    canShare() {
+      return !!navigator.canShare;
     }
   },
   methods: {
@@ -271,6 +347,60 @@ export default {
       this.isQrDialogVisible = false;
       this.invitation = decodedString;
       this.recieve_invitation();
+    },
+    async fetchNewInvite() {
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/create-invitation",
+        "label": this.$session.get('agentLabel'),
+        "role": '',
+        "auto_accept": 'auto',
+        "public": false,
+        "multi_use": false,
+      };
+
+      this.send_message(query_msg);
+    },
+    async copyToClipboard(text) {
+      try {
+        await copyToClipboard(text);
+
+        this.$noty.success('Invitation URL has been copied to clipboard.', {
+          timeout: 5000
+        })
+      }
+      catch {
+        this.$noty.success('Invitation URL could not be copied to clipboard.', {
+          timeout: 5000
+        })
+      }
+    },
+    printQrCode() {
+      const windowSize = this.qrCodeSize + 25;
+
+      var dataUrl = this.$refs.qrcode.$el.toDataURL();
+      var windowContent = '<!DOCTYPE html>';
+      windowContent += '<html>'
+      windowContent += '<head><title>Print QR-Code</title></head>';
+      windowContent += '<body>'
+      windowContent += '<img src="' + dataUrl + '">';
+      windowContent += '</body>';
+      windowContent += '</html>';
+      var printWin = window.open('', '', `width=${windowSize},height=${windowSize}`);
+      printWin.document.open();
+      printWin.document.write(windowContent);
+      printWin.document.close();
+      printWin.focus();
+      printWin.print();
+    },
+    shareWithSystemDialog(text) {
+      try {
+        navigator.share(text);
+      }
+      catch {
+        this.$noty.success('Could not share URL.', {
+          timeout: 5000
+        })
+      }
     }
   },
 }
