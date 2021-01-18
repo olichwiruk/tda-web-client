@@ -1,31 +1,67 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
-    </nav>
+  <q-card class="invitation-url-card">
+    <q-card-section>
+      <div class="text-h6">{{title}}</div>
+    </q-card-section>
 
-    <div class="content">
-      <el-input placeholder="Label" v-model="consent.label"
-        style="width: 200px;"></el-input>
-      <oca-schema-search label="Schema:" :ocaRepoHost="ocaRepoHost"
-        @consentSchemaSelected="consentSchemaSelected"
-        @consentFormRendered="consentFormRendered"/>
-      <div>
-        <el-button :disabled="!dataFilled" type="primary"
-          @click="openCreateConsentForm">Create</el-button>
+    <q-card-section>
+      <div class="row">
+        <div class="col-12 col-md-4">
+          <q-input
+            label="Name"
+            outlined
+            v-model="consent.label"
+          />
+        </div>
+
+        <div class="col-12 col-md-1" />
+
+        <div class="col-12 col-md-7">
+          <oca-schema-search
+            label="Schema"
+            :ocaRepoHost="ocaRepoHost"
+            @schemaSelected="consentSchemaSelected"
+            @formRendered="consentFormRendered"
+          />
+        </div>
       </div>
-    </div>
+    </q-card-section>
 
-    <preview-component confirmLabel="Create" :confirmProcessing="consentData.sending" ref="ConsentPreviewComponent" :form="consent.form" :alternatives="consent.form_alternatives"></preview-component>
-  </div>
+    <q-card-actions align="right">
+      <q-btn
+        flat
+        label="Cancel"
+        color="primary"
+        v-close-popup
+      />
+      <q-btn
+        :disable="!dataFilled"
+        flat
+        label="Submit"
+        color="primary"
+        @click="openCreateConsentForm"
+      />
+    </q-card-actions>
+
+    <preview-component
+      confirmLabel="Create"
+      :confirmProcessing="consentData.sending"
+      ref="ConsentPreviewComponent"
+      :form="consent.form"
+      :alternatives="consent.form_alternatives"
+    ></preview-component>
+  </q-card>
 </template>
 
 <script>
 import adminApi from '@/admin_api.ts'
-import OcaSchemaSearch from './NewConsent/OcaSchemaSearch'
+import OcaSchemaSearch from '../Services/NewService/OcaSchemaSearch.vue'
 
-import { eventBus as ocaEventBus, EventHandlerConstant,
-  PreviewComponent } from '@/oca.js-vue'
+import {
+  eventBus as ocaEventBus, 
+  EventHandlerConstant,
+  PreviewComponent
+} from '@/oca.js-vue'
 
 export default {
   name: 'new-consent',
@@ -34,7 +70,7 @@ export default {
     OcaSchemaSearch,
     PreviewComponent
   },
-  data () {
+  data() {
     return {
       consent: {
         label: '',
@@ -51,13 +87,13 @@ export default {
   },
   mixins: [adminApi],
   computed: {
-    ocaRepoHost: function() {
+    ocaRepoHost: function () {
       return this.$session.get('ocaRepoUrl')
     },
-    localDataVaultUrl: function() {
+    localDataVaultUrl: function () {
       return this.$session.get('localDataVaultUrl')
     },
-    dataFilled: function() {
+    dataFilled: function () {
       return this.consent.oca_schema_dri && this.consent.form && this.consent.label.length > 0
     },
   },
@@ -73,7 +109,7 @@ export default {
     openCreateConsentForm() {
       try {
         this.$refs.ConsentPreviewComponent.openModal(this.consent.form);
-      } catch(e) {
+      } catch (e) {
         console.log(e)
         this.$noty.error("ERROR! Form data are corrupted.", {
           timeout: 1000

@@ -1,19 +1,57 @@
 <template>
   <div>
-    <new-consent title="Create new consent"
-      @consents-refresh="refreshDefinedConsents" />
-    <consent-list title="Defined consents" :consents="defined_consent_list"
-      @consents-refresh="refreshDefinedConsents"
-      @consent-preview="previewConsent($event)" />
-    <consent-list title="Given consents" :consents="given_consent_list"
-      @consents-refresh="refreshGivenConsents"
-      @consent-preview="previewApplication($event)" />
+    <q-dialog v-model="isNewConsentVisible">
+      <new-consent
+        title="Create new consent"
+        @consents-refresh="refreshDefinedConsents"
+      />
+    </q-dialog>
 
-    <preview-component :readonly="true" ref="PreviewConsentComponent" :form="{}" :alternatives="alternatives"></preview-component>
+    <q-card class="q-ma-xl">
+      <q-banner inline-actions>
+        <span class="text-h5">Consents</span>
+        <template v-slot:action>
+          <q-btn
+            flat
+            icon="add"
+            @click="isNewConsentVisible = true"
+          ></q-btn>
+          <q-btn
+            flat
+            icon="refresh"
+            @click="refreshConsents"
+          ></q-btn>
+        </template>
+      </q-banner>
 
-    <multi-preview-component :label="previewLabel" :readonly="readonlyPreview"
-      :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')"
-      ref="PreviewApplicationComponent" />
+      <consent-list
+        title="Defined by me"
+        :consents="defined_consent_list"
+        @consents-refresh="refreshDefinedConsents"
+        @consent-preview="previewConsent($event)"
+      />
+      <consent-list
+        title="Given by me"
+        :consents="given_consent_list"
+        @consents-refresh="refreshGivenConsents"
+        @consent-preview="previewApplication($event)"
+      />
+    </q-card>
+
+    <preview-component
+      :readonly="true"
+      ref="PreviewConsentComponent"
+      :form="{}"
+      :alternatives="alternatives"
+    ></preview-component>
+
+    <multi-preview-component
+      :label="previewLabel"
+      :readonly="readonlyPreview"
+      :forms="forms"
+      :key="forms.map(f => f.formData._uniqueId).join('-')"
+      ref="PreviewApplicationComponent"
+    />
   </div>
 </template>
 
@@ -61,6 +99,7 @@ export default {
         { class: "col-md-5", readonly: true, formData: {} }
       ],
       alternatives: [],
+      isNewConsentVisible: false,
     }
   },
   computed: {
@@ -69,6 +108,10 @@ export default {
     },
   },
   methods: {
+    async refreshConsents() {
+      this.refreshDefinedConsents();
+      this.refreshGivenConsents();
+    },
     async refreshDefinedConsents() {
       await this.$_adminApi_getConsents()
         .then(r => {
@@ -101,8 +144,8 @@ export default {
       this.given_consent_list.forEach(async consent => {
         await axios.post(
           `${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
-            "service_consent_match_id": consent.serviceConsentMatchId
-          }
+          "service_consent_match_id": consent.serviceConsentMatchId
+        }
         ).then(r => {
           const service = r.data[0]
           consent.label = service.label

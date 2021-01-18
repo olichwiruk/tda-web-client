@@ -1,28 +1,27 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
+  <q-list v-if="consents.length > 0">
+    <q-item-label
+      header
+      class="text-h6"
+      v-if="title"
+    >{{title}}</q-item-label>
 
-      <q-btn type="primary" icon="el-icon-refresh"
-        @click="$emit('consents-refresh')"></q-btn>
-    </nav>
-
-    <!-- <el-collapse v-model="expanded_items"> -->
-      <ul class="list">
-        <li
-          v-for="(consent, index) in consents"
-          :name="consent.label + index"
-          :key="index">
-          <p>{{ consent.label }} {{ consent.created_at ? '| ' + consent.created_at : '' }} {{ consent.connection ? '| ' + consent.connection.their_label : '' }}</p>
-          <div>
-            <vue-json-pretty :deep=0 :data="consent" />
-            <q-btn size="medium"
-              @click="preview(consent)">Preview</q-btn>
-          </div>
-        </li>
-      </ul>
-    <!-- </el-collapse> -->
-  </div>
+    <q-item
+      v-for="(consent, index) in consents"
+      :name="consent.label + index"
+      :key="index"
+    >
+      <q-item-section>{{ consent.label }}</q-item-section>
+      <q-item-section side>
+        <q-btn
+          flat
+          @click="preview(consent)"
+        >
+          Preview
+        </q-btn>
+      </q-item-section>
+    </q-item>
+  </q-list>
 </template>
 
 <script>
@@ -55,12 +54,12 @@ export default {
       let consentAnswers, consentSchemaNamespace, consentSchemaDri
       if (consent.payload) {
         consentAnswers = consent.payload
-        consentSchemaNamespace = consent.oca_schema.namespace
-        consentSchemaDri = consent.oca_schema.dri
+        consentSchemaNamespace = consent.oca_schema_namespace
+        consentSchemaDri = consent.oca_schema_dri
       } else {
-        consentAnswers = JSON.parse(consent.data)
-        consentSchemaNamespace = consent.ocaSchemaNamespace
-        consentSchemaDri = consent.ocaSchemaDri
+        consentAnswers = consent.oca_data
+        consentSchemaNamespace = consent.oca_schema_namespace
+        consentSchemaDri = consent.oca_schema_dri
       }
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${consentSchemaNamespace}/${consentSchemaDri}`
