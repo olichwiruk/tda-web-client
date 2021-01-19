@@ -261,7 +261,6 @@ export default {
       }
     },
     servicePreview(event) {
-      this.dialogContext = 'service'
       this.collectForms(event, [[{ readonly: true }], []])
 
       try {
@@ -274,6 +273,7 @@ export default {
       }
     },
     serviceApply(event) {
+      this.dialogContext = 'service'
       this.currentApplicationService = event
       const schemaDri = event.service.service_schema.oca_schema_dri
       this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
