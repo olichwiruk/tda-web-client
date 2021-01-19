@@ -10,7 +10,7 @@
           <oca-schema-search
             label="Service:"
             :ocaRepoHost="ocaRepoHost"
-            @serviceSchemaSelected="serviceSchemaSelected"
+            @schemaSelected="serviceSchemaSelected"
           />
         </div>
 

@@ -130,13 +130,16 @@ export default {
         }
       }
 
-      this.$emit('serviceSchemaSelected', {
+      this.$emit('schemaSelected', {
         namespace,
         DRI: dri,
         schemaName,
       });
 
       this.ocaForm = ocaForm;
+      this.$emit('formRendered', {
+        form: ocaForm, formAlternatives: this.ocaFormAlternatives
+      })
     },
     splitBranchPerLang: function (branch) {
       const langBranches = []
