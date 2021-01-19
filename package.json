@@ -6,7 +6,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "postinstall": ""
+    "postinstall": "sh ./scripts/postinstall.sh"
   },
   "main": "./dist/main.js",
   "dependencies": {

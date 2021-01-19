@@ -1,28 +1,42 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
+  <q-list v-if="services.length > 0">
+    <q-item-label
+      header
+      class="text-h6"
+      v-if="title"
+    >{{title}}</q-item-label>
 
-      <el-button type="primary" icon="el-icon-refresh"
-        @click="$emit('services-refresh')"></el-button>
-    </nav>
+    <template v-for="(group, groupIndex) in services">
 
-    <el-collapse v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="(service, index) in services"
-          :title="service.label"
-          :name="service.label + index"
-          :key="index">
-          <el-row>
-            <vue-json-pretty :deep=0 :data="service" />
-            <el-button size="medium"
-              @click="preview(service)">Preview</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-  </div>
+      <q-separator :key="'separator' + group.label + groupIndex" />
+      <q-item-label
+        header
+        :key="'service' + group.label + groupIndex"
+      >{{group.label}}</q-item-label>
+
+      <q-item
+        v-for="(service, index) in group.services"
+        :key="service.label + index"
+        clickable
+      >
+        <q-item-section>
+          <div>{{service.label}}
+            <q-icon
+              class="q-ml-sm"
+              name="shield"
+              :color="getPolicyValidationColor(service)"
+            />
+          </div>
+        </q-item-section>
+        <q-item-section side>
+          <q-btn
+            flat
+            @click="preview(service)"
+          >Preview</q-btn>
+        </q-item-section>
+      </q-item>
+    </template>
+  </q-list>
 </template>
 
 <script>
@@ -133,7 +147,15 @@ export default {
     },
     async preview(service) {
       this.$emit('service-preview', await this.renderServiceForm(service))
-    }
+    },
+    getPolicyValidationColor(service) {
+      const policy_validation = service.policy_validation
+      if (!policy_validation) { return 'grey' }
+      if (policy_validation.code == 0) {
+        return 'green'
+      }
+      return 'red'
+    },
   },
 }
 </script>

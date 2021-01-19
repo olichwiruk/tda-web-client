@@ -1,22 +1,18 @@
 <template>
-  <div>
-    <el-form>
-      <el-form-item :label="label" label-width="80px">
-        <el-select
-          v-model="selectedConsent"
-          width="400px"
-          no-data-text="No consents found"
-          placeholder="Consent">
-          <el-option
-            v-for="consent in consent_list"
-            :key="consent.label"
-            :label="consent.label"
-            :value="consent">
-          </el-option>
-        </el-select>
-      </el-form-item>
-    </el-form>
-  </div>
+  <q-select
+    outlined
+    v-model="selectedConsent"
+    :options="consent_list"
+    :label="label"
+  >
+    <template v-slot:no-option>
+      <q-item>
+        <q-item-section class="text-grey">
+          No results
+        </q-item-section>
+      </q-item>
+    </template>
+  </q-select>
 </template>
 
 <script>

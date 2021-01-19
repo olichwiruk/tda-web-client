@@ -1,22 +1,48 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
-    </nav>
+  <q-card style="min-width: 50vw">
+    <q-card-section>
+      <div class="text-h6">{{title}}</div>
+    </q-card-section>
 
-    <div class="content">
-      <oca-schema-search label="Service:" :ocaRepoHost="ocaRepoHost"
-        @serviceSchemaSelected="serviceSchemaSelected"/>
+    <q-card-section class="q-pt-none">
+      <div class="row">
+        <div class="col-12 col-md-7">
+          <oca-schema-search
+            label="Service:"
+            :ocaRepoHost="ocaRepoHost"
+            @serviceSchemaSelected="serviceSchemaSelected"
+          />
+        </div>
 
-      <consent-select label="Consent:" @consentSelected="consentSelected"/>
+        <div class="col-12 col-md-1" />
 
-      <div>
-        <el-button :disabled="!dataFilled" type="primary"
-          @click="submit">Submit</el-button>
+        <div class="col-12 col-md-4">
+          <consent-select
+            label="Consent:"
+            @consentSelected="consentSelected"
+          />
+        </div>
       </div>
-    </div>
+    </q-card-section>
 
-  </div>
+    <q-card-actions align="right">
+      <q-btn
+        flat
+        label="Cancel"
+        color="primary"
+        v-close-popup
+      />
+      <q-btn
+        :disable="!dataFilled"
+        flat
+        label="Submit"
+        color="primary"
+        v-close-popup
+        @click="submit"
+      />
+    </q-card-actions>
+
+  </q-card>
 </template>
 
 <script>
@@ -39,9 +65,7 @@ export default {
         oca_schema_namespace: null
       },
       consent: {
-        oca_schema_dri: null,
-        oca_schema_namespace: null,
-        data_dri: null
+        id: null
       }
     }
   },
@@ -58,7 +82,7 @@ export default {
     dataFilled: function() {
       return this.label != null &&
         this.service.oca_schema_dri != null &&
-        this.consent.data_dri != null
+        this.consent.id != null
     }
   },
   methods: {
@@ -68,9 +92,7 @@ export default {
       this.service.oca_schema_namespace = namespace
     },
     consentSelected(consent) {
-      this.consent.oca_schema_namespace = consent.oca_schema.namespace
-      this.consent.oca_schema_dri = consent.oca_schema.dri
-      this.consent.data_dri = consent.payload_dri
+      this.consent.id = consent.consent_id
     },
     resetServiceData() {
       this.label = null
@@ -79,16 +101,14 @@ export default {
         oca_schema_namespace: null
       }
       this.consent = {
-        oca_schema_dri: null,
-        oca_schema_namespace: null,
-        data_dri: null
+        id: null
       }
     },
     submit() {
       axios.post(`${this.acapyApiUrl}/verifiable-services/add`, {
         label: this.label,
+        consent_id: this.consent.id,
         service_schema: this.service,
-        consent_schema: this.consent
       }).then(r => {
         if (r.status === 200) {
           this.$noty.success("Service created!", { timeout: 1000 })

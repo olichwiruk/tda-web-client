@@ -1,29 +1,84 @@
 <template>
-  <el-row>
-    <new-service title="Create new service"
-      @services-refresh="refreshServices" />
-    <service-list title="My services" :services="myServicesSorted"
-      @services-refresh="refreshServices"
-      @service-preview="previewService($event)" />
-    <application-list
-      title="Pending applications:"
-      :list="pending_applications"
-      label='From:'
-      @applications-refresh="refreshPendingApplications"
-      @application-preview="previewApplication($event, { readonly: false })" />
-    <application-list
-      title="Submitted applications:"
-      :list="submitted_applications"
-      label='To:'
-      @applications-refresh="refreshSubmittedApplications"
-      @application-preview="previewApplication($event, { readonly: true })" />
+  <div class="row">
+    <q-dialog
+      v-model="isCreateServiceDialogVisible"
+      persistent
+    >
+      <new-service
+        title="Offer new service"
+        @services-refresh="refreshServices"
+      />
+    </q-dialog>
 
-    <!-- <multi-preview-component :label="previewLabel" :readonly="readonlyPreview" -->
-    <!--   confirmLabel="Confirm" :confirmProcessing="confirmProcessing" -->
-    <!--   rejectLabel="Reject" :rejectProcessing="rejectProcessing" -->
-    <!--   :forms="forms" :key="forms.map(f => f.formData._uniqueId).join('-')" -->
-    <!--   ref="PreviewApplicationComponent" /> -->
-  </el-row>
+    <div class="col">
+      <q-card class="q-ma-xl">
+        <q-banner inline-actions>
+          <span class="text-h5">Services</span>
+          <template v-slot:action>
+            <q-btn
+              flat
+              icon="add"
+              @click="isCreateServiceDialogVisible = true"
+            ></q-btn>
+            <q-btn
+              flat
+              icon="refresh"
+              @click="refreshServices"
+            ></q-btn>
+          </template>
+        </q-banner>
+
+        <service-list
+          :services="myServicesSorted"
+          @services-refresh="refreshServices"
+          @service-preview="previewService($event)"
+        />
+        <service-list
+          ref="otherServices"
+          :services="otherServices"
+          @services-refresh="refreshServices"
+          @service-preview="previewService($event)"
+        />
+      </q-card>
+    </div>
+
+    <div class="col">
+      <q-card class="q-ma-xl">
+        <q-banner inline-actions>
+          <span class="text-h5">Applications</span>
+          <template v-slot:action>
+            <!-- <q-btn
+            flat
+            icon="add"
+            @click="isCreateServiceDialogVisible = true"
+          ></q-btn> -->
+            <q-btn
+              flat
+              icon="refresh"
+              @click="() => { refreshPendingApplications(); refreshSubmittedApplications(); }"
+            ></q-btn>
+          </template>
+        </q-banner>
+
+        <application-list
+          title="Pending applications:"
+          :list="pending_applications"
+          type="pending"
+          label='From:'
+          @applications-refresh="refreshPendingApplications"
+          @application-preview="previewApplication($event, { readonly: false })"
+        />
+        <application-list
+          title="Submitted applications:"
+          :list="submitted_applications"
+          type="submitted"
+          label='To:'
+          @applications-refresh="refreshSubmittedApplications"
+          @application-preview="previewApplication($event, { readonly: true })"
+        />
+      </q-card>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -34,8 +89,17 @@ import { mapState, mapActions } from 'vuex'
 import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
-//import { eventBus as ocaEventBus, EventHandlerConstant,
+// import { eventBus as ocaEventBus, EventHandlerConstant,
 //  MultiPreviewComponent } from 'odca-form'
+
+// TODO: remove this dummy method
+// it just replaces missing items from odca-form
+const EventHandlerConstant = {};
+const ocaEventBus = {
+  $on: () => undefined,
+  $off: () => undefined,
+}
+
 
 import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
@@ -66,6 +130,8 @@ export default {
   data() {
     return {
       myServices: [],
+      otherServices: [],
+      connections: [],
       previewLabel: '',
       readonlyPreview: true,
       currentApplication: {},
@@ -76,43 +142,57 @@ export default {
         { class: "col-md-5", readonly: true, formData: {} }
       ],
       submitted_applications: [],
-      pending_applications: []
+      pending_applications: [],
+      isCreateServiceDialogVisible: false,
     }
   },
   computed: {
     ...mapState('WsMessages', ['messages']),
-    stateUpdateMessages: function() {
+    stateUpdateMessages: function () {
       return this.messages.filter(message => {
         return message.topic == '/topic/verifiable-services/issue-state-update/'
       })
     },
-    incomingApplicationMessages: function() {
+    incomingApplicationMessages: function () {
       return this.messages.filter(message => {
         return message.topic == '/topic/verifiable-services/incoming-pending-application/'
       })
     },
-    acapyApiUrl: function() {
+    acapyApiUrl: function () {
       return this.$session.get('acapyApiUrl')
     },
-    fileserverUrl: function() {
+    fileserverUrl: function () {
       return this.$session.get('localDataVaultUrl')
     },
-    myServicesSorted: function() {
-      return this.myServices.sort((a, b) => {
-        return new Date(b.created_at) - new Date(a.created_at)
+    myServicesSorted: function () {
+      if (Array.isArray(this.myServices))
+        return this.myServices.sort((a, b) => {
+          return new Date(b.created_at) - new Date(a.created_at)
+        })
+
+      return [];
+    },
+    serviceListMessages: function () {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/request-service-list/'
+      })
+    },
+    servicePolicyValidationMessages: function () {
+      return this.messages.filter(message => {
+        return message.topic == '/topic/verifiable-services/request-service-list/usage-policy/'
       })
     },
   },
   watch: {
     connections: {
-      handler: function() {
+      handler: function () {
         this.refreshSubmittedApplications()
         this.refreshPendingApplications()
       },
       deep: true
     },
     stateUpdateMessages: {
-      handler: function() {
+      handler: function () {
         this.stateUpdateMessages.forEach(message => {
           this.refreshSubmittedApplications()
           this.refreshPendingApplications()
@@ -122,24 +202,62 @@ export default {
       deep: true
     },
     incomingApplicationMessages: {
-      handler: function() {
+      handler: function () {
         this.incomingApplicationMessages.forEach(message => {
           this.refreshPendingApplications()
           this.delete_message(message.uuid)
         })
       },
       deep: true
-    }
+    },
+    serviceListMessages: {
+      handler: function () {
+        if (this.serviceListMessages.length > 0)
+          this.otherServices = [];
+
+        this.serviceListMessages.forEach(message => {
+          const { connection_id, services } = message.content;
+          const conn = this.connections.find(c => c.connection_id === connection_id);
+
+          this.otherServices.push({
+            label: conn ? conn.their_label : connection_id,
+            services: message.content.services,
+          });
+          this.delete_message(message.uuid);
+        });
+      },
+      deep: true
+    },
+    servicePolicyValidationMessages: {
+      handler: function () {
+        this.servicePolicyValidationMessages.forEach(message => {
+          var [service_id, policy_validation] = Object.entries(message.content)[0]
+
+          for (const serviceGroup of this.otherServices) {
+            const found = serviceGroup.services.find(s => s.service_id == service_id);
+
+            if (found) {
+              found.policy_validation = JSON.parse(policy_validation);
+              // i think due to vue's reactivity system and the nested object, it does not get there was an update
+              // therfore we have to force an update in order for the ui to change
+              this.$refs.otherServices.$forceUpdate();
+              this.delete_message(message.uuid)
+              return;
+            }
+          }
+        })
+      },
+      deep: true
+    },
   },
   mixins: [
     message_bus(),
     share({
-      use: ['connections'],
       actions: []
     }),
     adminApi
   ],
-  created: async function() {
+  created: async function () {
     await this.ready();
     this.refreshServices()
     this.refreshSubmittedApplications()
@@ -154,22 +272,47 @@ export default {
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
     refreshServices() {
+      this.refreshMyServices();
+      this.refreshOtherServices();
+    },
+    refreshMyServices() {
       axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
         .then(r => {
           if (r.status === 200) {
-            this.myServices = r.data
+            this.myServices = [];
+
+            if (r.data.result.length > 0) {
+              this.myServices.push({
+                label: 'Offered by me',
+                services: r.data.result
+              });
+            }
           }
         }).catch(e => {
           console.log(e)
           this.$noty.error("Error occurrde", { timeout: 1000 })
         })
     },
+    async refreshOtherServices() {
+      try {
+        const { data: { results } } = await axios.get(`${this.acapyApiUrl}/connections`);
+
+        this.connections = results;
+        results
+          .filter((conn) => conn.state === 'active' && conn.their_label !== 'ToolBox')
+          .forEach((conn) => axios.get(`${this.acapyApiUrl}/verifiable-services/request-service-list/${conn.connection_id}`));
+      }
+      catch (e) {
+        this.$noty.error("Could not fetch connections", { timeout: 1000 })
+        console.log(e)
+      }
+    },
     refreshSubmittedApplications() {
       this.$_adminApi_getServiceApplications({
         state: "pending", author: "self"
       }).then(r => {
         if (r.status === 200) {
-          this.submitted_applications = r.data.map(application => {
+          this.submitted_applications = r.data.result.map(application => {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
@@ -191,7 +334,7 @@ export default {
         state: "pending", author: "other"
       }).then(r => {
         if (r.status === 200) {
-          this.pending_applications = r.data.map(application => {
+          this.pending_applications = r.data.result.map(application => {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
@@ -208,14 +351,14 @@ export default {
         this.$noty.error("Error occurred", { timeout: 1000 })
       })
     },
-    collectForms(application, options=[]) {
+    collectForms(application, options = []) {
       Object.assign(this.forms[0],
         {
           label: application.schema.form.label,
           formData: application.schema.form,
           alternatives: application.schema.formAlternatives
         }, options[0])
-      if(application.schema.answers) {
+      if (application.schema.answers) {
         Object.assign(this.forms[0], { input: application.schema.answers })
       }
       Object.assign(this.forms[1],
@@ -226,13 +369,13 @@ export default {
           input: application.consent.answers
         }, options[1])
     },
-    previewService(service, options={}) {
+    previewService(service, options = {}) {
       this.previewLabel = 'Service'
       this.readonlyPreview = true
       this.collectForms(service)
       this.$refs.PreviewApplicationComponent.openModal()
     },
-    previewApplication(application, options={}) {
+    previewApplication(application, options = {}) {
       this.currentApplication = application
       this.previewLabel = 'Application'
       this.readonlyPreview = options.readonly
@@ -240,14 +383,14 @@ export default {
       this.$refs.PreviewApplicationComponent.openModal()
     },
     examineApplication(decision) {
-      if(decision == 'accept') { this.confirmProcessing = true }
+      if (decision == 'accept') { this.confirmProcessing = true }
       else if (decision == 'reject') { this.rejectProcessing = true }
 
       axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
         decision: decision, issue_id: this.currentApplication.issue_id
       }).then(r => {
         if (r.status === 200) {
-          if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
+          if (typeof r.data === 'string' && r.data.startsWith('-1:')) {
             this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
           } else {
             this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
@@ -255,14 +398,14 @@ export default {
           }
         }
 
-        if(decision == 'accept') { this.confirmProcessing = false }
+        if (decision == 'accept') { this.confirmProcessing = false }
         else if (decision == 'reject') { this.rejectProcessing = false }
         this.$refs.PreviewApplicationComponent.closeModal()
       }).catch(e => {
         console.log(e)
         this.$noty.error("Error occurred", { timeout: 1000 })
 
-        if(decision == 'accept') { this.confirmProcessing = false }
+        if (decision == 'accept') { this.confirmProcessing = false }
         else if (decision == 'reject') { this.rejectProcessing = false }
         this.$refs.PreviewApplicationComponent.closeModal()
       })
@@ -273,6 +416,6 @@ export default {
     rejectApplicationHandler() {
       this.examineApplication('reject')
     },
-  }
+  },
 }
 </script>
