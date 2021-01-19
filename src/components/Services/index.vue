@@ -45,6 +45,7 @@
             :services="otherServices"
             @services-refresh="refreshServices"
             @service-preview="previewService($event)"
+            @service-apply="applyService($event)"
           />
         </template>
       </q-card>
@@ -86,6 +87,14 @@
         />
       </q-card>
     </div>
+
+    <multi-preview-component
+      confirmLabel="Apply"
+      :confirmProcessing="confirmProcessing"
+      :forms="forms"
+      :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
+      ref="PreviewServiceComponent"
+    />
   </div>
 </template>
 
@@ -130,7 +139,7 @@ export default {
     ServiceList,
     ApplicationList,
     CustomSpinner,
-    //MultiPreviewComponent
+    MultiPreviewComponent
   },
   data() {
     return {
@@ -143,8 +152,9 @@ export default {
       confirmProcessing: false,
       rejectProcessing: false,
       forms: [
-        { class: "col-md-7", readonly: true, formData: {} },
-        { class: "col-md-5", readonly: true, formData: {} }
+        [ { class: "col-md-7", readonly: true, formData: {} } ],
+        [ { class: "col-md-5", readonly: true, formData: {} },
+        { class: "col-md-5", readonly: true, formData: {} } ]
       ],
       submitted_applications: [],
       pending_applications: [],
@@ -232,6 +242,7 @@ export default {
           const conn = this.connections.find(c => c.connection_id === connection_id);
 
           this.otherServices.push({
+            connection_id,
             label: conn ? conn.their_label : connection_id,
             services: message.content.services,
           });
@@ -372,29 +383,58 @@ export default {
         this.$noty.error("Error occurred", { timeout: 1000 })
       })
     },
-    collectForms(application, options = []) {
-      Object.assign(this.forms[0],
+    collectForms(event, options = []) {
+      Object.assign(this.forms[0][0],
         {
-          label: application.schema.form.label,
-          formData: application.schema.form,
-          alternatives: application.schema.formAlternatives
-        }, options[0])
-      if (application.schema.answers) {
-        Object.assign(this.forms[0], { input: application.schema.answers })
-      }
-      Object.assign(this.forms[1],
+          label: event.serviceForm.schema.form.label,
+          formData: event.serviceForm.schema.form,
+          alternatives: event.serviceForm.schema.formAlternatives,
+          input: null
+        }, options[0][0])
+      Object.assign(this.forms[1][0],
         {
-          label: application.consent.form.label,
-          formData: application.consent.form,
-          alternatives: application.consent.formAlternatives,
-          input: application.consent.answers
-        }, options[1])
+          label: event.serviceForm.consent.form.label,
+          formData: event.serviceForm.consent.form,
+          alternatives: event.serviceForm.consent.formAlternatives,
+          input: event.serviceForm.consent.answers
+        }, options[1][0])
+      Object.assign(this.forms[1][1],
+        {
+          label: event.serviceForm.usagePolicy.form.label,
+          formData: event.serviceForm.usagePolicy.form,
+          alternatives: event.serviceForm.usagePolicy.formAlternatives,
+          input: event.serviceForm.usagePolicy.answers
+        }, options[1][1])
     },
     previewService(service, options = {}) {
       this.previewLabel = 'Service'
       this.readonlyPreview = true
       this.collectForms(service)
       this.$refs.PreviewApplicationComponent.openModal()
+    },
+    applyService(event) {
+      this.currentApplicationService = event
+      const schemaDri = event.service.service_schema.oca_schema_dri
+      this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
+        .then(r => {
+          let input = null
+          const schemaFillings = r.data.result[schemaDri]
+          if (schemaFillings.length > 0) {
+            // take item that holds our data
+            input = schemaFillings.find(x => x.content && x.content.p).content.p
+          }
+
+          this.collectForms(event, [[{ readonly: false, input }], []])
+
+          try {
+            this.$refs.PreviewServiceComponent.openModal();
+          } catch (e) {
+            console.log(e)
+            this.$noty.error("ERROR! Form data are corrupted.", {
+              timeout: 1000
+            })
+          }
+        })
     },
     previewApplication(application, options = {}) {
       this.currentApplication = application

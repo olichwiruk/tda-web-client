@@ -19,7 +19,7 @@
         :key="service.label + index"
         clickable
       >
-        <q-item-section>
+        <q-item-section @click="apply(service, group.connection_id)">
           <div class="row items-center">{{service.label}}
             <q-icon
               v-if="showUsagePolicy"
@@ -35,7 +35,7 @@
         <q-item-section side>
           <q-btn
             flat
-            @click="preview(service)"
+            @click="preview(service, group.connection_id)"
           >Preview</q-btn>
         </q-item-section>
       </q-item>
@@ -47,7 +47,12 @@
 import axios from 'axios';
 
 import VueJsonPretty from 'vue-json-pretty';
-//import { renderForm } from 'odca-form'
+import { renderForm } from '@/oca.js-vue';
+
+import {
+  toOca as usagePolicyToOca,
+  serializeInput as serializeUsagePolicyInput
+} from '@/usage_policy_helper';
 
 export default {
   name: 'service-list',
@@ -77,7 +82,7 @@ export default {
   },
   methods: {
     async renderServiceForm(service) {
-      const consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${service.consent_schema.data_dri}`)).data.payload)
+      const consentAnswers = service.consent_schema.oca_data
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${service.consent_schema.oca_schema_namespace}/${service.consent_schema.oca_schema_dri}`
       )).data
@@ -89,7 +94,7 @@ export default {
         consentLangBranches.forEach(langBranch => {
           consentFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.consent_schema.oca_schema_dri).form
           })
         })
         consentForm = consentFormAlternatives[0].form
@@ -111,7 +116,7 @@ export default {
         serviceLangBranches.forEach(langBranch => {
           serviceFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.service_schema.oca_schema_dri).form
           })
         })
         serviceForm = serviceFormAlternatives[0].form
@@ -122,7 +127,21 @@ export default {
         })
       }
 
+      const usagePolicyData = (await axios.post('https://governance.ownyourdata.eu/api/usage-policy/parse', {
+        'ttl': service.consent_schema.usage_policy
+      })).data
+      const form = renderForm(usagePolicyToOca(usagePolicyData)).form
+      const usagePolicy = {
+        form: form,
+        formAlternatives: [{
+          language: form.translations[0].language,
+          form: form
+        }],
+        answers: serializeUsagePolicyInput(usagePolicyData)
+      }
+
       return {
+        id: service.service_id,
         consent: {
           form: consentForm,
           formAlternatives: consentFormAlternatives,
@@ -131,7 +150,8 @@ export default {
         schema: {
           form: serviceForm,
           formAlternatives: serviceFormAlternatives
-        }
+        },
+        usagePolicy
       }
     },
     splitBranchPerLang(branch) {
@@ -153,8 +173,19 @@ export default {
       })
       return langBranches
     },
-    async preview(service) {
-      this.$emit('service-preview', await this.renderServiceForm(service))
+    async preview(service, connection_id) {
+      this.$emit('service-preview', {
+        connection_id,connection_id,
+        service: service,
+        serviceForm: await this.renderServiceForm(service)
+      })
+    },
+    async apply(service, connection_id) {
+      this.$emit('service-apply', {
+        connection_id,
+        service: service,
+        serviceForm: await this.renderServiceForm(service)
+      })
     },
     getPolicyValidation(service) {
       const policy_validation = service.policy_validation
