@@ -15,6 +15,8 @@
         <q-banner inline-actions>
           <span class="text-h5">Services</span>
           <template v-slot:action>
+            <custom-spinner :show="isRefreshing" />
+
             <q-btn
               flat
               icon="add"
@@ -28,17 +30,22 @@
           </template>
         </q-banner>
 
-        <service-list
-          :services="myServicesSorted"
-          @services-refresh="refreshServices"
-          @service-preview="previewService($event)"
-        />
-        <service-list
-          ref="otherServices"
-          :services="otherServices"
-          @services-refresh="refreshServices"
-          @service-preview="previewService($event)"
-        />
+        <q-list v-if="allServices.length == 0">
+          <q-item>No services available at the moment.</q-item>
+        </q-list>
+        <template v-else>
+          <service-list
+            :services="myServicesSorted"
+            @services-refresh="refreshServices"
+            @service-preview="previewService($event)"
+          />
+          <service-list
+            ref="otherServices"
+            :services="otherServices"
+            @services-refresh="refreshServices"
+            @service-preview="previewService($event)"
+          />
+        </template>
       </q-card>
     </div>
 
@@ -89,6 +96,7 @@ import { mapState, mapActions } from 'vuex'
 import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
+import CustomSpinner from '../Spinner/CustomSpinner.vue';
 // import { eventBus as ocaEventBus, EventHandlerConstant,
 //  MultiPreviewComponent } from 'odca-form'
 
@@ -125,6 +133,7 @@ export default {
     NewService,
     ServiceList,
     ApplicationList,
+    CustomSpinner,
     //MultiPreviewComponent
   },
   data() {
@@ -144,6 +153,7 @@ export default {
       submitted_applications: [],
       pending_applications: [],
       isCreateServiceDialogVisible: false,
+      isRefreshing: false,
     }
   },
   computed: {
@@ -182,6 +192,12 @@ export default {
         return message.topic == '/topic/verifiable-services/request-service-list/usage-policy/'
       })
     },
+    allServices() {
+      return [
+        ...this.myServices,
+        ...this.otherServices,
+      ];
+    }
   },
   watch: {
     connections: {
@@ -259,7 +275,9 @@ export default {
   ],
   created: async function () {
     await this.ready();
-    this.refreshServices()
+
+    this.refreshServices();
+
     this.refreshSubmittedApplications()
     this.refreshPendingApplications()
   },
@@ -271,12 +289,18 @@ export default {
   },
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
-    refreshServices() {
-      this.refreshMyServices();
-      this.refreshOtherServices();
+    async refreshServices() {
+      this.isRefreshing = true;
+
+      await Promise.all([
+        this.refreshMyServices(),
+        this.refreshOtherServices(),
+      ]);
+
+      this.isRefreshing = false;
     },
     refreshMyServices() {
-      axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
+      return axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
         .then(r => {
           if (r.status === 200) {
             this.myServices = [];

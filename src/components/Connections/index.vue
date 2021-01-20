@@ -65,6 +65,8 @@
           <q-banner inline-actions>
             <span class="text-h5"> Contacts</span>
             <template v-slot:action>
+              <custom-spinner :show="isRefreshing" />
+
               <q-btn
                 flat
                 icon="add"
@@ -88,30 +90,31 @@
               Add your first contact by scanning a QR-Code or adding it manually.
             </q-item>
           </q-list>
-
-          <connection-list
-            title="Active Connections:"
-            editable="true"
-            class="activeConnections"
-            :list="active_connections"
-            @connection-editted="update_connection"
-            @connection-deleted="delete_connection"
-            @refresh="fetch_connections"
-          ></connection-list>
-          <connection-list
-            title="Pending Connections:"
-            editable="true"
-            :list="pending_connections"
-            @connection-editted="update_connection"
-            @connection-deleted="delete_connection"
-          ></connection-list>
-          <connection-list
-            title="Failed Connections:"
-            editable="false"
-            :list="failed_connections"
-            @connection-editted="update_connection"
-            @connection-deleted="delete_connection"
-          ></connection-list>
+          <template v-else>
+            <connection-list
+              title="Active Connections:"
+              editable="true"
+              class="activeConnections"
+              :list="active_connections"
+              @connection-editted="update_connection"
+              @connection-deleted="delete_connection"
+              @refresh="fetch_connections"
+            ></connection-list>
+            <connection-list
+              title="Pending Connections:"
+              editable="true"
+              :list="pending_connections"
+              @connection-editted="update_connection"
+              @connection-deleted="delete_connection"
+            ></connection-list>
+            <connection-list
+              title="Failed Connections:"
+              editable="false"
+              :list="failed_connections"
+              @connection-editted="update_connection"
+              @connection-deleted="delete_connection"
+            ></connection-list>
+          </template>
         </q-card>
       </div>
       <div class="col-12 col-md-1" />
@@ -191,6 +194,7 @@ import message_bus from '@/message_bus.ts';
 import { copyToClipboard } from 'quasar';
 import { from_store } from '@/connection_detail';
 import { mapActions } from 'vuex';
+import CustomSpinner from '../Spinner/CustomSpinner.vue';
 
 export const isConnection = (conn) => "state" in conn;
 
@@ -221,6 +225,7 @@ export const shared = {
   data: {
     connections: [],
     invite: null,
+    isRefreshing: false,
   },
   computed: {
     active_connections: function() {
@@ -239,7 +244,10 @@ export const shared = {
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
-      (share, msg) => share.connections = msg.results,
+      (share, msg) => {
+        share.connections = msg.results;
+        share.isRefreshing = false;
+      },
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
       (share, msg) => share.fetch_connections(),
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/ack":
@@ -248,7 +256,8 @@ export const shared = {
       (share, msg) => share.invite = msg,
   },
   methods: {
-    fetch_connections: ({send}) => {
+    fetch_connections: ({ share, send }) => {
+      share.isRefreshing = true;
       send({
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-get-list",
       });
@@ -262,11 +271,12 @@ export default {
     ConnectionList,
     QrcodeStream,
     qrcode: VueQrcode,
+    CustomSpinner,
   },
   mixins: [
     message_bus(),
     share({
-      use: ['connections', 'active_connections', 'invite'],
+      use: ['connections', 'active_connections', 'invite', 'isRefreshing'],
       actions: ['fetch_connections']
     })
   ],

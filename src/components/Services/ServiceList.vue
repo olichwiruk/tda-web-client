@@ -20,12 +20,15 @@
         clickable
       >
         <q-item-section>
-          <div>{{service.label}}
+          <div class="row items-center">{{service.label}}
             <q-icon
               class="q-ml-sm"
               name="shield"
-              :color="getPolicyValidationColor(service)"
-            />
+              size="xs"
+              :color="getPolicyValidation(service).color"
+            >
+              <q-tooltip>{{getPolicyValidation(service).text}}</q-tooltip>
+            </q-icon>
           </div>
         </q-item-section>
         <q-item-section side>
@@ -148,13 +151,26 @@ export default {
     async preview(service) {
       this.$emit('service-preview', await this.renderServiceForm(service))
     },
-    getPolicyValidationColor(service) {
+    getPolicyValidation(service) {
       const policy_validation = service.policy_validation
-      if (!policy_validation) { return 'grey' }
-      if (policy_validation.code == 0) {
-        return 'green'
-      }
-      return 'red'
+
+      if (!policy_validation)
+        return {
+          color: 'grey',
+          text: 'Usage policies could not be matched yet.',
+        };
+
+      else if (policy_validation.code == 0)
+        return {
+          color: 'green',
+          text: 'Your usage policy matches with that provided by the service. Everything is good.',
+        };
+
+      else
+        return {
+          color: 'red',
+          text: 'Your usage policy does not match with that provided by the service. However, you can still proceed with using this service.',
+        }
     },
   },
 }
