@@ -30,14 +30,13 @@
         flat
         label="Cancel"
         color="primary"
-        v-close-popup
+        @click="cancel"
       />
       <q-btn
         :disable="!dataFilled"
         flat
         label="Submit"
         color="primary"
-        v-close-popup
         @click="submit"
       />
     </q-card-actions>
@@ -112,13 +111,17 @@ export default {
       }).then(r => {
         if (r.status === 200) {
           this.$noty.success("Service created!", { timeout: 1000 })
+
           this.$emit('services-refresh')
-          this.resetServiceData()
+          this.resetServiceData();
         }
       }).catch(e => {
         console.log(e)
         this.$noty.error("Error occuerrd", { timeout: 1000 })
       })
+    },
+    cancel() {
+      this.$emit('services-refresh');
     }
   },
 }

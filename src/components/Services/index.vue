@@ -98,17 +98,12 @@ import NewService from './NewService.vue';
 import ServiceList from './ServiceList.vue';
 import ApplicationList from './ApplicationList.vue';
 import CustomSpinner from '../Spinner/CustomSpinner.vue';
-// import { eventBus as ocaEventBus, EventHandlerConstant,
-//  MultiPreviewComponent } from 'odca-form'
 
-// TODO: remove this dummy method
-// it just replaces missing items from odca-form
-const EventHandlerConstant = {};
-const ocaEventBus = {
-  $on: () => undefined,
-  $off: () => undefined,
-}
-
+import {
+  eventBus as ocaEventBus,
+  EventHandlerConstant,
+  MultiPreviewComponent,
+} from '@/oca.js-vue'
 
 import message_bus from '@/message_bus.ts';
 import share from '@/share.ts';
@@ -291,6 +286,7 @@ export default {
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
     async refreshServices() {
+      this.isCreateServiceDialogVisible = false;
       this.isRefreshing = true;
 
       await Promise.all([
