@@ -1,19 +1,33 @@
 <template>
   <div>
-    <el-form @submit.native.prevent :inline="true">
-      <el-form-item label="Current PDS:">
-        <el-select
+    <q-list padding>
+
+    <q-item>
+      <q-form
+        class="q-gutter-md"
+      >
+      <q-select
+          filled
           v-model="active_pds"
-          filterable
-          placeholder="Select PDS"
-          @change="pds_selected">
-          <el-option
-            v-for="pds in pds_list"
-            :key="pds" :label="pds" :value="pds">
-          </el-option>
-        </el-select>
-      </el-form-item>
-    </el-form>
+          use-input
+          input-debounce="0"
+          label="Select Data Store"
+          :options="pds_list"
+          @input="pds_selected"
+          style="width: 250px"
+        >
+          <template v-slot:no-option>
+            <q-item>
+              <q-item-section class="text-grey">
+                No results
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
+
+      </q-form>
+    </q-item>
+    </q-list>
   </div>
 </template>
 

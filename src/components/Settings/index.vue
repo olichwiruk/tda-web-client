@@ -1,8 +1,10 @@
 <template>
-  <q-page>
-    <pds-settings title="Personal Data Storage" />
-    <controller-settings title="Controller Configuration" />
-  </q-page>
+  <div class="q-pa-md" style="max-width:450px">
+    <q-list bordered padding>
+      <pds-settings title="Personal Data Storage" />
+      <controller-settings title="Controller Configuration" />
+    </q-list>
+  </div>
 </template>
 
 <script>

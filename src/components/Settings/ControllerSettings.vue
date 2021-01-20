@@ -5,8 +5,6 @@
     </div>
 
     <q-form
-      @submit="onSubmit"
-      @reset="onReset"
       class="q-gutter-md"
     >
       <q-input

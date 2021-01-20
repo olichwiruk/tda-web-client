@@ -1,27 +1,23 @@
 <template>
-  <div>
-    Plugins:<br>
-    <el-collapse v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="(plugin, index) in plugin_list"
-          :title="plugin.pluginName"
-          :name="plugin.pluginName + index"
-          :key="index">
-          <el-row>
-            <vue-json-pretty :deep=0 :data="plugin" />
-            <el-button size="medium" :disabled="!plugin.oca_schema_namespace || !plugin.oca_schema_dri"
-              @click="configure(plugin)">Configure</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-  </div>
+  <span>
+    <q-item-label header>
+      Available plugins
+    </q-item-label>
+    <q-separator spaced />
+
+    <div class="q-pa-md" style="max-width: 350px">
+      <q-list bordered separator v-for="(plugin, index) in plugin_list">
+        <q-item clickable v-ripple @click="configure(plugin)">
+          <q-item-section>{{plugin.pluginName}}</q-item-section>
+        </q-item>
+      </q-list>
+    </div>
+  </span>
 </template>
 
 <script>
 import axios from 'axios';
-//import { renderForm } from 'odca-form'
+import { renderForm } from '@/oca.js-vue'
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
