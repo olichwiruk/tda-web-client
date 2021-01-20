@@ -3,7 +3,7 @@
     <q-dialog v-model="isNewConsentVisible">
       <new-consent
         title="Create new consent"
-        @consents-refresh="refreshDefinedConsents"
+        @consents-refresh="refreshConsents"
       />
     </q-dialog>
 
@@ -11,11 +11,14 @@
       <q-banner inline-actions>
         <span class="text-h5">Consents</span>
         <template v-slot:action>
+          <custom-spinner :show="isRefreshing" />
+
           <q-btn
             flat
             icon="add"
             @click="isNewConsentVisible = true"
           ></q-btn>
+
           <q-btn
             flat
             icon="refresh"
@@ -24,18 +27,23 @@
         </template>
       </q-banner>
 
-      <consent-list
-        title="Defined by me"
-        :consents="defined_consent_list"
-        @consents-refresh="refreshDefinedConsents"
-        @consent-preview="previewConsent($event)"
-      />
-      <consent-list
-        title="Given by me"
-        :consents="given_consent_list"
-        @consents-refresh="refreshGivenConsents"
-        @consent-preview="previewApplication($event)"
-      />
+      <q-list v-if="allConsents.length == 0">
+        <q-item>No consents were created or given so far.</q-item>
+      </q-list>
+      <template v-else>
+        <consent-list
+          title="Defined by me"
+          :consents="defined_consent_list"
+          @consents-refresh="refreshDefinedConsents"
+          @consent-preview="previewConsent($event)"
+        />
+        <consent-list
+          title="Given by me"
+          :consents="given_consent_list"
+          @consents-refresh="refreshGivenConsents"
+          @consent-preview="previewApplication($event)"
+        />
+      </template>
     </q-card>
 
     <preview-component
@@ -62,6 +70,7 @@ import { PreviewComponent, MultiPreviewComponent } from '@/oca.js-vue'
 import NewConsent from './NewConsent'
 import ConsentList from './ConsentList'
 import share from '@/share.ts';
+import CustomSpinner from '../Spinner/CustomSpinner.vue';
 
 export const metadata = {
   menu: {
@@ -79,7 +88,8 @@ export default {
     NewConsent,
     ConsentList,
     PreviewComponent,
-    MultiPreviewComponent
+    MultiPreviewComponent,
+    CustomSpinner,
   },
   mixins: [
     share({
@@ -100,17 +110,30 @@ export default {
       ],
       alternatives: [],
       isNewConsentVisible: false,
+      isRefreshing: false,
     }
   },
   computed: {
-    acapyApiUrl: function() {
+    acapyApiUrl: function () {
       return this.$session.get('acapyApiUrl')
     },
+    allConsents() {
+      return [
+        ...this.defined_consent_list,
+        ...this.given_consent_list,
+      ]
+    }
   },
   methods: {
     async refreshConsents() {
-      this.refreshDefinedConsents();
-      this.refreshGivenConsents();
+      this.isRefreshing = true;
+
+      await Promise.all([
+        this.refreshDefinedConsents(),
+        this.refreshGivenConsents()
+      ]);
+
+      this.isRefreshing = false;
     },
     async refreshDefinedConsents() {
       await this.$_adminApi_getConsents()
@@ -193,8 +216,7 @@ export default {
     },
   },
   mounted() {
-    this.refreshDefinedConsents()
-    this.refreshGivenConsents()
+    this.refreshConsents()
   }
 }
 </script>
