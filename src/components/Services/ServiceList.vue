@@ -22,6 +22,7 @@
         <q-item-section>
           <div class="row items-center">{{service.label}}
             <q-icon
+              v-if="showUsagePolicy"
               class="q-ml-sm"
               name="shield"
               size="xs"
@@ -50,10 +51,14 @@ import VueJsonPretty from 'vue-json-pretty';
 
 export default {
   name: 'service-list',
-  props: [
-    'title',
-    'services'
-  ],
+  props: {
+    title: String,
+    services: Array,
+    showUsagePolicy: {
+      default: true,
+      type: Boolean,
+    },
+  },
   components: {
     VueJsonPretty
   },
