@@ -151,7 +151,7 @@ export default {
     },
     openPresentationRequest(connection_id) {
       this.currentPresentationRequest.connection_id = connection_id
-      this.$refs.PresentationDialog.active = true
+      this.$refs.PresentationDialog.isDialogVisible = true
     },
     sendPresentationRequest(event) {
       this.$_adminApi_requestPresentation({

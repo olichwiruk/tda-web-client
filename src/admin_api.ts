@@ -28,6 +28,11 @@ export default {
           const apiUrl = this.adminApiUrl
           return getCredentials(apiUrl)
         },
+        $_adminApi_addService(params: addServiceParams): Promise<object> {
+          // @ts-ignore
+          const apiUrl = this.adminApiUrl
+          return addService(apiUrl, params)
+        },
         $_adminApi_applyOnService(params: applyOnServiceParams): Promise<object> {
           // @ts-ignore
           const apiUrl = this.adminApiUrl
@@ -63,6 +68,16 @@ export default {
           const apiUrl = this.adminApiUrl
           return getPayload(apiUrl, params)
         },
+        $_adminApi_saveCurrentData(params: saveCurrentDataParams): Promise<object> {
+          // @ts-ignore
+          const apiUrl = this.adminApiUrl
+          return saveCurrentData(apiUrl, params)
+        },
+        $_adminApi_getCurrentData(params: getCurrentDataParams): Promise<object> {
+          // @ts-ignore
+          const apiUrl = this.adminApiUrl
+          return getCurrentData(apiUrl, params)
+        },
     }
 }
 
@@ -72,17 +87,15 @@ type addConsentParams = {
   label: string,
   oca_schema_namespace: string,
   oca_schema_dri: string,
-  payload: object
+  data: object
 }
 
 function addConsent(apiUrl: string, params: addConsentParams) {
     const body = {
         label: params.label,
-        oca_schema: {
-            namespace: params.oca_schema_namespace,
-            dri: params.oca_schema_dri,
-        },
-        payload: params.payload
+        oca_schema_namespace: params.oca_schema_namespace,
+        oca_schema_dri: params.oca_schema_dri,
+        oca_data: params.data
     }
     return axios.post(`${apiUrl}/verifiable-services/consents`, body)
 }
@@ -101,6 +114,19 @@ function getCredentials(apiUrl: string) {
 }
 
 /* SERVICES */
+
+type addServiceParams = {
+    label: string,
+    consent_id: string,
+    service_schema: {
+        oca_schema_namespace: string,
+        oca_schema_dri: string
+    }
+}
+
+function addService(apiUrl: string, params: addServiceParams) {
+    return axios.post(`${apiUrl}/verifiable-services/add`, params)
+}
 
 type applyOnServiceParams = {
     connection_id: string,
@@ -180,4 +206,22 @@ type getPayloadParams = {
 
 function getPayload(apiUrl: string, params: getPayloadParams) {
   return axios.get(`${apiUrl}/pds/${params.payload_dri}`)
+}
+
+type saveCurrentDataParams = {
+    data: object
+}
+
+function saveCurrentData(apiUrl: string, params: saveCurrentDataParams) {
+  return axios.post(`${apiUrl}/pds/current/`, params)
+}
+
+type getCurrentDataParams = {
+    schemaDris: string[]
+}
+
+function getCurrentData(apiUrl: string, params: getCurrentDataParams) {
+  const queryParams = params.schemaDris
+    .map(dri => `oca_schema_base_dris=${dri}`).join('&')
+  return axios.get(`${apiUrl}/pds/current/?${queryParams}`)
 }

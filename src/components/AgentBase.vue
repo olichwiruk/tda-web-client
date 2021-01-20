@@ -25,12 +25,26 @@
           <q-btn round dense flat color="blue" icon="message" v-if="$q.screen.gt.sm">
             <q-tooltip>Messages</q-tooltip>
           </q-btn>
-          <q-btn round dense flat color="blue" icon="notifications">
-            <q-badge color="red" text-color="white" floating>
-              2
+
+          <q-btn
+            round
+            dense
+            flat
+            color="blue"
+            icon="notifications"
+            @click="isRightDrawerOpen = !isRightDrawerOpen"
+          >
+            <q-badge
+              v-if="pendingRequests.length > 0"
+              color="red"
+              text-color="white"
+              floating
+            >
+              {{pendingRequests.length}}
             </q-badge>
             <q-tooltip>Notifications</q-tooltip>
           </q-btn>
+          
           <q-btn round flat>
             <q-avatar size="26px">
               <img src="https://cdn.quasar.dev/img/boy-avatar.png">
@@ -40,6 +54,12 @@
         </div>
       </q-toolbar>
     </q-header>
+          
+    <notification-drawer
+      :isOpen="isRightDrawerOpen"
+      @toggleDrawer="(val) => isRightDrawerOpen = val"
+      @refreshRequests="(req) => pendingRequests = req"
+    />
 
     <q-drawer
       v-model="leftDrawerOpen"
@@ -182,6 +202,7 @@ import message_bus from '@/message_bus.ts';
 import share, {share_source} from '@/share.ts';
 import components, {shared} from './components.ts';
 import Taa from './TAA.vue';
+import NotificationDrawer from './NotificationDrawer.vue';
 
 // The (. && .. && ...) || 'default' syntax provides defaults for modules that lack any level of the metadata
 //  definition. It would be useful if javascript had an Elvis Operator, but it does not.
@@ -239,12 +260,18 @@ export default {
     })
   ],
   props: ['agentid'],
-  components: {Taa},
+  components: {
+    Taa, 
+    NotificationDrawer,
+  },
   data: function() {
     return {
       'connection': {'label':'loading...'},
       'modules': module_list,
       'return_route_poll_timer': '',
+      
+      pendingRequests: [],
+      isRightDrawerOpen: false,
       /* new UI requirements */
 
       leftDrawerOpen: false,
