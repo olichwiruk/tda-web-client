@@ -36,6 +36,7 @@
         <template v-else>
           <service-list
             :services="myServicesSorted"
+            :showUsagePolicy="false"
             @services-refresh="refreshServices"
             @service-preview="previewService($event)"
           />
