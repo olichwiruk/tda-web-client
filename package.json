@@ -5,8 +5,7 @@
   "author": "Sam Curren <telegramsam@gmail.com>",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "postinstall": "sh ./scripts/postinstall.sh"
+    "build": "vue-cli-service build"
   },
   "main": "./dist/main.js",
   "dependencies": {
@@ -16,8 +15,10 @@
     "@fortawesome/vue-fontawesome": "^0.1.5",
     "@quasar/extras": "^1.0.0",
     "@vue/cli-service": "^4.1.1",
+    "array-flatten": "^3.0.0",
     "axios": "^0.18.0",
     "axios-retry": "^3.1.8",
+    "bignum": "^0.13.1",
     "dompurify": "^2.0.8",
     "encryption-envelope-js": "1.1.4",
     "hashlink": "github:digitalbazaar/hashlink#decode",

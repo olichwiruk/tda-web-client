@@ -58,7 +58,7 @@ import adminApi from '@/admin_api.ts'
 import OcaSchemaSearch from '../Services/NewService/OcaSchemaSearch.vue'
 
 import {
-  eventBus as ocaEventBus, 
+  eventBus as ocaEventBus,
   EventHandlerConstant,
   PreviewComponent
 } from '@/oca.js-vue'
@@ -123,7 +123,7 @@ export default {
         label: this.consent.label,
         oca_schema_namespace: this.consent.oca_schema_namespace,
         oca_schema_dri: this.consent.oca_schema_dri,
-        payload: data
+        data: data
       }).then(r => {
         this.consentData.sending = false
         if (r.data.success) {

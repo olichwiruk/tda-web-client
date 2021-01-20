@@ -9,6 +9,7 @@
     import SectionComponent from "./ui/SectionComponent";
     import { dom } from '@fortawesome/fontawesome-svg-core'
     import { EventHandlerConstant, eventBus } from '@/oca.js-vue/template/handler/event_handler'
+    import { flatten } from "array-flatten";
 
     dom.watch();
     export default {
@@ -69,9 +70,9 @@
             },
             validateValues() {
                 let isSuccess = true
-                const controls = this.form.sections.map(section => {
+                const controls = flatten(this.form.sections.map(section => {
                     return section.row.controls
-                }).flatten()
+                }))
                 controls.forEach(control => {
                     control.errors = []
                     if(control.required && control.value.length <= 0) {
@@ -84,8 +85,7 @@
             },
         },
         created() {
-          console.log("ble");
-          console.log(this.form);
+          //console.log(this.form);
         }
     }
 </script>
