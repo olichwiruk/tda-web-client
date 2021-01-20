@@ -4,8 +4,6 @@
 
       <q-item-label header>{{title}}</q-item-label>
       <q-item
-        clickable
-        ripple
         v-for="connection in list"
         :key="title+connection.connection_id"
       >
