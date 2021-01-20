@@ -249,7 +249,7 @@ export default {
     }}),
     share_source(shared),
     share({
-      use: ['dids', 'public_did', 'protocols', 'is_dev_interface'],
+      use: ['dids','publish_did', 'public_did', 'protocols', 'is_dev_interface'],
       actions: [
         'fetch_dids',
         'fetch_active_did',
@@ -329,6 +329,15 @@ export default {
       return module_groups;
     }
 
+  },
+  watch: {
+    dids: function(dids) {
+      if(dids.length > 0 ) {
+        // publish and activate first did
+        this.activate_did(dids[0]);
+        this.publish_did(dids[0]);
+      }
+    }
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
