@@ -108,8 +108,18 @@ export default {
     },
     openCreateConsentForm() {
       try {
-        this.$refs.ConsentPreviewComponent.openModal(this.consent.form);
-      } catch (e) {
+        const schemaDri = this.consent.oca_schema_dri
+        this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
+          .then(r => {
+            let input = null
+            const schemaFillings = r.data.result[schemaDri]
+            if (schemaFillings.length > 0) {
+              input = JSON.parse(schemaFillings[0].content)
+            }
+
+            this.$refs.ConsentPreviewComponent.openModal(this.consent.form, input);
+          })
+      } catch(e) {
         console.log(e)
         this.$noty.error("ERROR! Form data are corrupted.", {
           timeout: 1000
