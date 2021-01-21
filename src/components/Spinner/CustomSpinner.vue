@@ -1,6 +1,7 @@
 <template>
   <q-spinner
-    v-if="showSpinner"
+    v-if="isRunning"
+    :color="color"
     size="md"
   />
 </template>
@@ -12,7 +13,8 @@ export default Vue.extend({
     show: Boolean,
   },
   data: () => ({
-    minTimeExpired: true,
+    nextStopper: Promise.resolve(),
+    isRunning: true,
   }),
   created() {
     if (this.show)
@@ -20,19 +22,31 @@ export default Vue.extend({
   },
   methods: {
     start() {
-      this.minTimeExpired = false;
-      setTimeout(() => this.minTimeExpired = true, 1500);
-    },
-  },
-  watch: {
-    show(val) {
-      if (val)
-        this.start();
+      this.isRunning = true;
+      this.nextStopper = new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+
+          if (this.show)
+            this.start();
+          // every 1500 ms there is the chance to stop the animation gracefully
+        }, 1500);
+      })
     }
   },
+  watch: {
+    async show(val) {
+      if (val)
+        this.start();
+      else {
+        await this.nextStopper;
+        this.isRunning = false;
+      }
+    },
+  },
   computed: {
-    showSpinner(): boolean {
-      return this.show || !this.minTimeExpired;
+    color(): string {
+      return this.show ? 'black' : 'green';
     }
   }
 })
