@@ -13,6 +13,7 @@ import GUINumberControl from '@/oca.js-vue/gui/ui/controls/NumberControl';
 import GUISelectControl from '@/oca.js-vue/gui/ui/controls/SelectControl';
 import GUITextControl from '@/oca.js-vue/gui/ui/controls/TextControl';
 import GUITimePickerControl from '@/oca.js-vue/gui/ui/controls/TimePickerControl';
+import GUIReferenceControl from '@/oca.js-vue/gui/ui/controls/ReferenceControl';
 
 // TEMPLATE Control
 import TEMPLATETextControl from '@/oca.js-vue/template/ui/common/controls/TextControl';
@@ -94,6 +95,15 @@ const CONTROL_TYPES = {
             gui: GUICheckboxControl,
             template: TEMPLATECheckboxControl,
             config: SIDEBARCheckboxControl
+        }
+    },
+    reference: {
+        label:"Reference",
+        icon: faCheck,
+        source: {
+            gui: GUIReferenceControl
+          //template: TEMPLATECheckboxControl,
+          //config: SIDEBARCheckboxControl
         }
     }
 };

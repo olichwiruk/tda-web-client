@@ -70,7 +70,10 @@ FORM_CONSTANTS.Control = {
     ajaxDataUrl: "", // ajax data source
 
     // attr for checkbox
-    isChecked: false
+    isChecked: false,
+
+    // attr for reference
+    referenceSchema: {}
 };
 
 FORM_CONSTANTS.Type = {
