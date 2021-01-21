@@ -289,19 +289,19 @@ export default {
           oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
           oca_schema_dri: credential.credentialSubject.oca_schema_dri
         }
-        axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
-          .then(r => {
+        await axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
+          .then(async r => {
             const branch = r.data
             this.credentialsSchemaAlt[presExId] = []
             const langBranches = this.splitBranchPerLang(branch)
 
-            langBranches.forEach(langBranch => {
+            await langBranches.forEach(async langBranch => {
               this.credentialsSchemaAlt[presExId].push({
                 language: langBranch.lang,
-                form: renderForm([
+                form: (await renderForm([
                   langBranch.branch.schema_base,
-                  ...langBranch.branch.overlays]
-                ).form
+                  ...langBranch.branch.overlays], serviceSchema.oca_schema_dri
+                )).form
               })
             })
             this.credentialsSchema[presExId]= this.credentialsSchemaAlt[presExId][0].form
@@ -318,19 +318,19 @@ export default {
           }
         }
       } else {
-        axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${presentationEl.presentation_request.schema_base_dri}`)
-          .then(r => {
+        await axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${presentationEl.presentation_request.schema_base_dri}`)
+          .then(async r => {
             const branch = r.data
             this.credentialsSchemaAlt[presExId] = []
             const langBranches = this.splitBranchPerLang(branch)
 
-            langBranches.forEach(langBranch => {
+            await langBranches.forEach(async langBranch => {
               this.credentialsSchemaAlt[presExId].push({
                 language: langBranch.lang,
-                form: renderForm([
+                form: (await renderForm([
                   langBranch.branch.schema_base,
-                  ...langBranch.branch.overlays]
-                ).form
+                  ...langBranch.branch.overlays], presentationEl.presentation_request.schema_base_dri
+                )).form
               })
             })
             this.credentialsSchema[presExId]= this.credentialsSchemaAlt[presExId][0].form
@@ -398,7 +398,7 @@ export default {
       handler: function() {
         this.pdsPayloadMessages.forEach(msg => {
           const payload = JSON.parse(msg.content.payload)
-          this.schemaPayload[msg.content.dri] = Object.values(payload)[0].p
+          this.schemaPayload[msg.content.dri] = payload
           this.delete_message(msg.uuid)
         })
       }

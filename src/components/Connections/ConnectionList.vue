@@ -146,7 +146,7 @@ export default {
       handler: function() {
         this.pdsPayloadMessages.forEach(msg => {
           const payload = JSON.parse(msg.content.payload)
-          this.presentationPayloads[msg.content.dri] = Object.values(payload)[0].p
+          this.presentationPayloads[msg.content.dri] = payload
           this.delete_message(msg.uuid)
         })
       }
@@ -261,7 +261,6 @@ export default {
       }
     },
     servicePreview(event) {
-      this.dialogContext = 'service'
       this.collectForms(event, [[{ readonly: true }], []])
 
       try {
@@ -273,18 +272,33 @@ export default {
         })
       }
     },
+    collectFormDris(schema, collected = []) {
+      const dris = []
+      dris.push(schema.form.DRI)
+      schema.form.sections.forEach(section => {
+        section.row.controls.forEach(control => {
+          if (control.type === "reference") {
+            dris.push(...this.collectFormDris(control.referenceSchema))
+          }
+        })
+      })
+
+      return [...collected, ...dris]
+    },
     serviceApply(event) {
+      this.dialogContext = 'service'
       this.currentApplicationService = event
+      const formDris = this.collectFormDris(event.serviceForm.schema)
       const schemaDri = event.service.service_schema.oca_schema_dri
-      this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
+      this.$_adminApi_getCurrentData({ schemaDris: formDris })
         .then(r => {
           let input = null
-          const schemaFillings = r.data.result[schemaDri]
+          const schemaFillings = r.data.result//[schemaDri]
           if (schemaFillings.length > 0) {
-            input = schemaFillings[0].content.p
+            input = schemaFillings// [0].content.p
           }
 
-          this.collectForms(event, [[{ readonly: false, input }], []])
+          this.collectForms(event, [[{ readonly: false, input: schemaFillings }], []])
 
           try {
             this.$refs.PreviewServiceComponent.openModal();

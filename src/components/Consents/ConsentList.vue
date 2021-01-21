@@ -70,10 +70,10 @@ export default {
       let consentForm
       const consentFormAlternatives = []
       try {
-        consentLangBranches.forEach(langBranch => {
+        await consentLangBranches.forEach(async langBranch => {
           consentFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
         })
         consentForm = consentFormAlternatives[0].form
@@ -100,10 +100,10 @@ export default {
       let serviceForm
       const serviceFormAlternatives = []
       try {
-        serviceLangBranches.forEach(langBranch => {
+        await serviceLangBranches.forEach(async langBranch => {
           serviceFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
         })
         serviceForm = serviceFormAlternatives[0].form

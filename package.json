@@ -21,7 +21,7 @@
     "encryption-envelope-js": "1.1.4",
     "hashlink": "github:digitalbazaar/hashlink#decode",
     "marked": "^0.8.0",
-    "oca.js-vue": "0.1.1",
+    "oca.js-vue": "file:.yalc/oca.js-vue",
     "request-promise": "^4.2.4",
     "tslib": "^1.10.0",
     "uuid": "^3.3.3",

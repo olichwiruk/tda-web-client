@@ -100,15 +100,18 @@ export default {
       const langBranches = this.splitBranchPerLang(branch)
 
       try {
-        langBranches.forEach(langBranch => {
-          this.ocaFormAlternatives.push({
-            language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+        this.ocaFormAlternatives = await Promise.all(
+          langBranches.map(async langBranch => {
+            const renderedForm = await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])
+            return {
+              language: langBranch.lang,
+              form: renderedForm.form
+            }
           })
-        })
-
+        )
         this.ocaForm = this.ocaFormAlternatives[0].form
       } catch(e) {
+        console.log(e)
         this.$noty.error("ERROR! Form data are corrupted.", {
           timeout: 1000
         })

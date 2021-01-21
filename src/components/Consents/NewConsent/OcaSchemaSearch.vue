@@ -106,10 +106,10 @@ export default {
       const langBranches = this.splitBranchPerLang(branch)
 
       try {
-        langBranches.forEach(langBranch => {
+        await langBranches.forEach(async langBranch => {
           this.ocaFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], branchBase.DRI).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], branchBase.DRI)).form
           })
         })
 

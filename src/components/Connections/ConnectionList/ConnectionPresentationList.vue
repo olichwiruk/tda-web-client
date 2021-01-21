@@ -78,10 +78,13 @@ export default {
       let serviceForm
       const serviceFormAlternatives = []
       try {
-        serviceLangBranches.forEach(langBranch => {
+        await serviceLangBranches.forEach(async langBranch => {
           serviceFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm(
+              [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+              credential.credentialSubject.oca_schema_dri
+            )).form
           })
         })
         serviceForm = serviceFormAlternatives[0].form

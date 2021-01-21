@@ -53,10 +53,10 @@ export default {
       let pluginForm
       const pluginFormAlternatives = []
       try {
-        pluginLangBranches.forEach(langBranch => {
+        await pluginLangBranches.forEach(async langBranch => {
           pluginFormAlternatives.push({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
         })
         pluginForm = pluginFormAlternatives[0].form

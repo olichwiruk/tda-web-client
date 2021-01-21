@@ -243,19 +243,19 @@ export default {
           })
         } else if (exp && exp['dri']) {
           let schemaBaseDri
-          axios.get(exp.host + exp['dri'])
-            .then(r => {
+          await axios.get(exp.host + exp['dri'])
+            .then(async r => {
               const branch = r.data
               this.credentialsSchemaAlt[credential.issuanceDate] = []
               const langBranches = this.splitBranchPerLang(branch)
 
-              langBranches.forEach(langBranch => {
+              await langBranches.forEach(async langBranch => {
                 this.credentialsSchemaAlt[credential.issuanceDate].push({
                   language: langBranch.lang,
-                  form: renderForm([
+                  form: (await renderForm([
                     langBranch.branch.schema_base,
                     ...langBranch.branch.overlays]
-                  ).form
+                  )).form
                 })
               })
               this.credentialsSchema[credential.issuanceDate] = this.credentialsSchemaAlt[credential.issuanceDate][0].form
@@ -276,19 +276,19 @@ export default {
           oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
           oca_schema_dri: credential.credentialSubject.oca_schema_dri
         }
-        axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${serviceSchema.oca_schema_dri}`)
-          .then(r => {
+        await axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${serviceSchema.oca_schema_dri}`)
+          .then(async r => {
             const branch = r.data
             this.credentialsSchemaAlt[credential.issuanceDate] = []
             const langBranches = this.splitBranchPerLang(branch)
 
-            langBranches.forEach(langBranch => {
+            await langBranches.forEach(async langBranch => {
               this.credentialsSchemaAlt[credential.issuanceDate].push({
                 language: langBranch.lang,
-                form: renderForm([
+                form: (await renderForm([
                   langBranch.branch.schema_base,
-                  ...langBranch.branch.overlays]
-                ).form
+                  ...langBranch.branch.overlays], serviceSchema.oca_schema_dri
+                )).form
               })
             })
             this.credentialsSchema[credential.issuanceDate] = this.credentialsSchemaAlt[credential.issuanceDate][0].form
@@ -297,7 +297,7 @@ export default {
 
         if(credential.credentialSubject.oca_data_dri) {
           const schemaPayload = (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
-          this.schemaInput[credential.issuanceDate] = Object.values(schemaPayload)[0].p
+          this.schemaInput[credential.issuanceDate] = schemaPayload
         } else if(credential.credentialSubject.oca_data) {
           const data = {}
           Object.entries(credential.credentialSubject.oca_data).forEach(([key, value]) => {

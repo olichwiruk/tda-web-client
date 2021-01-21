@@ -175,9 +175,9 @@ export default {
               conn.connection_id == application.connection_id
             )
             return Object.assign(application, {
-              payload: JSON.parse(application.service_user_data),
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
+              payload: application.service_user_data,
+              service_schema: application.service_schema,
+              consent_schema: application.consent_schema,
               connection: connection
             })
           })
@@ -196,12 +196,10 @@ export default {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
-            const service_user_data = JSON.parse(application.service_user_data)
-            const payload = Object.values(service_user_data)[0].p
             return Object.assign(application, {
-              payload,
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
+              payload: application.service_user_data,
+              service_schema: application.service_schema,
+              consent_schema: application.consent_schema,
               connection: connection
             })
           })
