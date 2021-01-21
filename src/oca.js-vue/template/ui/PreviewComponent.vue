@@ -88,7 +88,10 @@ export default {
     },
     saveForm() {
       const formRef = this.$refs.FormBuilderGui
-      const isValid = formRef.validateValues()
+      // TODO: no validation at the moment as this seems to be broken according to Michal
+      // const isValid = formRef.validateValues()
+      const isValid = true;
+      
       if(!isValid) { return }
 
       const serializedData = serializeFormData(formRef)

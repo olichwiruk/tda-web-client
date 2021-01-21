@@ -126,6 +126,7 @@ export default {
   },
   methods: {
     async refreshConsents() {
+      this.isNewConsentVisible = false
       this.isRefreshing = true;
 
       await Promise.all([

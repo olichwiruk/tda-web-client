@@ -2,7 +2,6 @@
   <q-list v-if="consents.length > 0">
     <q-item-label
       header
-      class="text-h6"
       v-if="title"
     >{{title}}</q-item-label>
 
