@@ -277,7 +277,7 @@ export default {
       leftDrawerOpen: false,
       search: '',
       links1: [
-        { icon: 'home', text: 'Home', path: `/agent/${this.agentid}/wall` },
+        // { icon: 'home', text: 'Home', path: `/agent/${this.agentid}/wall` },
         { icon: 'subscriptions', text: 'My Documents', path: `/agent/${this.agentid}/my-credentials` },
         { icon: 'contacts', text: 'Address Book', path: `/agent/${this.agentid}/connections` }
       ],
@@ -386,6 +386,14 @@ export default {
     if(this.connection.needs_return_route_poll()){
       this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
     }
+
+    // checking if there is no subroute selected
+    // I don't know if it is the best idea to check the current route path
+    if (new RegExp(`/agent/${this.agentid}/?$`).test(this.$router.currentRoute.path))
+      // link to the first available item
+      this.$router.replace({
+        path: this.links1[0].path
+      });
   },
   beforeDestroy: function() {
     if(this.connection.needs_return_route_poll()) {
