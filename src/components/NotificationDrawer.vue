@@ -60,6 +60,7 @@ import adminApi from '@/admin_api.ts';
 import share from '@/share';
 import axios from 'axios';
 import { renderForm } from '@/oca.js-vue';
+import { mapActions, mapState } from 'vuex';
 
 export default Vue.extend({
   created() {
@@ -103,8 +104,19 @@ export default Vue.extend({
       if (val)
         this.refreshRequests();
     },
+    presentProofMessages: {
+      handler: function () {
+        this.presentProofMessages.forEach(msg => {
+          this.delete_message(msg.uuid)
+        });
+
+        this.refreshRequests();
+      }
+    },
   },
   computed: {
+    ...mapState('WsMessages', ['messages']),
+
     receivedRequests(): any[] {
       return this.requests.filter(
         exchange =>
@@ -118,8 +130,15 @@ export default Vue.extend({
       // @ts-ignore
       return this.$session.get('ocaRepoUrl')
     },
+    presentProofMessages: function (): any[] {
+      return this.messages.filter((message: any) => {
+        return message.topic == '/topic/present_proof/'
+      })
+    },
   },
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
+
     async refreshRequests() {
       this.isRefreshing = true;
       // @ts-ignore
