@@ -17,45 +17,12 @@
             text-color="white"
           />
         </q-item-section>
-        <q-item-section>{{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}</q-item-section>
+        <q-item-section>
+          <q-item-label>{{ application.connection ? application.connection.their_label : '' }}</q-item-label>
+          <q-item-label caption>{{application.label}}</q-item-label>
+        </q-item-section>
       </q-item>
     </q-list>
-
-    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a
-        class="navbar-brand"
-        href="#"
-      > {{ title }} </a>
-
-      <el-button
-        type="primary"
-        icon="el-icon-refresh"
-        @click="$emit('applications-refresh')"
-      ></el-button>
-    </nav>
-
-    <el-collapse v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="(application, index) in list"
-          :name="application.label + index"
-          :key="index"
-        >
-          <template v-slot:title>{{ application.label }} | {{ label }} {{ application.connection ? application.connection.their_label : '' }}</template>
-          <el-row>
-            <vue-json-pretty
-              :deep=0
-              :data="application"
-            />
-            <el-button
-              size="medium"
-              :disabled="!application.payload"
-              @click="preview(application)"
-            >Preview</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse> -->
   </div>
 </template>
 
@@ -63,7 +30,12 @@
 import axios from 'axios';
 
 import VueJsonPretty from 'vue-json-pretty';
-//import { renderForm } from 'odca-form'
+import { renderForm } from '@/oca.js-vue';
+import {
+  toOca as usagePolicyToOca,
+  serializeInput as  serializeUsagePolicyInput
+} from '@/usage_policy_helper';
+
 
 export default {
   name: 'application-list',
@@ -91,7 +63,7 @@ export default {
     },
     applicationIcon: function() {
       if (this.type === 'pending')
-        return 'sync';
+        return 'pending_actions';
 
       return 'done';
     }
@@ -99,10 +71,10 @@ export default {
   methods: {
     async renderApplicationForm(application) {
       let consentAnswers
-      if(application.consent_schema.data) {
-        consentAnswers = JSON.parse(application.consent_schema.data)
+      if(application.consent_schema.oca_data) {
+        consentAnswers = application.consent_schema.oca_data
       } else {
-        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${application.consent_schema.data_dri}`)).data.payload)
+        consentAnswers = JSON.parse((await axios.get(`${this.acapyApiUrl}/pds/${application.consent_schema.oca_data_dri}`)).data.payload)
       }
       const consentBranch = (await axios.get(
         `${this.ocaRepoUrl}/api/v2/schemas/${application.consent_schema.oca_schema_namespace}/${application.consent_schema.oca_schema_dri}`
@@ -148,6 +120,19 @@ export default {
         })
       }
 
+      const usagePolicyData = (await axios.post('https://governance.ownyourdata.eu/api/usage-policy/parse', {
+        'ttl': application.consent_schema.usage_policy
+      })).data
+      const form = renderForm(usagePolicyToOca(usagePolicyData)).form
+      const usagePolicy ={
+        form: form,
+        formAlternatives: [{
+          language: form.translations[0].language,
+          form: form
+        }],
+        answers: serializeUsagePolicyInput(usagePolicyData)
+      }
+
       return {
         service_id: application.service_id,
         consent: {
@@ -159,7 +144,8 @@ export default {
           form: serviceForm,
           formAlternatives: serviceFormAlternatives,
           answers: application.payload
-        }
+        },
+        usagePolicy
       }
     },
     splitBranchPerLang(branch) {
