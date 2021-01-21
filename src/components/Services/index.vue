@@ -30,7 +30,7 @@
           </template>
         </q-banner>
 
-        <q-list v-if="allServices.length == 0">
+        <q-list v-if="showEmptyMessage">
           <q-item>No services available at the moment.</q-item>
         </q-list>
         <template v-else>
@@ -193,6 +193,9 @@ export default {
         ...this.myServices,
         ...this.otherServices,
       ];
+    },
+    showEmptyMessage() {
+      return this.allServices.filter(group => group.services.length > 0) == 0;
     }
   },
   watch: {
