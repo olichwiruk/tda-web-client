@@ -1,19 +1,20 @@
 <template>
-  <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> {{ title }} </a>
-    </nav>
+    <q-list padding>
+      <q-item-label header>{{title}}</q-item-label>
+      <q-separator spaced />
 
-    <div class="content">
       <current-pds ref="CurrentPdsComponent" />
       <pds-plugins
         @configure-plugin="previewPluginConfig($event)" />
-    </div>
 
-    <preview-component ref="PluginConfigPreviewComponent"
-      :readonly="false" confirmLabel="Connect"
-      :form="pluginForm" :alternatives="pluginAlternatives"></preview-component>
-  </div>
+    <preview-component
+      confirmLabel="Connect"
+      ref="PluginConfigPreviewComponent"
+      :readonly="false"
+      :form="pluginForm"
+      :alternatives="pluginAlternatives"
+    ></preview-component>
+  </q-list>
 </template>
 
 <script>
@@ -21,9 +22,12 @@ import axios from 'axios';
 
 import CurrentPds from './PdsSettings/CurrentPds'
 import PdsPlugins from './PdsSettings/PdsPlugins'
+import {
+  eventBus as ocaEventBus,
+  EventHandlerConstant,
+  PreviewComponent
+} from '@/oca.js-vue'
 
-//import { eventBus as ocaEventBus, EventHandlerConstant,
-//  PreviewComponent } from 'odca-form'
 
 export default {
   name: 'pds-settings',
@@ -31,7 +35,7 @@ export default {
   components: {
     CurrentPds,
     PdsPlugins,
-//    PreviewComponent
+    PreviewComponent
   },
   data() {
     return {

@@ -17,6 +17,7 @@
 <script>
     import Select2MultipleControl from "@/oca.js-vue/third_party_controls/Select2MultipleControl";
     import {eventBus, EventHandlerConstant} from '@/oca.js-vue/template/handler/event_handler';
+    import { flatten } from "array-flatten";
 
     export default {
         components: { Select2MultipleControl },
@@ -198,7 +199,7 @@
                   sections: this.form.sections.map((section, i) => {
                     return { id: i, label: isLangEn ? section.label || "" : "" }
                   }),
-                  controls: this.form.sections.map(section => {
+                  controls: flatten(this.form.sections.map(section => {
                     return section.row.controls.map(control => {
                       return {
                         fieldName: control.fieldName,
@@ -210,7 +211,7 @@
                         )) : []
                       }
                     })
-                  }).flatten()
+                  }))
                 }
               }
               this.form.translations.push(translation)
