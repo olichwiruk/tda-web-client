@@ -32,6 +32,8 @@ export default {
 
 <style type='text/css' scoped>
   .card {
+    min-height: 300px;
+    max-width: 400px;
   }
   i.frontFlipBtn,
   i.backFlipBtn {

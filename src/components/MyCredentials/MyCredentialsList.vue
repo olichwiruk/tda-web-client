@@ -1,59 +1,96 @@
-<template >
+<template>
   <div class="q-pa-md q-gutter-md col">
     <div class="row">
       <div class="bg-white text-grey-8 col">
         <q-toolbar>
           <div class="row wrap">
-            <q-input dense outlined square v-model="search" placeholder="Search" class="bg-white col" />
-            <q-btn class="" color="grey-3" text-color="grey-8" icon="search" unelevated />
+            <q-input
+              dense
+              outlined
+              square
+              v-model="search"
+              placeholder="Search"
+              class="bg-white col"
+            />
+            <q-btn
+              class=""
+              color="grey-3"
+              text-color="grey-8"
+              icon="search"
+              unelevated
+            />
           </div>
-        <q-btn
-          color="primary"
-          icon="refresh"
-          @click="$emit('cred-refresh',)"></q-btn>
+          <q-btn
+            color="primary"
+            icon="refresh"
+            @click="$emit('cred-refresh')"
+          ></q-btn>
         </q-toolbar>
       </div>
     </div>
-  <div class="row">
-    <div class="col col-md-4">
-      <FlipCard v-for="credential in credentials">
-        <template slot="front">
-          <q-card-section horizontal>
-            <div class="text-overline">{{credential.content.type}}</div>
-          </q-card-section>
-          <q-separator/>
+    <div class="row">
+      <div class="col">
+        <div class="q-pa-md row items-start q-gutter-md">
+          <FlipCard v-for="credential in credentials">
+            <template slot="front">
+              <q-card-section horizontal>
+                <div class="text-overline">{{ credential.content.type }}</div>
+              </q-card-section>
+              <q-separator />
 
-          <q-card-actions>
-            <q-btn flat>
-              Valid until 2025-10-13
-            </q-btn>
-            <q-btn flat color="primary">
-              Issued by {{credential.content.issuer}}
-              on
-              {{credential.content.issuanceDate}}
-            </q-btn>
-          </q-card-actions>
-        </template>
-        <template slot="back">
-          <q-card-section horizontal>
-            <q-expansion-item
-      icon="perm_identity"
-      label="Raw data"
-    >
-      <q-card>
-        <q-card-section>
-          <vue-json-pretty
-            :deep=0
-            :data="credential">
-          </vue-json-pretty>
-          </q-card-section>
-          </q-card>
-            </q-expansion-item>
-          </q-card-section>
-        </template>
-      </FlipCard>
+              <q-card-actions>
+                <q-btn flat>
+                  Valid until 2025-10-13
+                </q-btn>
+                <q-btn flat color="primary">
+                  Issued by {{ credential.content.issuer }}
+                  on
+                  {{ credential.content.issuanceDate }}
+                </q-btn>
+              </q-card-actions>
+            </template>
+            <template slot="back">
+              <q-card-section horizontal>
+                <div class="q-pa-md">
+                  <div class="q-gutter-y-md" style="min-width:300px; max-width:400px">
+                      <q-tabs
+                        v-model="tab"
+                        dense
+                        class="text-gray"
+                        active-color="primary"
+                        indicator-color="primary"
+                        align="justify"
+                        narrow-indicator
+                      >
+                        <q-tab name="raw" label="Raw" />
+                        <q-tab name="scan" label="Scan" />
+                      </q-tabs>
+                      <q-separator />
+                      <q-tab-panels v-model="tab" animated>
+                        <q-tab-panel name="raw">
+                          <q-scroll-area
+                            style="height: 200px; max-width: 400px;"
+                          >
+                            <vue-json-pretty :deep="0" :data="credential">
+                            </vue-json-pretty>
+                          </q-scroll-area>
+                        </q-tab-panel>
+
+                        <q-tab-panel name="scan">
+                          <qrcode
+                            v-bind:value="ScanMe"
+                            :options="{ width: 200 }"
+                          ></qrcode>
+                        </q-tab-panel>
+                      </q-tab-panels>
+                  </div>
+                </div>
+              </q-card-section>
+            </template>
+          </FlipCard>
+        </div>
+      </div>
     </div>
-  </div>
   </div>
 </template>
 
@@ -64,6 +101,7 @@ import { mapState, mapActions } from 'vuex'
 import share from '@/share.ts';
 import axios from 'axios';
 const hl = require('hashlink');
+import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 //import { resolveZipFile, renderForm, PreviewComponent } from 'oca-form'
 
@@ -79,10 +117,12 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
-    FlipCard
+    FlipCard,
+    'qrcode': VueQrcode
     //PreviewComponent
   },
   data: () => ({
+    tab: "scan",
     search: "",
     expanded_items:[],
     proposalFormActive: false,
