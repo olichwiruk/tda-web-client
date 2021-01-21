@@ -1,5 +1,5 @@
 <template>
-  <q-list v-if="services.length > 0">
+  <q-list v-if="showServiceList">
     <q-item-label
       header
       class="text-h6"
@@ -74,6 +74,9 @@ export default {
     ocaRepoUrl: function() {
       return this.$session.get('ocaRepoUrl')
     },
+    showServiceList: function() {
+      return this.services.filter(group => group.services.length > 0).length > 0;
+    }
   },
   methods: {
     async renderServiceForm(service) {
