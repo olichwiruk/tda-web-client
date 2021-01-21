@@ -114,12 +114,20 @@ export default {
           schemaName = schema.schemaName;
 
           try {
+            this.ocaFormAlternatives = await Promise.all(
+              langBranches.map(async langBranch => ({
+                language: langBranch.lang,
+                form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
+               }))
+            )
+            /*
             langBranches.forEach(langBranch => {
               this.ocaFormAlternatives.push({
                 language: langBranch.lang,
                 form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
               })
             })
+            */
 
             ocaForm = this.ocaFormAlternatives[0].form
           } catch (e) {

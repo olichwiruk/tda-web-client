@@ -86,6 +86,13 @@
         },
         created() {
           //console.log(this.form);
+          if(this.readonly) {
+              this.form.sections.forEach(section => {
+                  section.row.controls.forEach(control => {
+                      control.readonly = true
+                  })
+              })
+          }
         }
     }
 </script>
