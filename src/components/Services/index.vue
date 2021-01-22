@@ -146,6 +146,7 @@ export default {
       previewLabel: '',
       readonlyPreview: true,
       currentApplication: {},
+      currentApplicationService: {},
       confirmProcessing: false,
       rejectProcessing: false,
       forms: [
@@ -153,6 +154,7 @@ export default {
         [{ class: "col-md-5", readonly: true, formData: {} },
         { class: "col-md-5", readonly: true, formData: {} }]
       ],
+      dialogContext: null,
       submitted_applications: [],
       pending_applications: [],
       isCreateServiceDialogVisible: false,
@@ -287,7 +289,7 @@ export default {
   },
   mounted() {
     ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmApplicationHandler)
+    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmHandler)
     ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
   },
@@ -355,12 +357,10 @@ export default {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
-            const service_user_data = JSON.parse(application.service_user_data)
-            const payload = Object.values(service_user_data)[0].p
             return Object.assign(application, {
-              payload,
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
+              payload: application.service_user_data,
+              service_schema: application.service_schema,
+              consent_schema: application.consent_schema,
               connection: connection
             })
           })
@@ -379,12 +379,10 @@ export default {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
-            const service_user_data = JSON.parse(application.service_user_data)
-            const payload = Object.values(service_user_data)[0].p
             return Object.assign(application, {
-              payload,
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
+              payload: application.service_user_data,
+              service_schema: application.service_schema,
+              consent_schema: application.consent_schema,
               connection: connection
             })
           })
@@ -399,7 +397,8 @@ export default {
         {
           label: application.schema.form.label,
           formData: application.schema.form,
-          alternatives: application.schema.formAlternatives
+          alternatives: application.schema.formAlternatives,
+          input: null
         }, options[0][0])
       if (application.schema.answers) {
         Object.assign(this.forms[0][0], { input: application.schema.answers })
@@ -426,6 +425,7 @@ export default {
       this.$refs.PreviewServiceComponent.openModal()
     },
     applyService(event) {
+      this.dialogContext = "service"
       this.currentApplicationService = event
       const schemaDri = event.service.service_schema.oca_schema_dri
       this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
@@ -450,6 +450,7 @@ export default {
         })
     },
     previewApplication(application, options = {}) {
+      this.dialogContext = "application"
       this.currentApplication = application
       this.previewLabel = 'Application'
       this.readonlyPreview = options.readonly
@@ -482,6 +483,40 @@ export default {
         if (decision == 'accept') { this.confirmProcessing = false }
         else if (decision == 'reject') { this.rejectProcessing = false }
         this.$refs.PreviewServiceComponent.closeModal()
+      })
+    },
+    confirmHandler(userData) {
+      if (this.dialogContext === "service") {
+        this.applyOnService(userData)
+      }
+
+      this.dialogContext = null
+    },
+    applyOnService(userData) {
+      const { policy_validation, ...service } = this.currentApplicationService.service
+      const { consent_id, data: consent_data, usage_policy, ...consent_schema } = this.currentApplicationService.service.consent_schema
+      service.consent_schema = consent_schema
+      this.$_adminApi_applyOnService({
+        connection_id: this.currentApplicationService.connection_id,
+        service: service,
+        user_data: JSON.stringify(userData)
+      }).then(r => {
+        console.log(r.data)
+        if (r.status === 200) {
+          if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
+            this.$noty.error(`Error: ${r.data.split(':')[1]}`, { timeout: 2000 })
+          } else {
+            this.$noty.success("Application send!", { timeout: 1000 })
+          }
+        }
+        this.confirmProcessing = false
+        this.$refs.PreviewServiceComponent.closeModal();
+      }).catch(e => {
+        console.error(e)
+        const { status: code, statusText: msg } = e.response
+        this.$noty.error(`Error: ${code} ${msg}`, { timeout: 1000 })
+        this.confirmProcessing = false
+        this.$refs.PreviewServiceComponent.closeModal();
       })
     },
     confirmApplicationHandler() {

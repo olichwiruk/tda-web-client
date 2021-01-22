@@ -87,7 +87,10 @@ export default {
         consentFormAlternatives = await Promise.all(
           consentLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
+            form: (await renderForm(
+              [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+              application.consent_schema.oca_schema_dri
+            )).form
           }))
         )
         consentForm = consentFormAlternatives[0].form
@@ -109,7 +112,10 @@ export default {
         serviceFormAlternatives = await Promise.all(
           serviceLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
+            form: (await renderForm(
+              [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+              application.service_schema.oca_schema_dri
+            )).form
           }))
         )
         serviceForm = serviceFormAlternatives[0].form
