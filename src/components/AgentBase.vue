@@ -295,12 +295,12 @@ export default {
         { icon: 'help', text: 'Help', path: '/help' }
       ],
       buttons1: [
-        { text: 'About', path: '/about' }
+        // { text: 'About', path: '/about' }
       ],
       buttons2: [
-        { text: 'Terms', path: '/about' },
-        { text: 'Privacy', path: '/about' },
-        { text: 'Policy & Safety', path: '/about' }
+        // { text: 'Terms', path: '/about' },
+        // { text: 'Privacy', path: '/about' },
+        // { text: 'Policy & Safety', path: '/about' }
       ]
     }
   },
