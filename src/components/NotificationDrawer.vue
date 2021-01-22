@@ -142,10 +142,19 @@ export default Vue.extend({
 
     async refreshRequests() {
       this.isRefreshing = true;
-      // @ts-ignore
-      this.credentials = (await this.$_adminApi_getCredentials()).data.result;
-      // @ts-ignore
-      this.requests = (await this.$_adminApi_getPresentations()).data.result;
+
+      const [
+        credentialResponse,
+        presentationResponse
+      ] = await Promise.all([
+        // @ts-ignore
+        this.$_adminApi_getCredentials(),
+        // @ts-ignore
+        this.$_adminApi_getPresentations(),
+      ]);
+
+      this.credentials = credentialResponse.data.result;
+      this.requests = presentationResponse.data.result;
 
       this.isRefreshing = false;
 
