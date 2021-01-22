@@ -8,14 +8,16 @@
   >
     <q-scroll-area class="fit">
       <q-list>
-        <q-item class="text-h6">Verification requests</q-item>
+        <q-item class="text-h6">
+          Verification requests
+          <custom-spinner
+            class="q-ml-md"
+            :show="isRefreshing"
+          />
+        </q-item>
         <q-separator />
 
-        <q-item v-if="isRefreshing">
-          <q-spinner size="xl" />
-        </q-item>
-
-        <q-item v-else-if="receivedRequests.length == 0">
+        <q-item v-if="receivedRequests.length == 0">
           Nothing to show here.
         </q-item>
 
@@ -24,14 +26,28 @@
           v-for="req of receivedRequests"
           :key="req.thread_id"
         >
+          <q-item-section
+            side
+            v-if="!hasMatchingCredential(req)"
+          >
+            <q-icon
+              name="warning"
+              size="sm"
+              color="red"
+            >
+              <q-tooltip>We could not find a matching credential.</q-tooltip>
+            </q-icon>
+          </q-item-section>
 
           <q-item-section>
             <q-item-label> {{getTitle(req)}} </q-item-label>
             <q-item-label caption>{{getSubtitle(req)}}</q-item-label>
           </q-item-section>
+
           <q-item-section side>
             <div>
               <q-btn
+                v-if="hasMatchingCredential(req)"
                 icon="done"
                 flat
                 round
@@ -39,10 +55,12 @@
               >
                 <q-tooltip>Accept</q-tooltip>
               </q-btn>
+
               <q-btn
                 icon="clear"
                 flat
                 round
+                @click="rejectCredential(req)"
               >
                 <q-tooltip>Reject</q-tooltip>
               </q-btn>
@@ -56,12 +74,17 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import adminApi from '@/admin_api.ts';
+import adminApi, { acknowledgePresentationParams } from '@/admin_api.ts';
 import share from '@/share';
 import axios from 'axios';
 import { renderForm } from '@/oca.js-vue';
+import { mapActions, mapState } from 'vuex';
+import CustomSpinner from './Spinner/CustomSpinner.vue';
 
 export default Vue.extend({
+  components: {
+    CustomSpinner,
+  },
   created() {
     this.refreshRequests();
   },
@@ -103,8 +126,19 @@ export default Vue.extend({
       if (val)
         this.refreshRequests();
     },
+    presentProofMessages: {
+      handler: function () {
+        this.presentProofMessages.forEach(msg => {
+          this.delete_message(msg.uuid)
+        });
+
+        this.refreshRequests();
+      }
+    },
   },
   computed: {
+    ...mapState('WsMessages', ['messages']),
+
     receivedRequests(): any[] {
       return this.requests.filter(
         exchange =>
@@ -118,18 +152,34 @@ export default Vue.extend({
       // @ts-ignore
       return this.$session.get('ocaRepoUrl')
     },
+    presentProofMessages: function (): any[] {
+      return this.messages.filter((message: any) => {
+        return message.topic == '/topic/present_proof/'
+      })
+    },
   },
   methods: {
+    ...mapActions('WsMessages', ['delete_message']),
+
     async refreshRequests() {
       this.isRefreshing = true;
-      // @ts-ignore
-      this.credentials = (await this.$_adminApi_getCredentials()).data.result;
-      // @ts-ignore
-      this.requests = (await this.$_adminApi_getPresentations()).data.result;
+
+      const [
+        credentialResponse,
+        presentationResponse
+      ] = await Promise.all([
+        // @ts-ignore
+        this.$_adminApi_getCredentials(),
+        // @ts-ignore
+        this.$_adminApi_getPresentations(),
+      ]);
+
+      this.credentials = credentialResponse.data.result;
+      this.requests = presentationResponse.data.result;
 
       this.isRefreshing = false;
 
-      this.$emit('refreshRequests', this.requests);
+      this.$emit('refreshRequests', this.receivedRequests);
     },
     getTitle(request: any): string {
       // @ts-ignore
@@ -139,6 +189,25 @@ export default Vue.extend({
     getSubtitle(request: any): string {
       // \u00a0 is nonbreaking space -> it helps reducing flickering
       return this.credentialsLabel[request.presentation_exchange_id] || '\u00a0';
+    },
+    hasMatchingCredential(request: any): boolean {
+      return !!this.getMatchingCredential(request);
+    },
+    getMatchingCredential(request: any): any {
+      const matching = this.credentials.filter(cred => {
+        return cred.credential.credentialSubject.oca_schema_dri == request.presentation_request.schema_base_dri
+      }).sort((a, b) => {
+        if (a.credential.issuanceDate > b.credential.issuanceDate) {
+          return -1
+        } else if (b.credential.issuanceDate > a.credential.issuanceDate) {
+          return 1
+        }
+        return 0
+      });
+
+      if (matching.length > 0)
+        // always returns the first matching credential if possible
+        return matching[0];
     },
 
     /***************************************************/
@@ -159,7 +228,7 @@ export default Vue.extend({
         const langBranches = this.splitBranchPerLang(branch)
 
         this.credentialsSchemaAlt[presExId] = await Promise.all(
-          langBranches.map(async langBranch => ({
+          langBranches.map(async (langBranch: any) => ({
             language: langBranch.lang,
             form: (await renderForm([
               langBranch.branch.schema_base,
@@ -177,7 +246,7 @@ export default Vue.extend({
         const langBranches = this.splitBranchPerLang(branch)
 
         this.credentialsSchemaAlt[presExId] = await Promise.all(
-          langBranches.map(async langBranch => ({
+          langBranches.map(async (langBranch: any) => ({
             language: langBranch.lang,
             form: (await renderForm([
               langBranch.branch.schema_base,
@@ -212,32 +281,27 @@ export default Vue.extend({
       return langBranches
     },
     async sendCredential(request: any) {
-      this.isRefreshing = true;
+      const matching = this.getMatchingCredential(request);
 
-      const matchingCredentials = this.credentials.filter(cred => {
-        return cred.credential.credentialSubject.oca_schema_dri == request.presentation_request.schema_base_dri
-      }).sort((a, b) => {
-        if (a.credential.issuanceDate > b.credential.issuanceDate) {
-          return -1
-        } else if (b.credential.issuanceDate > a.credential.issuanceDate) {
-          return 1
+      if (matching) {
+        try {
+          // @ts-ignore
+          await this.$_adminApi_sendPresentation({
+            credential_id: matching.id,
+            exchange_record_id: request.presentation_exchange_id
+          });
+
+          // @ts-ignore
+          this.$noty.success("Request accepted.", {
+            timeout: 5000
+          });
         }
-        return 0
-      });
-
-      if (matchingCredentials.length > 0) {
-        const firstCredential = matchingCredentials[0];
-
-        // @ts-ignore
-        await this.$_adminApi_sendPresentation({
-          credential_id: firstCredential.id,
-          exchange_record_id: request.presentation_exchange_id
-        });
-
-        // @ts-ignore
-        this.$noty.success("Request accepted.", {
-          timeout: 5000
-        });
+        catch {
+          // @ts-ignore
+          this.$noty.error("Could not accept request.", {
+            timeout: 5000
+          });
+        }
       } else {
         // @ts-ignore
         this.$noty.error("No matching credential found.", {
@@ -245,7 +309,29 @@ export default Vue.extend({
         });
       }
 
-      this.isRefreshing = false;
+      this.refreshRequests();
+    },
+    async rejectCredential(request: any) {
+      const obj: acknowledgePresentationParams = {
+        exchange_record_id: request.presentation_exchange_id,
+        status: false,
+      };
+
+      try {
+        // @ts-ignore
+        await this.$_adminApi_acknowledgePresentation(obj);
+        // @ts-ignore
+        this.$noty.success("Request rejected.", {
+          timeout: 5000
+        });
+      }
+      catch {
+        // @ts-ignore
+        this.$noty.error("Could not reject request.", {
+          timeout: 5000,
+        });
+      }
+
       this.refreshRequests();
     },
   },
