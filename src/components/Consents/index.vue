@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="q-ma-xl">
     <q-dialog v-model="isNewConsentVisible">
       <new-consent
         title="Create new consent"
@@ -7,7 +7,7 @@
       />
     </q-dialog>
 
-    <q-card class="q-ma-xl">
+    <q-card>
       <q-banner inline-actions>
         <span class="text-h5">Consents</span>
         <template v-slot:action>
@@ -15,12 +15,14 @@
 
           <q-btn
             flat
+            dense
             icon="add"
             @click="isNewConsentVisible = true"
           ></q-btn>
 
           <q-btn
             flat
+            dense
             icon="refresh"
             @click="refreshConsents"
           ></q-btn>

@@ -5,7 +5,7 @@
     </q-card-section>
 
     <q-card-section>
-      <div class="row">
+      <div class="row q-col-gutter-md">
         <div class="col-12 col-md-4">
           <q-input
             label="Name"
@@ -14,9 +14,7 @@
           />
         </div>
 
-        <div class="col-12 col-md-1" />
-
-        <div class="col-12 col-md-7">
+        <div class="col-12 col-md-8">
           <oca-schema-search
             label="Schema"
             :ocaRepoHost="ocaRepoHost"
