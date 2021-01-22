@@ -92,14 +92,14 @@ export default {
 
       const consentLangBranches = this.splitBranchPerLang(consentBranch)
       let consentForm
-      const consentFormAlternatives = []
+      let consentFormAlternatives = []
       try {
-        consentLangBranches.forEach(langBranch => {
-          consentFormAlternatives.push({
+        consentFormAlternatives = await Promise.all(
+          consentLangBranches.map(async langBranch => ( {
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.consent_schema.oca_schema_dri).form
-          })
-        })
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.consent_schema.oca_schema_dri)).form
+          }))
+        )
         consentForm = consentFormAlternatives[0].form
       } catch(e) {
         console.log(e)
@@ -114,14 +114,14 @@ export default {
 
       const serviceLangBranches = this.splitBranchPerLang(serviceBranch)
       let serviceForm
-      const serviceFormAlternatives = []
+      let serviceFormAlternatives = []
       try {
-        serviceLangBranches.forEach(langBranch => {
-          serviceFormAlternatives.push({
+        serviceFormAlternatives = await Promise.all(
+          serviceLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.service_schema.oca_schema_dri).form
-          })
-        })
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays], service.service_schema.oca_schema_dri)).form
+          }))
+        )
         serviceForm = serviceFormAlternatives[0].form
       } catch(e) {
         console.log(e)
@@ -133,7 +133,7 @@ export default {
       const usagePolicyData = (await axios.post('https://governance.ownyourdata.eu/api/usage-policy/parse', {
         'ttl': service.consent_schema.usage_policy
       })).data
-      const form = renderForm(usagePolicyToOca(usagePolicyData)).form
+      const form = (await renderForm(usagePolicyToOca(usagePolicyData))).form
       const usagePolicy = {
         form: form,
         formAlternatives: [{

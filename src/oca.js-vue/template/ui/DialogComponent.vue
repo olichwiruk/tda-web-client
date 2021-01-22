@@ -13,8 +13,8 @@
 
           <q-card-actions align="right">
             <q-btn flat label="Close" color="primary" v-close-popup />
-              <q-btn flat :label="confirmLabel" color="primary" v-if="!readonly" @click="confirmForm" :disabled="processing" v-show="confirmLabel" v-close-popup />
-              <q-btn flat :label="rejectLabel" color="primary" v-if="!readonly" @click="rejectForm" :disabled="processing" v-show="rejectLabel" v-close-popup />
+            <q-btn flat :label="confirmLabel" color="primary" v-if="!readonly || reviewable" @click="confirmForm" :disabled="processing" v-show="confirmLabel" v-close-popup />
+            <q-btn flat :label="rejectLabel" color="primary" v-if="!readonly || reviewable" @click="rejectForm" :disabled="processing" v-show="rejectLabel" v-close-popup />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -28,7 +28,7 @@ console.log(QCard);
 export default {
   name: "DialogComponent",
   components: {},
-  props: ['headerLabel', 'size', 'readonly',
+  props: ['headerLabel', 'size', 'readonly', 'reviewable',
     'confirmLabel', 'confirmProcessing',
     'rejectLabel', 'rejectProcessing'
   ],

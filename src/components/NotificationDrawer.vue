@@ -234,8 +234,8 @@ export default Vue.extend({
               langBranch.branch.schema_base,
               ...langBranch.branch.overlays]
             )).form
-          })
-          ));
+          }))
+        );   
         this.credentialsSchema[presExId] = this.credentialsSchemaAlt[presExId][0].form
         this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
       } else {
@@ -253,7 +253,7 @@ export default Vue.extend({
               ...langBranch.branch.overlays]
             )).form
           })
-          ));
+        ));
         this.credentialsSchema[presExId] = this.credentialsSchemaAlt[presExId][0].form
         this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
 
