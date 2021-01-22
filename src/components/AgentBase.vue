@@ -11,6 +11,10 @@
           icon="menu"
         />
 
+        <q-toolbar-title shrink>
+          {{connection.label}}
+        </q-toolbar-title>
+
         <q-space />
 
         <q-btn flat no-caps no-wrap class="q-ml-xs" v-if="$q.screen.gt.xs">
