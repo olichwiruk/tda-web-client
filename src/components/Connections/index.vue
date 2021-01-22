@@ -59,7 +59,7 @@
       </q-card>
     </q-dialog>
 
-    <div class="row">
+    <div class="row q-col-gutter-lg">
       <div class="col-12 col-md-8">
         <q-card>
           <q-banner inline-actions>
@@ -69,16 +69,19 @@
 
               <q-btn
                 flat
+                dense
                 icon="add"
                 @click="isUrlDialogVisible = true"
               ></q-btn>
               <q-btn
                 flat
+                dense
                 icon="qr_code_scanner"
                 @click="isQrDialogVisible = true"
               ></q-btn>
               <q-btn
                 flat
+                dense
                 icon="refresh"
                 @click="fetch_connections"
               ></q-btn>
@@ -117,8 +120,7 @@
           </template>
         </q-card>
       </div>
-      <div class="col-12 col-md-1" />
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-4">
         <q-card>
           <q-banner inline-actions>
             <span class="text-h5">Invitation</span>
@@ -285,7 +287,7 @@ export default {
       'invitation': '',
       isQrDialogVisible: false,
       isUrlDialogVisible: false,
-      qrCodeSize: 250,
+      qrCodeSize: 200,
     }
   },
   created: async function() {
