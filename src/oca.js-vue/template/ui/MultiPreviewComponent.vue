@@ -1,6 +1,6 @@
 <template>
     <dialog-component ref="DialogModal" size="xl" id="multiPreviewModal"
-      :readonly="readonlyDialog" :headerLabel="label ? label : 'Service'"
+      :readonly="readonlyDialog" :reviewable="reviewable" :headerLabel="label ? label : 'Service'"
       :confirmLabel="confirmLabel" :confirmProcessing="confirmProcessing"
       :rejectLabel="rejectLabel" :rejectProcessing="rejectProcessing">
         <template v-slot:body>
@@ -39,7 +39,7 @@
     export default {
         name: "MultiPreviewComponent",
         components: { FormBuilderGui, DialogComponent },
-        props: ['forms', 'label', 'readonly',
+        props: ['forms', 'label', 'readonly', 'reviewable',
           'confirmLabel', 'confirmProcessing',
           'rejectLabel', 'rejectProcessing'],
         data: function() {
@@ -82,13 +82,35 @@
                 this.dialogModal.openModal();
             },
             fillForm(formData, input) {
+              let payload = null
+              if (Array.isArray(Object.values(input)[0])) {
+                if (!input[formData.DRI][0]) { return }
+                payload = input[formData.DRI][0].content.p
+                Object.entries(payload).forEach(([attrName, value]) => {
+                  if (value.startsWith('DRI:')) {
+                    const control = formData.sections[0].row.controls.find(c => c.attrName == attrName)
+                    this.fillForm(control.referenceSchema.form, input)
+                  }
+                })
+              } else if (Object.keys(input)[0].startsWith('DRI:')) {
+                payload = input[`DRI:${formData.DRI}`].p
+                Object.entries(payload).forEach(([attrName, value]) => {
+                  if (value.startsWith('DRI:')) {
+                    const control = formData.sections[0].row.controls.find(c => c.attrName == attrName)
+                    this.fillForm(control.referenceSchema.form, input)
+                  }
+                })
+              } else {
+                payload = input
+              }
+
               formData.sections.forEach(section => {
                   section.row.controls.forEach(control => {
-                      if(input[control.attrName] == null) {
+                      if(payload[control.attrName] == null) {
                           eventBus.$emit(EventHandlerConstant.ERROR, "Invalid data")
                           throw "Invalid data"
                       }
-                      control.value = input[control.attrName]
+                      control.value = payload[control.attrName]
                   })
               })
             },
