@@ -113,8 +113,15 @@ export default {
           .then(r => {
             let input = null
             const schemaFillings = r.data.result[schemaDri]
+            
             if (schemaFillings.length > 0) {
-              input = JSON.parse(schemaFillings[0].content)
+              // backend sometimes delivers other schema DRIs than the requested one
+              // therefore we have to check again for the correct DRI
+              // TODO: this has to be fixed on the backend
+              const item = schemaFillings.find(s => s.oca_schema_dri == schemaDri);
+
+              if (item)
+                input = JSON.parse(item.content)
             }
 
             this.$refs.ConsentPreviewComponent.openModal(this.consent.form, input);
