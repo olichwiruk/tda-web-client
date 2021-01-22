@@ -158,15 +158,15 @@ export default Vue.extend({
         this.credentialsSchemaAlt[presExId] = []
         const langBranches = this.splitBranchPerLang(branch)
 
-        langBranches.forEach(langBranch => {
-          this.credentialsSchemaAlt[presExId].push({
+        this.credentialsSchemaAlt[presExId] = await Promise.all(
+          langBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([
+            form: (await renderForm([
               langBranch.branch.schema_base,
               ...langBranch.branch.overlays]
-            ).form
-          })
-        })
+            )).form
+          }))
+        );   
         this.credentialsSchema[presExId] = this.credentialsSchemaAlt[presExId][0].form
         this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
       } else {
@@ -176,15 +176,15 @@ export default Vue.extend({
         this.credentialsSchemaAlt[presExId] = []
         const langBranches = this.splitBranchPerLang(branch)
 
-        langBranches.forEach(langBranch => {
-          this.credentialsSchemaAlt[presExId].push({
+        this.credentialsSchemaAlt[presExId] = await Promise.all(
+          langBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([
+            form: (await renderForm([
               langBranch.branch.schema_base,
               ...langBranch.branch.overlays]
-            ).form
+            )).form
           })
-        })
+        ));
         this.credentialsSchema[presExId] = this.credentialsSchemaAlt[presExId][0].form
         this.credentialsLabel[presExId] = this.credentialsSchema[presExId].label
 
