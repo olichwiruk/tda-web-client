@@ -43,6 +43,7 @@
                 icon="clear"
                 flat
                 round
+                @click="rejectCredential(req)"
               >
                 <q-tooltip>Reject</q-tooltip>
               </q-btn>
@@ -56,7 +57,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import adminApi from '@/admin_api.ts';
+import adminApi, { acknowledgePresentationParams } from '@/admin_api.ts';
 import share from '@/share';
 import axios from 'axios';
 import { renderForm } from '@/oca.js-vue';
@@ -231,8 +232,6 @@ export default Vue.extend({
       return langBranches
     },
     async sendCredential(request: any) {
-      this.isRefreshing = true;
-
       const matchingCredentials = this.credentials.filter(cred => {
         return cred.credential.credentialSubject.oca_schema_dri == request.presentation_request.schema_base_dri
       }).sort((a, b) => {
@@ -264,7 +263,22 @@ export default Vue.extend({
         });
       }
 
-      this.isRefreshing = false;
+      this.refreshRequests();
+    },
+    async rejectCredential(request: any) {
+      const obj: acknowledgePresentationParams = {
+        exchange_record_id: request.presentation_exchange_id,
+        status: false,
+      };
+      
+      // @ts-ignore
+      await this.$_adminApi_acknowledgePresentation(obj);
+
+      // @ts-ignore
+      this.$noty.success("Request rejected.", {
+        timeout: 5000
+      });
+
       this.refreshRequests();
     },
   },
