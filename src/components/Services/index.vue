@@ -72,7 +72,7 @@
           type="pending"
           label='From:'
           @applications-refresh="refreshApplications"
-          @application-preview="previewApplication($event, { readonly: false })"
+          @application-preview="previewApplication($event, { self: false, readonly: false })"
         />
         <application-list
           title="Submitted applications:"
@@ -80,14 +80,15 @@
           type="submitted"
           label='To:'
           @applications-refresh="refreshApplications"
-          @application-preview="previewApplication($event, { readonly: true })"
+          @application-preview="previewApplication($event, { self: true, readonly: true })"
         />
       </q-card>
     </div>
 
     <multi-preview-component
-      confirmLabel="Apply"
-      :confirmProcessing="confirmProcessing"
+      :confirmLabel="confirmLabel" :confirmProcessing="confirmProcessing"
+      :rejectLabel="rejectLabel" :rejectProcessing="rejectProcessing"
+      :reviewable="reviewablePreview"
       :forms="forms"
       :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent"
@@ -145,8 +146,11 @@ export default {
       connections: [],
       previewLabel: '',
       readonlyPreview: true,
+      reviewablePreview: false,
       currentApplication: {},
       currentApplicationService: {},
+      confirmLabel: "",
+      rejectLabel: "",
       confirmProcessing: false,
       rejectProcessing: false,
       forms: [
@@ -421,11 +425,16 @@ export default {
     previewService(service, options = {}) {
       this.previewLabel = 'Service'
       this.readonlyPreview = true
+      this.confirmLabel = ""
+      this.rejectLabel = ""
+      this.reviewablePreview = false
       this.collectForms(service.serviceForm)
       this.$refs.PreviewServiceComponent.openModal()
     },
     applyService(event) {
       this.dialogContext = "service"
+      this.confirmLabel = "Apply"
+      this.rejectLabel = ""
       this.currentApplicationService = event
       const schemaDri = event.service.service_schema.oca_schema_dri
       this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
@@ -454,6 +463,15 @@ export default {
       this.currentApplication = application
       this.previewLabel = 'Application'
       this.readonlyPreview = options.readonly
+      if (options.self) {
+        this.confirmLabel = ""
+        this.rejectLabel = ""
+        this.reviewablePreview = false
+      } else {
+        this.confirmLabel = "Confirm"
+        this.rejectLabel = "Reject"
+        this.reviewablePreview = true
+      }
       this.collectForms(application)
       this.$refs.PreviewServiceComponent.openModal()
     },
@@ -488,6 +506,8 @@ export default {
     confirmHandler(userData) {
       if (this.dialogContext === "service") {
         this.applyOnService(userData)
+      } else if (this.dialogContext === "application") {
+        this.confirmApplicationHandler()
       }
 
       this.dialogContext = null

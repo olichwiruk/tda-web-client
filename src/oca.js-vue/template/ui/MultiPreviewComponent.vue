@@ -1,6 +1,6 @@
 <template>
     <dialog-component ref="DialogModal" size="xl" id="multiPreviewModal"
-      :readonly="readonlyDialog" :headerLabel="label ? label : 'Service'"
+      :readonly="readonlyDialog" :reviewable="reviewable" :headerLabel="label ? label : 'Service'"
       :confirmLabel="confirmLabel" :confirmProcessing="confirmProcessing"
       :rejectLabel="rejectLabel" :rejectProcessing="rejectProcessing">
         <template v-slot:body>
@@ -39,7 +39,7 @@
     export default {
         name: "MultiPreviewComponent",
         components: { FormBuilderGui, DialogComponent },
-        props: ['forms', 'label', 'readonly',
+        props: ['forms', 'label', 'readonly', 'reviewable',
           'confirmLabel', 'confirmProcessing',
           'rejectLabel', 'rejectProcessing'],
         data: function() {
