@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="q-ma-xl">
     <q-dialog
       v-model="isCreateServiceDialogVisible"
       persistent
@@ -10,88 +10,93 @@
       />
     </q-dialog>
 
-    <div class="col">
-      <q-card class="q-ma-xl">
-        <q-banner inline-actions>
-          <span class="text-h5">Services</span>
-          <template v-slot:action>
-            <custom-spinner :show="isRefreshingService" />
+    <div class="row q-col-gutter-lg">
+      <div class="col-12 col-md-6">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5">Services</span>
+            <template v-slot:action>
+              <custom-spinner :show="isRefreshingService" />
 
-            <q-btn
-              flat
-              icon="add"
-              @click="isCreateServiceDialogVisible = true"
-            ></q-btn>
-            <q-btn
-              flat
-              icon="refresh"
-              @click="refreshServices"
-            ></q-btn>
+              <q-btn
+                flat
+                dense
+                icon="add"
+                @click="isCreateServiceDialogVisible = true"
+              ></q-btn>
+              <q-btn
+                flat
+                dense
+                icon="refresh"
+                @click="refreshServices"
+              ></q-btn>
+            </template>
+          </q-banner>
+
+          <q-list v-if="showEmptyMessage">
+            <q-item>No services available at the moment.</q-item>
+          </q-list>
+          <template v-else>
+            <service-list
+              :services="myServicesSorted"
+              :showUsagePolicy="false"
+              @services-refresh="refreshServices"
+              @service-preview="previewService($event)"
+            />
+            <service-list
+              ref="otherServices"
+              :services="otherServices"
+              @services-refresh="refreshServices"
+              @service-preview="previewService($event)"
+              @service-apply="applyService($event)"
+            />
           </template>
-        </q-banner>
+        </q-card>
+      </div>
 
-        <q-list v-if="showEmptyMessage">
-          <q-item>No services available at the moment.</q-item>
-        </q-list>
-        <template v-else>
-          <service-list
-            :services="myServicesSorted"
-            :showUsagePolicy="false"
-            @services-refresh="refreshServices"
-            @service-preview="previewService($event)"
+      <div class="col-12 col-md-6">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5">Applications</span>
+            <template v-slot:action>
+              <custom-spinner :show="isRefreshingApplications" />
+
+              <q-btn
+                flat
+                dense
+                icon="refresh"
+                @click="refreshApplications"
+              ></q-btn>
+            </template>
+          </q-banner>
+
+          <application-list
+            title="Pending applications:"
+            :list="pending_applications"
+            type="pending"
+            label='From:'
+            @applications-refresh="refreshApplications"
+            @application-preview="previewApplication($event, { readonly: false })"
           />
-          <service-list
-            ref="otherServices"
-            :services="otherServices"
-            @services-refresh="refreshServices"
-            @service-preview="previewService($event)"
-            @service-apply="applyService($event)"
+          <application-list
+            title="Submitted applications:"
+            :list="submitted_applications"
+            type="submitted"
+            label='To:'
+            @applications-refresh="refreshApplications"
+            @application-preview="previewApplication($event, { readonly: true })"
           />
-        </template>
-      </q-card>
+        </q-card>
+      </div>
+
+      <multi-preview-component
+        confirmLabel="Apply"
+        :confirmProcessing="confirmProcessing"
+        :forms="forms"
+        :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
+        ref="PreviewServiceComponent"
+      />
     </div>
-
-    <div class="col">
-      <q-card class="q-ma-xl">
-        <q-banner inline-actions>
-          <span class="text-h5">Applications</span>
-          <template v-slot:action>
-            <custom-spinner :show="isRefreshingApplications" />
-
-            <q-btn
-              flat
-              icon="refresh"
-              @click="refreshApplications"
-            ></q-btn>
-          </template>
-        </q-banner>
-
-        <application-list
-          title="Pending applications:"
-          :list="pending_applications"
-          type="pending"
-          label='From:'
-          @applications-refresh="refreshApplications"
-          @application-preview="previewApplication($event, { readonly: false })"
-        />
-        <application-list
-          title="Submitted applications:"
-          :list="submitted_applications"
-          type="submitted"
-          label='To:'
-          @applications-refresh="refreshApplications"
-          @application-preview="previewApplication($event, { readonly: true })"
-        />
-      </q-card>
-    </div>
-
-    <multi-preview-component
-      confirmLabel="Apply"
-      :confirmProcessing="confirmProcessing"
-      :forms="forms"
-      :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
-      ref="PreviewServiceComponent"
-    />
   </div>
 </template>
 
