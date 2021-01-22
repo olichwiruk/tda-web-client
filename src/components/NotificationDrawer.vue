@@ -158,7 +158,7 @@ export default Vue.extend({
 
       this.isRefreshing = false;
 
-      this.$emit('refreshRequests', this.requests);
+      this.$emit('refreshRequests', this.receivedRequests);
     },
     getTitle(request: any): string {
       // @ts-ignore
