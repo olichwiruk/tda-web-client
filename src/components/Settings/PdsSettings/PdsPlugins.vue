@@ -47,14 +47,14 @@ export default {
 
       const pluginLangBranches = this.splitBranchPerLang(pluginBranch)
       let pluginForm
-      const pluginFormAlternatives = []
+      let pluginFormAlternatives = []
       try {
-        pluginLangBranches.forEach(langBranch => {
-          pluginFormAlternatives.push({
+        pluginFormAlternatives = await Promise.all(
+          pluginLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
-        })
+        ));
         pluginForm = pluginFormAlternatives[0].form
       } catch(e) {
         console.log(e)
