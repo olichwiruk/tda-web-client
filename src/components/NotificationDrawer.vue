@@ -191,11 +191,11 @@ export default Vue.extend({
       return this.credentialsLabel[request.presentation_exchange_id] || '\u00a0';
     },
     hasMatchingCredential(request: any): boolean {
-      return !!this.getMatchingCredential(request);
+      return request.list_of_matching_credentials.length > 0;
     },
     getMatchingCredential(request: any): any {
       const matching = this.credentials.filter(cred => {
-        return cred.credential.credentialSubject.oca_schema_dri == request.presentation_request.schema_base_dri
+        return request.list_of_matching_credentials.includes(cred.dri)
       }).sort((a, b) => {
         if (a.credential.issuanceDate > b.credential.issuanceDate) {
           return -1
@@ -287,7 +287,7 @@ export default Vue.extend({
         try {
           // @ts-ignore
           await this.$_adminApi_sendPresentation({
-            credential_id: matching.id,
+            credential_id: matching.dri,
             exchange_record_id: request.presentation_exchange_id
           });
 
@@ -318,12 +318,15 @@ export default Vue.extend({
       };
 
       try {
+        /*
         // @ts-ignore
         await this.$_adminApi_acknowledgePresentation(obj);
+
         // @ts-ignore
         this.$noty.success("Request rejected.", {
           timeout: 5000
         });
+        */
       }
       catch {
         // @ts-ignore
