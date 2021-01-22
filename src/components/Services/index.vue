@@ -422,7 +422,7 @@ export default {
     previewService(service, options = {}) {
       this.previewLabel = 'Service'
       this.readonlyPreview = true
-      this.collectForms(service)
+      this.collectForms(service.serviceForm)
       this.$refs.PreviewServiceComponent.openModal()
     },
     applyService(event) {
@@ -437,7 +437,7 @@ export default {
             input = schemaFillings.find(x => x.content && x.content.p).content.p
           }
 
-          this.collectForms(event, [[{ readonly: false, input }], []])
+          this.collectForms(event.serviceForm, [[{ readonly: false, input }], []])
 
           try {
             this.$refs.PreviewServiceComponent.openModal();
