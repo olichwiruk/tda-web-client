@@ -88,7 +88,7 @@
     <multi-preview-component
       :confirmLabel="confirmLabel" :confirmProcessing="confirmProcessing"
       :rejectLabel="rejectLabel" :rejectProcessing="rejectProcessing"
-      :reviewable="reviewablePreview"
+      :readonly="readonlyPreview" :reviewable="reviewablePreview"
       :forms="forms"
       :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       ref="PreviewServiceComponent"
@@ -402,6 +402,7 @@ export default {
           label: application.schema.form.label,
           formData: application.schema.form,
           alternatives: application.schema.formAlternatives,
+          readonly: this.readonlyPreview,
           input: null
         }, options[0][0])
       if (application.schema.answers) {
