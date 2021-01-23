@@ -11,6 +11,7 @@
     <select2-multiple-control v-else
                               v-model="control.value"
                               :isValid="isValid"
+                              :label="this.control.label"
                               :disabled="this.control.readonly"
                               :options="dataSource">
       <template v-slot:errors><slot name="errors"/></template>
@@ -73,7 +74,10 @@ export default {
           console.error("Request for Select Data Source Failed: ", err);
         });
     } else {
-      this.dataSource = this.control.dataOptions;
+      this.dataSource = this.control.dataOptions.map(o => ({
+        value: o.id,
+        label: o.text
+      }));
     }
   },
   watch: {

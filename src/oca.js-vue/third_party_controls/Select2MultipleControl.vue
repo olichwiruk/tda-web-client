@@ -1,6 +1,7 @@
 <template>
     <div>
-        <select class="form-control select2-hidden-accessible" :class="{ 'is-invalid': !isValid }" :placeholder="placeholder" :disabled="disabled" multiple="multiple" style="width: 100%"></select>
+      <q-select outlined v-model="selected" :options="options" :label="label" :dense="true" :disable="disabled" multiple />
+        <!-- <select class="form-control select2-hidden-accessible" :class="{ 'is-invalid': !isValid }" :placeholder="placeholder" :disabled="disabled" multiple="multiple" style="width: 100%"></select> -->
         <slot name="errors"/>
     </div>
 </template>
@@ -15,7 +16,7 @@
         name: 'Select2MultipleControl',
         data() {
             return {
-                select2: null
+                selected: null
             };
         },
         model: {
@@ -26,6 +27,10 @@
             placeholder: {
                 type: String,
                 default: ''
+            },
+            label: {
+              type: String,
+              default: ''
             },
             options: {
                 type: Array,
@@ -46,6 +51,9 @@
             value: null
         },
         watch: {
+            selected(val) {
+              this.$emit('change', val.map(v => `${v.value}`));
+            },
             options(val) {
                 this.setOption(val);
             },
@@ -55,6 +63,7 @@
         },
         methods: {
             setOption(val = []) {
+                throw "to be impl!";
                 this.select2.empty();
                 this.select2.select2({
                     ...this.settings,
@@ -63,15 +72,18 @@
                 this.setValue(this.value);
             },
             setValue(val) {
+              /*
                 if (val instanceof Array) {
-                    this.select2.val([...val]);
+                    this.value([...val]);
                 } else {
-                    this.select2.val([val]);
+                    this.value([val]);
                 }
-                this.select2.trigger('change');
+                */
             }
         },
         mounted() {
+          this.selected = this.options.filter(o => this.value.includes(`${o.value}`))
+          /*
             this.select2 = $(this.$el)
                 .find('select')
                 .select2({
@@ -86,9 +98,10 @@
                     this.$emit('select', { id, text, selected });
                 });
             this.setValue(this.value);
+            */
         },
         beforeDestroy() {
-            this.select2.select2('destroy');
+            // this.select2.select2('destroy');
         }
     };
 </script>
