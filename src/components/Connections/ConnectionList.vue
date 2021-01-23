@@ -58,13 +58,13 @@
       @presentation-requested="sendPresentationRequest"
     />
 
-    <multi-preview-component
-      confirmLabel="Apply"
-      :confirmProcessing="confirmProcessing"
-      :forms="forms"
-      :key="forms.map(f => f.formData._uniqueId).join('-')"
-      ref="PreviewServiceComponent"
-    />
+    <!-- <multi-preview-component -->
+    <!--   confirmLabel="Apply" -->
+    <!--   :confirmProcessing="confirmProcessing" -->
+    <!--   :forms="forms" -->
+    <!--   :key="forms.map(f => f.formData._uniqueId).join('-')" -->
+    <!--   ref="PreviewServiceComponent" -->
+    <!-- /> -->
   </div>
 </template>
 
@@ -121,8 +121,8 @@ export default {
     }
   },
   mounted() {
-    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.saveApplicationHandler)
+    // ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+    // ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.saveApplicationHandler)
   },
   methods: {
     get_name: function(connection) {

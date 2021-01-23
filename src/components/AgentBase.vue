@@ -11,6 +11,10 @@
           icon="menu"
         />
 
+        <q-toolbar-title shrink>
+          {{connection.label}}
+        </q-toolbar-title>
+
         <q-space />
 
         <q-btn flat no-caps no-wrap class="q-ml-xs" v-if="$q.screen.gt.xs">
@@ -291,12 +295,12 @@ export default {
         { icon: 'help', text: 'Help', path: '/help' }
       ],
       buttons1: [
-        { text: 'About', path: '/about' }
+        // { text: 'About', path: '/about' }
       ],
       buttons2: [
-        { text: 'Terms', path: '/about' },
-        { text: 'Privacy', path: '/about' },
-        { text: 'Policy & Safety', path: '/about' }
+        // { text: 'Terms', path: '/about' },
+        // { text: 'Privacy', path: '/about' },
+        // { text: 'Policy & Safety', path: '/about' }
       ]
     }
   },
@@ -387,6 +391,7 @@ export default {
       this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
     }
 
+
     // checking if there is no subroute selected
     // I don't know if it is the best idea to check the current route path
     if (new RegExp(`/agent/${this.agentid}/?$`).test(this.$router.currentRoute.path))
@@ -394,6 +399,8 @@ export default {
       this.$router.replace({
         path: this.links1[0].path
       });
+
+    document.title = `TDA - ${this.$session.get('agentLabel')}`
   },
   beforeDestroy: function() {
     if(this.connection.needs_return_route_poll()) {

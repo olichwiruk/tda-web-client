@@ -46,6 +46,9 @@ export default {
     value: null
   },
   watch: {
+    date(val) {
+      this.$emit('change', val);
+    },
     options(val) {
       this.setOption(val);
     },
@@ -69,6 +72,10 @@ export default {
     }
   },
   mounted() {
+    if (this.value) {
+      this.date = this.value
+    }
+    // this.$emit('change', this.date);
     // TODO: impl
     /*
             let self = this;

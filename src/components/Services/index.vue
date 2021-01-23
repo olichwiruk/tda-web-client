@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="q-ma-xl">
     <q-dialog
       v-model="isCreateServiceDialogVisible"
       persistent
@@ -10,82 +10,94 @@
       />
     </q-dialog>
 
-    <div class="col">
-      <q-card class="q-ma-xl">
-        <q-banner inline-actions>
-          <span class="text-h5">Services</span>
-          <template v-slot:action>
-            <custom-spinner :show="isRefreshing" />
+    <div class="row q-col-gutter-lg">
+      <div class="col-12 col-md-6">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5">Services</span>
+            <template v-slot:action>
+              <custom-spinner :show="isRefreshingService" />
 
-            <q-btn
-              flat
-              icon="add"
-              @click="isCreateServiceDialogVisible = true"
-            ></q-btn>
-            <q-btn
-              flat
-              icon="refresh"
-              @click="refreshServices"
-            ></q-btn>
+              <q-btn
+                flat
+                dense
+                icon="add"
+                @click="isCreateServiceDialogVisible = true"
+              ></q-btn>
+              <q-btn
+                flat
+                dense
+                icon="refresh"
+                @click="refreshServices"
+              ></q-btn>
+            </template>
+          </q-banner>
+
+          <q-list v-if="showEmptyMessage">
+            <q-item>No services available at the moment.</q-item>
+          </q-list>
+          <template v-else>
+            <service-list
+              :services="myServicesSorted"
+              :showUsagePolicy="false"
+              @services-refresh="refreshServices"
+              @service-preview="previewService($event)"
+            />
+            <service-list
+              ref="otherServices"
+              :services="otherServices"
+              @services-refresh="refreshServices"
+              @service-preview="previewService($event)"
+              @service-apply="applyService($event)"
+            />
           </template>
-        </q-banner>
+        </q-card>
+      </div>
 
-        <q-list v-if="allServices.length == 0">
-          <q-item>No services available at the moment.</q-item>
-        </q-list>
-        <template v-else>
-          <service-list
-            :services="myServicesSorted"
-            :showUsagePolicy="false"
-            @services-refresh="refreshServices"
-            @service-preview="previewService($event)"
+      <div class="col-12 col-md-6">
+        <q-card>
+          <q-banner inline-actions>
+            <span class="text-h5">Applications</span>
+            <template v-slot:action>
+              <custom-spinner :show="isRefreshingApplications" />
+
+              <q-btn
+                flat
+                dense
+                icon="refresh"
+                @click="refreshApplications"
+              ></q-btn>
+            </template>
+          </q-banner>
+
+          <application-list
+            title="Pending applications:"
+            :list="pending_applications"
+            type="pending"
+            label='From:'
+            @applications-refresh="refreshApplications"
+            @application-preview="previewApplication($event, { self: false, readonly: true })"
           />
-          <service-list
-            ref="otherServices"
-            :services="otherServices"
-            @services-refresh="refreshServices"
-            @service-preview="previewService($event)"
+          <application-list
+            title="Submitted applications:"
+            :list="submitted_applications"
+            type="submitted"
+            label='To:'
+            @applications-refresh="refreshApplications"
+            @application-preview="previewApplication($event, { self: true, readonly: true })"
           />
-        </template>
-      </q-card>
+        </q-card>
+      </div>
     </div>
 
-    <div class="col">
-      <q-card class="q-ma-xl">
-        <q-banner inline-actions>
-          <span class="text-h5">Applications</span>
-          <template v-slot:action>
-            <!-- <q-btn
-            flat
-            icon="add"
-            @click="isCreateServiceDialogVisible = true"
-          ></q-btn> -->
-            <q-btn
-              flat
-              icon="refresh"
-              @click="() => { refreshPendingApplications(); refreshSubmittedApplications(); }"
-            ></q-btn>
-          </template>
-        </q-banner>
-
-        <application-list
-          title="Pending applications:"
-          :list="pending_applications"
-          type="pending"
-          label='From:'
-          @applications-refresh="refreshPendingApplications"
-          @application-preview="previewApplication($event, { readonly: false })"
-        />
-        <application-list
-          title="Submitted applications:"
-          :list="submitted_applications"
-          type="submitted"
-          label='To:'
-          @applications-refresh="refreshSubmittedApplications"
-          @application-preview="previewApplication($event, { readonly: true })"
-        />
-      </q-card>
-    </div>
+    <multi-preview-component
+      :confirmLabel="confirmLabel" :confirmProcessing="confirmProcessing"
+      :rejectLabel="rejectLabel" :rejectProcessing="rejectProcessing"
+      :readonly="readonlyPreview" :reviewable="reviewablePreview"
+      :forms="forms"
+      :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
+      ref="PreviewServiceComponent"
+    />
   </div>
 </template>
 
@@ -130,7 +142,7 @@ export default {
     ServiceList,
     ApplicationList,
     CustomSpinner,
-    //MultiPreviewComponent
+    MultiPreviewComponent
   },
   data() {
     return {
@@ -139,17 +151,24 @@ export default {
       connections: [],
       previewLabel: '',
       readonlyPreview: true,
+      reviewablePreview: false,
       currentApplication: {},
+      currentApplicationService: {},
+      confirmLabel: "",
+      rejectLabel: "",
       confirmProcessing: false,
       rejectProcessing: false,
       forms: [
-        { class: "col-md-7", readonly: true, formData: {} },
-        { class: "col-md-5", readonly: true, formData: {} }
+        [{ class: "col-md-7", readonly: true, formData: {} }],
+        [{ class: "col-md-5", readonly: true, formData: {} },
+        { class: "col-md-5", readonly: true, formData: {} }]
       ],
+      dialogContext: null,
       submitted_applications: [],
       pending_applications: [],
       isCreateServiceDialogVisible: false,
-      isRefreshing: false,
+      isRefreshingService: false,
+      isRefreshingApplications: false,
     }
   },
   computed: {
@@ -193,21 +212,22 @@ export default {
         ...this.myServices,
         ...this.otherServices,
       ];
+    },
+    showEmptyMessage() {
+      return this.allServices.filter(group => group.services.length > 0) == 0;
     }
   },
   watch: {
     connections: {
       handler: function () {
-        this.refreshSubmittedApplications()
-        this.refreshPendingApplications()
+        this.refreshApplications();
       },
       deep: true
     },
     stateUpdateMessages: {
       handler: function () {
         this.stateUpdateMessages.forEach(message => {
-          this.refreshSubmittedApplications()
-          this.refreshPendingApplications()
+          this.refreshApplications();
           this.delete_message(message.uuid)
         })
       },
@@ -216,7 +236,7 @@ export default {
     incomingApplicationMessages: {
       handler: function () {
         this.incomingApplicationMessages.forEach(message => {
-          this.refreshPendingApplications()
+          this.refreshApplications()
           this.delete_message(message.uuid)
         })
       },
@@ -232,6 +252,7 @@ export default {
           const conn = this.connections.find(c => c.connection_id === connection_id);
 
           this.otherServices.push({
+            connection_id,
             label: conn ? conn.their_label : connection_id,
             services: message.content.services,
           });
@@ -273,13 +294,11 @@ export default {
     await this.ready();
 
     this.refreshServices();
-
-    this.refreshSubmittedApplications()
-    this.refreshPendingApplications()
+    this.refreshApplications();
   },
   mounted() {
     ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmApplicationHandler)
+    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmHandler)
     ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
     ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
   },
@@ -287,14 +306,14 @@ export default {
     ...mapActions('WsMessages', ['delete_message']),
     async refreshServices() {
       this.isCreateServiceDialogVisible = false;
-      this.isRefreshing = true;
+      this.isRefreshingService = true;
 
       await Promise.all([
         this.refreshMyServices(),
         this.refreshOtherServices(),
       ]);
 
-      this.isRefreshing = false;
+      this.isRefreshingService = false;
     },
     refreshMyServices() {
       return axios.get(`${this.acapyApiUrl}/verifiable-services/self-service-list`)
@@ -328,19 +347,29 @@ export default {
         console.log(e)
       }
     },
+    async refreshApplications() {
+      this.isRefreshingApplications = true;
+
+      await Promise.all([
+        this.refreshSubmittedApplications(),
+        this.refreshPendingApplications(),
+      ]);
+
+      this.isRefreshingApplications = false;
+    },
     refreshSubmittedApplications() {
-      this.$_adminApi_getServiceApplications({
+      return this.$_adminApi_getServiceApplications({
         state: "pending", author: "self"
       }).then(r => {
-        if (r.status === 200) {
+        if (r.data.success) {
           this.submitted_applications = r.data.result.map(application => {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
             return Object.assign(application, {
-              payload: JSON.parse(application.service_user_data),
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
+              payload: application.service_user_data,
+              service_schema: application.service_schema,
+              consent_schema: application.consent_schema,
               connection: connection
             })
           })
@@ -351,18 +380,18 @@ export default {
       })
     },
     refreshPendingApplications() {
-      this.$_adminApi_getServiceApplications({
+      return this.$_adminApi_getServiceApplications({
         state: "pending", author: "other"
       }).then(r => {
-        if (r.status === 200) {
+        if (r.data.success) {
           this.pending_applications = r.data.result.map(application => {
             const connection = this.connections.find(conn =>
               conn.connection_id == application.connection_id
             )
             return Object.assign(application, {
-              payload: JSON.parse(application.service_user_data),
-              service_schema: JSON.parse(application.service_schema),
-              consent_schema: JSON.parse(application.consent_schema),
+              payload: application.service_user_data,
+              service_schema: application.service_schema,
+              consent_schema: application.consent_schema,
               connection: connection
             })
           })
@@ -372,36 +401,98 @@ export default {
         this.$noty.error("Error occurred", { timeout: 1000 })
       })
     },
-    collectForms(application, options = []) {
-      Object.assign(this.forms[0],
+    collectForms(application, options = [[], []]) {
+      Object.assign(this.forms[0][0],
         {
           label: application.schema.form.label,
           formData: application.schema.form,
-          alternatives: application.schema.formAlternatives
-        }, options[0])
+          alternatives: application.schema.formAlternatives,
+          readonly: this.readonlyPreview,
+          input: null
+        }, options[0][0])
       if (application.schema.answers) {
-        Object.assign(this.forms[0], { input: application.schema.answers })
+        Object.assign(this.forms[0][0], { input: application.schema.answers })
       }
-      Object.assign(this.forms[1],
+      Object.assign(this.forms[1][0],
         {
           label: application.consent.form.label,
           formData: application.consent.form,
           alternatives: application.consent.formAlternatives,
           input: application.consent.answers
-        }, options[1])
+        }, options[1][0])
+      Object.assign(this.forms[1][1],
+        {
+          label: application.usagePolicy.form.label,
+          formData: application.usagePolicy.form,
+          alternatives: application.usagePolicy.formAlternatives,
+          input: application.usagePolicy.answers
+        }, options[1][1])
     },
     previewService(service, options = {}) {
       this.previewLabel = 'Service'
       this.readonlyPreview = true
-      this.collectForms(service)
-      this.$refs.PreviewApplicationComponent.openModal()
+      this.confirmLabel = ""
+      this.rejectLabel = ""
+      this.reviewablePreview = false
+      this.collectForms(service.serviceForm)
+      this.$refs.PreviewServiceComponent.openModal()
+    },
+    collectFormDris(schema, collected = []) {
+      const dris = []
+      dris.push(schema.form.DRI)
+      schema.form.sections.forEach(section => {
+        section.row.controls.forEach(control => {
+          if (control.type === "reference") {
+            dris.push(...this.collectFormDris(control.referenceSchema))
+          }
+        })
+      })
+      return [...collected, ...dris]
+    },
+    applyService(event) {
+      this.dialogContext = "service"
+      this.confirmLabel = "Apply"
+      this.rejectLabel = ""
+      this.currentApplicationService = event
+      const formDris = this.collectFormDris(event.serviceForm.schema)
+      const schemaDri = event.service.service_schema.oca_schema_dri
+      this.$_adminApi_getCurrentData({ schemaDris: formDris })
+        .then(r => {
+          let input = null
+          const schemaFillings = r.data.result
+          if (Object.keys(schemaFillings).length > 0) {
+            // take item that holds our data
+            input = schemaFillings
+          }
+
+          this.collectForms(event.serviceForm, [[{ readonly: false, input }], []])
+
+          try {
+            this.$refs.PreviewServiceComponent.openModal();
+          } catch (e) {
+            console.log(e)
+            this.$noty.error("ERROR! Form data are corrupted.", {
+              timeout: 1000
+            })
+          }
+        })
     },
     previewApplication(application, options = {}) {
+      this.dialogContext = "application"
       this.currentApplication = application
       this.previewLabel = 'Application'
       this.readonlyPreview = options.readonly
+      if (options.self) {
+        this.confirmLabel = ""
+        this.rejectLabel = ""
+        this.reviewablePreview = false
+      } else {
+        this.confirmLabel = "Confirm"
+        this.rejectLabel = "Reject"
+        this.reviewablePreview = true
+      }
       this.collectForms(application)
-      this.$refs.PreviewApplicationComponent.openModal()
+      this.$refs.PreviewServiceComponent.openModal()
     },
     examineApplication(decision) {
       if (decision == 'accept') { this.confirmProcessing = true }
@@ -415,20 +506,56 @@ export default {
             this.$noty.error(`Error occurred. ${r.data.split(':')[1]}`, { timeout: 2000 })
           } else {
             this.$noty.success(`Application ${decision}ed!`, { timeout: 1000 })
-            this.refreshPendingApplications()
+            this.refreshApplications();
           }
         }
 
         if (decision == 'accept') { this.confirmProcessing = false }
         else if (decision == 'reject') { this.rejectProcessing = false }
-        this.$refs.PreviewApplicationComponent.closeModal()
+        this.$refs.PreviewServiceComponent.closeModal()
       }).catch(e => {
         console.log(e)
         this.$noty.error("Error occurred", { timeout: 1000 })
 
         if (decision == 'accept') { this.confirmProcessing = false }
         else if (decision == 'reject') { this.rejectProcessing = false }
-        this.$refs.PreviewApplicationComponent.closeModal()
+        this.$refs.PreviewServiceComponent.closeModal()
+      })
+    },
+    confirmHandler(userData) {
+      if (this.dialogContext === "service") {
+        this.applyOnService(userData)
+      } else if (this.dialogContext === "application") {
+        this.confirmApplicationHandler()
+      }
+
+      this.dialogContext = null
+    },
+    applyOnService(userData) {
+      const { policy_validation, ...service } = this.currentApplicationService.service
+      const { consent_id, data: consent_data, usage_policy, ...consent_schema } = this.currentApplicationService.service.consent_schema
+      service.consent_schema = consent_schema
+      this.$_adminApi_applyOnService({
+        connection_id: this.currentApplicationService.connection_id,
+        service: service,
+        user_data: JSON.stringify(userData)
+      }).then(r => {
+        console.log(r.data)
+        if (r.status === 200) {
+          if(typeof r.data === 'string' && r.data.startsWith('-1:')) {
+            this.$noty.error(`Error: ${r.data.split(':')[1]}`, { timeout: 2000 })
+          } else {
+            this.$noty.success("Application send!", { timeout: 1000 })
+          }
+        }
+        this.confirmProcessing = false
+        this.$refs.PreviewServiceComponent.closeModal();
+      }).catch(e => {
+        console.error(e)
+        const { status: code, statusText: msg } = e.response
+        this.$noty.error(`Error: ${code} ${msg}`, { timeout: 1000 })
+        this.confirmProcessing = false
+        this.$refs.PreviewServiceComponent.closeModal();
       })
     },
     confirmApplicationHandler() {

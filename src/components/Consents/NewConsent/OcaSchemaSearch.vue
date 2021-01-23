@@ -79,7 +79,7 @@ export default {
     let schema = ( await axios.get(`https://repository.oca.argo.colossi.network/api/v3/schemas/8crS4tLkgghLfCrp7hePBN7M61SLqixvtfq1CMvhUHjW`) ).data;
 
     console.log(schema);
-    this.ocaForm = renderForm([schema.schema_base, ...schema.overlays]).form;
+    this.ocaForm = (await renderForm([schema.schema_base, ...schema.overlays])).form;
   },
   methods: {
     fetchOcaSchemas: function(input) {
@@ -111,12 +111,12 @@ export default {
       const langBranches = this.splitBranchPerLang(branch)
 
       try {
-        langBranches.forEach(langBranch => {
-          this.ocaFormAlternatives.push({
+        this.ocaFormAlternatives = await Promise.all(
+          langBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
-        })
+        ));
 
         this.ocaForm = this.ocaFormAlternatives[0].form
         this.$emit('consentFormRendered', {

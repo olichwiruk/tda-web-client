@@ -5,7 +5,7 @@
     </q-card-section>
 
     <q-card-section>
-      <div class="row">
+      <div class="row q-col-gutter-md">
         <div class="col-12 col-md-4">
           <q-input
             label="Name"
@@ -14,9 +14,7 @@
           />
         </div>
 
-        <div class="col-12 col-md-1" />
-
-        <div class="col-12 col-md-7">
+        <div class="col-12 col-md-8">
           <oca-schema-search
             label="Schema"
             :ocaRepoHost="ocaRepoHost"
@@ -47,6 +45,7 @@
       confirmLabel="Create"
       :confirmProcessing="consentData.sending"
       ref="ConsentPreviewComponent"
+      :readonly="consent.readonly"
       :form="consent.form"
       :alternatives="consent.form_alternatives"
     ></preview-component>
@@ -77,7 +76,8 @@ export default {
         oca_schema_dri: null,
         oca_schema_namespace: null,
         form: null,
-        form_alternatives: null
+        form_alternatives: null,
+        readonly: false
       },
       consentData: {
         dri: null,
@@ -108,8 +108,24 @@ export default {
     },
     openCreateConsentForm() {
       try {
-        this.$refs.ConsentPreviewComponent.openModal(this.consent.form);
-      } catch (e) {
+        const schemaDri = this.consent.oca_schema_dri
+        this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
+          .then(r => {
+            let input = null
+            const schemaFillings = r.data.result[schemaDri]
+            if (schemaFillings.length > 0) {
+              // backend sometimes delivers other schema DRIs than the requested one
+              // therefore we have to check again for the correct DRI
+              // TODO: this has to be fixed on the backend
+              const item = schemaFillings.filter(s => typeof s.content === "object").find(s => s.oca_schema_dri == schemaDri);
+
+              if (item)
+                input = item.content
+            }
+
+            this.$refs.ConsentPreviewComponent.openModal(this.consent.form, input);
+          })
+      } catch(e) {
         console.log(e)
         this.$noty.error("ERROR! Form data are corrupted.", {
           timeout: 1000

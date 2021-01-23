@@ -47,6 +47,9 @@ export default {
     value: null
   },
   watch: {
+    selected(val) {
+      this.$emit('change', `${val.value}`);
+    },
     options(val) {
       this.setOption(val);
     },
@@ -65,10 +68,11 @@ export default {
       this.setValue(this.value);
     },
     setValue(val) {
-      this.selected = val;
+      // this.value = `${val}`;
     }
   },
   mounted() {
+    this.selected = this.options.find(o => o.value == this.value)
     /*
     this.select2 = $(this.$el)
       .find('select')
