@@ -87,7 +87,7 @@ export default {
         const content = JSON.parse(input[formData.DRI][0].content)
         payload = content[`DRI:${formData.DRI}`].p
         Object.entries(payload).forEach(([attrName, value]) => {
-          if (value.startsWith('DRI:')) {
+          if (typeof value === "string" && value.startsWith('DRI:')) {
             formData.sections.forEach(section => {
               const control = section.row.controls.find(c => c.attrName == attrName)
               if (control) {
@@ -99,7 +99,7 @@ export default {
       } else if (Object.keys(input)[0].startsWith('DRI:')) {
         payload = input[`DRI:${formData.DRI}`].p
         Object.entries(payload).forEach(([attrName, value]) => {
-          if (value.startsWith('DRI:')) {
+          if (typeof value === "string" && value.startsWith('DRI:')) {
             formData.sections.forEach(section => {
               const control = section.row.controls.find(c => c.attrName == attrName)
               if (control) {
@@ -132,6 +132,9 @@ export default {
 
       const serializedData = serializeFormData(formRef)
       eventBus.$emit(EventHandlerConstant.SAVE_PREVIEW, serializedData)
+    },
+    rejectForm() {
+      eventBus.$emit(EventHandlerConstant.REJECT_PREVIEW, {})
     },
     closeModal() {
       this.dialogModal.closeModal();

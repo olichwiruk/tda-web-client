@@ -7,7 +7,7 @@
                 <input type="checkbox"
                        :disabled="this.control.readonly"
                        :name="control.fieldName"
-                       v-model="control.value" />
+                       v-model="control.value == true || control.value == 'true'" />
             </div>
 
             <slot name="information"/>

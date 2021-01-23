@@ -88,7 +88,7 @@
                 const content = JSON.parse(input[formData.DRI][0].content)
                 payload = content[`DRI:${formData.DRI}`].p
                 Object.entries(payload).forEach(([attrName, value]) => {
-                  if (value.startsWith('DRI:')) {
+                  if (typeof value === "string" && value.startsWith('DRI:')) {
                     formData.sections.forEach(section => {
                       const control = section.row.controls.find(c => c.attrName == attrName)
                       if (control) {
@@ -100,7 +100,7 @@
               } else if (Object.keys(input)[0].startsWith('DRI:')) {
                 payload = input[`DRI:${formData.DRI}`].p
                 Object.entries(payload).forEach(([attrName, value]) => {
-                  if (value.startsWith('DRI:')) {
+                  if (typeof value === "string" && value.startsWith('DRI:')) {
                     formData.sections.forEach(section => {
                       const control = section.row.controls.find(c => c.attrName == attrName)
                       if (control) {
