@@ -160,8 +160,7 @@ export default {
       rejectProcessing: false,
       forms: [
         [{ class: "col-md-7", readonly: true, formData: {} }],
-        [{ class: "col-md-5", readonly: true, formData: {} },
-        { class: "col-md-5", readonly: true, formData: {} }]
+        [{ class: "col-md-5", readonly: true, formData: {} }]
       ],
       dialogContext: null,
       submitted_applications: [],
@@ -424,13 +423,6 @@ export default {
           alternatives: application.consent.formAlternatives,
           input: application.consent.answers
         }, options[1][0])
-      Object.assign(this.forms[1][1],
-        {
-          label: application.usagePolicy.form.label,
-          formData: application.usagePolicy.form,
-          alternatives: application.usagePolicy.formAlternatives,
-          input: application.usagePolicy.answers
-        }, options[1][1])
     },
     previewService(service, options = {}) {
       this.previewLabel = 'Service'

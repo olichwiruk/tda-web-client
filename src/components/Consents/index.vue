@@ -33,13 +33,13 @@
         <q-item>No consents were created or given so far.</q-item>
       </q-list>
       <template v-else>
-        <consent-list
+        <defined-consent-list
           title="Defined by me"
           :consents="defined_consent_list"
           @consents-refresh="refreshDefinedConsents"
           @consent-preview="previewConsent($event)"
         />
-        <consent-list
+        <given-consent-list
           title="Given by me"
           :consents="given_consent_list"
           @consents-refresh="refreshGivenConsents"
@@ -70,7 +70,8 @@ import axios from 'axios';
 import adminApi from '@/admin_api.ts'
 import { PreviewComponent, MultiPreviewComponent } from '@/oca.js-vue'
 import NewConsent from './NewConsent'
-import ConsentList from './ConsentList'
+import DefinedConsentList from './DefinedConsentList'
+import GivenConsentList from './GivenConsentList'
 import share from '@/share.ts';
 import CustomSpinner from '../Spinner/CustomSpinner.vue';
 
@@ -88,7 +89,8 @@ export default {
   name: 'consents',
   components: {
     NewConsent,
-    ConsentList,
+    DefinedConsentList,
+    GivenConsentList,
     PreviewComponent,
     MultiPreviewComponent,
     CustomSpinner,
