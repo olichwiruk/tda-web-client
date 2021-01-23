@@ -53,6 +53,9 @@ export default {
     connectPlugin(data) {
       const settings = {}
       const pluginName = this.previewPluginName
+      if (data.api_url && data.api_url.includes("https://data-vault.eu")) {
+        delete data.scope
+      }
       settings[this.previewPluginName] = data
 
       axios.post(`${this.acapyApiUrl}/pds/settings`, { "settings": settings })
