@@ -1,8 +1,11 @@
 <template>
-  <dialog-component ref='DialogModal' size='lg' id="previewModal"
-                                                :readonly="readonly" :headerLabel="label"
-                                                :confirmLabel="confirmLabel ? confirmLabel : 'Save'"
-                                                :confirmProcessing="confirmProcessing">
+  <dialog-component ref='DialogModal' size='lg'
+                    id="previewModal" :headerLabel="label"
+                    :readonly="readonly" :reviewable="reviewable"
+                    :confirmLabel="confirmLabel ? confirmLabel : 'Save'"
+                    :rejectLabel="rejectLabel"
+                    :confirmProcessing="confirmProcessing"
+                    :rejectProcessing="rejectProcessing">
     <template v-slot:header>
       <select
         class="form-control col-md-3"
@@ -34,8 +37,9 @@ export default {
     FormBuilderGui,
     DialogComponent
   },
-  props: ['form', 'alternatives', 'readonly',
-    'confirmLabel', 'confirmProcessing'],
+  props: ['form', 'alternatives', 'readonly', 'reviewable',
+    'confirmLabel', 'confirmProcessing',
+    'rejectLabel', 'rejectProcessing'],
   data: () => ({
     dialogModal: null,
     selectedLang: null,
@@ -59,7 +63,7 @@ export default {
       this.formData._uniqueId = Math.random();
       this.label = this.formData.label
       if(formInput) {
-        this.fillForm(formInput)
+        this.fillForm(this.formData, formInput)
         if(this.formReadonly == null) {
           this.formReadonly = true
         }
@@ -75,15 +79,47 @@ export default {
       // open
       this.dialogModal.openModal()
     },
-    fillForm(input) {
-      this.formData.sections.forEach(section => {
-        section.row.controls.forEach(control => {
-          if(input[control.attrName] == null) {
-            eventBus.$emit(EventHandlerConstant.ERROR, "Invalid data")
-            throw "Invalid data"
+    fillForm(formData, input) {
+      let payload
+
+      if (Array.isArray(Object.values(input)[0])) {
+        if (!input[formData.DRI][0]) { return }
+        const content = JSON.parse(input[formData.DRI][0].content)
+        payload = content[`DRI:${formData.DRI}`].p
+        Object.entries(payload).forEach(([attrName, value]) => {
+          if (value.startsWith('DRI:')) {
+            formData.sections.forEach(section => {
+              const control = section.row.controls.find(c => c.attrName == attrName)
+              if (control) {
+                this.fillForm(control.referenceSchema.form, input)
+              }
+            })
           }
-          control.value = input[control.attrName]
         })
+      } else if (Object.keys(input)[0].startsWith('DRI:')) {
+        payload = input[`DRI:${formData.DRI}`].p
+        Object.entries(payload).forEach(([attrName, value]) => {
+          if (value.startsWith('DRI:')) {
+            formData.sections.forEach(section => {
+              const control = section.row.controls.find(c => c.attrName == attrName)
+              if (control) {
+                this.fillForm(control.referenceSchema.form, input)
+              }
+            })
+          }
+        })
+      } else {
+        payload = input
+      }
+
+      formData.sections.forEach(section => {
+          section.row.controls.forEach(control => {
+              if(payload[control.attrName] == null) {
+                  eventBus.$emit(EventHandlerConstant.ERROR, "Invalid data")
+                  throw "Invalid data"
+              }
+              control.value = payload[control.attrName]
+          })
       })
     },
     saveForm() {

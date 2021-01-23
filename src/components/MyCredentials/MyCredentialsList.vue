@@ -38,7 +38,7 @@
               </q-card-section>
               <q-separator />
 
-              <q-card-actions>
+              <q-card-actions vertical>
                 <q-btn flat>
                   Valid until 2025-10-13
                 </q-btn>
@@ -46,6 +46,14 @@
                   Issued by {{ credential.content.issuer }}
                   on
                   {{ credential.content.issuanceDate }}
+                </q-btn>
+
+                <q-btn flat color="info" @click="preview(
+                  credentialsSchema[credential.dri],
+                  schemaInput[credential.dri],
+                  credentialsSchemaAlt[credential.dri]
+                )">
+                  Preview
                 </q-btn>
               </q-card-actions>
             </template>
@@ -91,6 +99,9 @@
         </div>
       </div>
     </div>
+
+    <preview-component ref="PreviewComponent" :alternatives="alternatives" :form="form"
+      :readonly="true" :reviewable="false"></preview-component>
   </div>
 </template>
 
@@ -103,7 +114,7 @@ import axios from 'axios';
 const hl = require('hashlink');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 
-//import { resolveZipFile, renderForm, PreviewComponent } from 'oca-form'
+import { renderForm, PreviewComponent } from '@/oca.js-vue'
 
 export default {
   name: 'my-credentials-list',
@@ -118,8 +129,8 @@ export default {
   components: {
     VueJsonPretty,
     FlipCard,
-    'qrcode': VueQrcode
-    //PreviewComponent
+    'qrcode': VueQrcode,
+    PreviewComponent
   },
   data: () => ({
     tab: "scan",
@@ -168,7 +179,7 @@ export default {
     },
     preview(schema, input, alternatives) {
       this.alternatives = alternatives
-      this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
+      // this.$refs.PreviewComponent.openModal({ label: 'Loading...', sections: [] });
       try {
           this.form = schema
           this.$refs.PreviewComponent.openModal(this.form, input);
@@ -207,40 +218,39 @@ export default {
         const exp = data.meta.experimental
 
         if (exp && exp['schema-base']) {
-          this.credentialsSchema[credential.issuanceDate] = []
+          this.credentialsSchema[credentialEl.dri] = []
           const ids = [...exp.overlays, exp['schema-base']]
           ids.forEach(id => {
             axios.get(exp.host + id)
               .then(response => {
-                this.credentialsSchema[credential.issuanceDate].push(response.data)
+                this.credentialsSchema[credentialEl.dri].push(response.data)
               })
           })
         } else if (exp && exp['dri']) {
           let schemaBaseDri
           axios.get(exp.host + exp['dri'])
-            .then(r => {
+            .then(async r => {
               const branch = r.data
-              this.credentialsSchemaAlt[credential.issuanceDate] = []
+              this.credentialsSchemaAlt[credentialEl.dri] = []
               const langBranches = this.splitBranchPerLang(branch)
 
-              langBranches.forEach(langBranch => {
-                this.credentialsSchemaAlt[credential.issuanceDate].push({
+              this.credentialsSchemaAlt[credentialEl.dri] = await Promise.all(
+                langBranches.map(async langBranch => ({
                   language: langBranch.lang,
-                  form: renderForm([
-                    langBranch.branch.schema_base,
-                    ...langBranch.branch.overlays]
-                  ).form
-                })
-              })
-              this.credentialsSchema[credential.issuanceDate] = this.credentialsSchemaAlt[credential.issuanceDate][0].form
-              this.credentialsLabel[credential.issuanceDate] = this.credentialsSchema[credential.issuanceDate].label
+                  form: (await renderForm(
+                    [langBranch.branch.schema_base, ...langBranch.branch.overlays]
+                  )).form
+                }))
+              )
+              this.credentialsSchema[credentialEl.dri] = this.credentialsSchemaAlt[credentialEl.dri][0].form
+              this.credentialsLabel[credentialEl.dri] = this.credentialsSchema[credentialEl.dri].label
             })
         }
 
         const url = data.meta.url[0]
         axios.get(url).then(response => {
           if (exp && (exp['schema-base'] || exp['dri'])) {
-            this.schemaInput[credential.issuanceDate] = response.data
+            this.schemaInput[credentialEl.dri] = response.data
           } else if (url.split('.').slice(-1)[0] == 'json') {
             credential.credentialSubject = {...credential.credentialSubject, ...response.data}
           }
@@ -251,36 +261,25 @@ export default {
           oca_schema_namespace: credential.credentialSubject.oca_schema_namespace,
           oca_schema_dri: credential.credentialSubject.oca_schema_dri
         }
-        axios.get(`${this.ocaRepoUrl}/api/v2/schemas/${serviceSchema.oca_schema_namespace}/${serviceSchema.oca_schema_dri}`)
-          .then(r => {
-            const branch = r.data
-            this.credentialsSchemaAlt[credential.issuanceDate] = []
-            const langBranches = this.splitBranchPerLang(branch)
+        const branch = (await axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${serviceSchema.oca_schema_dri}`)).data
+        const langBranches = this.splitBranchPerLang(branch)
 
-            langBranches.forEach(langBranch => {
-              this.credentialsSchemaAlt[credential.issuanceDate].push({
-                language: langBranch.lang,
-                form: renderForm([
-                  langBranch.branch.schema_base,
-                  ...langBranch.branch.overlays]
-                ).form
-              })
-            })
-            this.credentialsSchema[credential.issuanceDate] = this.credentialsSchemaAlt[credential.issuanceDate][0].form
-            this.credentialsLabel[credential.issuanceDate] = this.credentialsSchema[credential.issuanceDate].label
-          })
+        this.credentialsSchemaAlt[credentialEl.dri] = await Promise.all(
+          langBranches.map(async langBranch => ({
+            language: langBranch.lang,
+            form: (await renderForm(
+              [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+              serviceSchema.oca_schema_dri
+            )).form
+          }))
+        )
+        this.credentialsSchema[credentialEl.dri] = this.credentialsSchemaAlt[credentialEl.dri][0].form
+        this.credentialsLabel[credentialEl.dri] = this.credentialsSchema[credentialEl.dri].label
 
-        if(credential.credentialSubject.data_dri) {
-          this.schemaInput[credential.issuanceDate] = JSON.parse(
-            (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.data_dri}`)).data.payload
-          )
-        } else if (credential.credentialSubject.data_dri) {
-          axios.post(`${this.acapyApiUrl}/verifiable-services/get-issue-self`, {
-            issue_id: credential.credentialSubject.data_dri
-          })
-            .then(response => {
-                this.schemaInput[credential.issuanceDate] = JSON.parse(response.data[0].payload)
-            })
+        if(credential.credentialSubject.oca_data) {
+          this.schemaInput[credentialEl.dri] = credential.credentialSubject.oca_data
+        } else if(credential.credentialSubject.oca_data_dri) {
+          this.schemaInput[credentialEl.dri] = (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
         }
       }
     },
@@ -318,7 +317,7 @@ export default {
     },
     credentials: function() {
       this.credentials.forEach(async (credential) => {
-        //await this.generatePreview(credential)
+        await this.generatePreview(credential)
       })
       if (this.credentials.length != Object.keys(this.credentialsLabel).length) {
      //   this.$emit('cred-refresh',)
