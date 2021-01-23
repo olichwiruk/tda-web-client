@@ -66,14 +66,14 @@ export default {
 
       const consentLangBranches = this.splitBranchPerLang(consentBranch)
       let consentForm
-      const consentFormAlternatives = []
+      let consentFormAlternatives = []
       try {
-        consentLangBranches.forEach(langBranch => {
-          consentFormAlternatives.push({
+        consentFormAlternatives = await Promise.all(
+          consentLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
-        })
+        ));
         consentForm = consentFormAlternatives[0].form
       } catch(e) {
         console.log(e)
@@ -96,14 +96,14 @@ export default {
 
       const serviceLangBranches = this.splitBranchPerLang(serviceBranch)
       let serviceForm
-      const serviceFormAlternatives = []
+      let serviceFormAlternatives = []
       try {
-        serviceLangBranches.forEach(langBranch => {
-          serviceFormAlternatives.push({
+        serviceFormAlternatives = await Promise.all(
+          serviceLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays]).form
+            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
           })
-        })
+        ));
         serviceForm = serviceFormAlternatives[0].form
       } catch(e) {
         console.log(e)

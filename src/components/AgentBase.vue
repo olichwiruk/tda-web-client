@@ -390,6 +390,8 @@ export default {
     if(this.connection.needs_return_route_poll()){
       this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
     }
+
+    document.title = `TDA - ${this.$session.get('agentLabel')}`
   },
   beforeDestroy: function() {
     if(this.connection.needs_return_route_poll()) {
