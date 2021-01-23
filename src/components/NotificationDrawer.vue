@@ -5,7 +5,7 @@
     bordered
     content-class="bg-grey-2"
     v-model="isDrawerOpen"
-    width="350"
+    :width="350"
   >
     <q-scroll-area class="fit">
       <q-list>
