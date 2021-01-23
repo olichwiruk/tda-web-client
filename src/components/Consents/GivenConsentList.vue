@@ -30,7 +30,7 @@ import VueJsonPretty from 'vue-json-pretty';
 import { renderForm } from '@/oca.js-vue'
 
 export default {
-  name: 'consent-list',
+  name: 'given-consent-list',
   props: [
     'title',
     'consents'
@@ -50,18 +50,10 @@ export default {
   },
   methods: {
     async renderConsentForm(consent) {
-      let consentAnswers, consentSchemaNamespace, consentSchemaDri
-      if (consent.payload) {
-        consentAnswers = consent.payload
-        consentSchemaNamespace = consent.oca_schema_namespace
-        consentSchemaDri = consent.oca_schema_dri
-      } else {
-        consentAnswers = consent.oca_data
-        consentSchemaNamespace = consent.oca_schema_namespace
-        consentSchemaDri = consent.oca_schema_dri
-      }
+      const consentAnswers = consent.data
+      const consentSchemaDri = consent.ocaSchemaDri
       const consentBranch = (await axios.get(
-        `${this.ocaRepoUrl}/api/v2/schemas/${consentSchemaNamespace}/${consentSchemaDri}`
+        `${this.ocaRepoUrl}/api/v3/schemas/${consentSchemaDri}`
       )).data
 
       const consentLangBranches = this.splitBranchPerLang(consentBranch)
@@ -71,7 +63,10 @@ export default {
         consentFormAlternatives = await Promise.all(
           consentLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
+            form: (await renderForm(
+              [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+              consentSchemaDri
+            )).form
           })
         ));
         consentForm = consentFormAlternatives[0].form
@@ -89,9 +84,9 @@ export default {
       }
     },
     async renderServiceForm(consent) {
-      if (!consent.service_schema) { return {} }
+      console.log(consent)
       const serviceBranch = (await axios.get(
-        `${this.ocaRepoUrl}/api/v2/schemas/${consent.service_schema.oca_schema_namespace}/${consent.service_schema.oca_schema_dri}`
+        `${this.ocaRepoUrl}/api/v3/schemas/${consent.service_schema.oca_schema_dri}`
       )).data
 
       const serviceLangBranches = this.splitBranchPerLang(serviceBranch)
@@ -101,7 +96,10 @@ export default {
         serviceFormAlternatives = await Promise.all(
           serviceLangBranches.map(async langBranch => ({
             language: langBranch.lang,
-            form: (await renderForm([langBranch.branch.schema_base, ...langBranch.branch.overlays])).form
+            form: (await renderForm(
+              [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+              consent.service_schema.oca_schema_dri
+            )).form
           })
         ));
         serviceForm = serviceFormAlternatives[0].form
@@ -138,8 +136,8 @@ export default {
     },
     async preview(consent) {
       this.$emit('consent-preview', {
-        consent: await this.renderConsentForm(consent),
-        service: await this.renderServiceForm(consent)
+        service: await this.renderServiceForm(consent),
+        consent: await this.renderConsentForm(consent)
       })
     }
   },
