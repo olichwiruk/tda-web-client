@@ -45,6 +45,7 @@
       confirmLabel="Create"
       :confirmProcessing="consentData.sending"
       ref="ConsentPreviewComponent"
+      :readonly="consent.readonly"
       :form="consent.form"
       :alternatives="consent.form_alternatives"
     ></preview-component>
@@ -75,7 +76,8 @@ export default {
         oca_schema_dri: null,
         oca_schema_namespace: null,
         form: null,
-        form_alternatives: null
+        form_alternatives: null,
+        readonly: false
       },
       consentData: {
         dri: null,
