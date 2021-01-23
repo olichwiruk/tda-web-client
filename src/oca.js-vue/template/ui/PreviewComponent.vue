@@ -81,7 +81,22 @@ export default {
     },
     fillForm(formData, input) {
       let payload
-      if (Object.keys(input)[0].startsWith('DRI:')) {
+
+      if (Array.isArray(Object.values(input)[0])) {
+        if (!input[formData.DRI][0]) { return }
+        const content = JSON.parse(input[formData.DRI][0].content)
+        payload = content[`DRI:${formData.DRI}`].p
+        Object.entries(payload).forEach(([attrName, value]) => {
+          if (value.startsWith('DRI:')) {
+            formData.sections.forEach(section => {
+              const control = section.row.controls.find(c => c.attrName == attrName)
+              if (control) {
+                this.fillForm(control.referenceSchema.form, input)
+              }
+            })
+          }
+        })
+      } else if (Object.keys(input)[0].startsWith('DRI:')) {
         payload = input[`DRI:${formData.DRI}`].p
         Object.entries(payload).forEach(([attrName, value]) => {
           if (value.startsWith('DRI:')) {

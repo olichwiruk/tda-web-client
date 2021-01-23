@@ -72,7 +72,7 @@
           type="pending"
           label='From:'
           @applications-refresh="refreshApplications"
-          @application-preview="previewApplication($event, { self: false, readonly: false })"
+          @application-preview="previewApplication($event, { self: false, readonly: true })"
         />
         <application-list
           title="Submitted applications:"
@@ -432,19 +432,32 @@ export default {
       this.collectForms(service.serviceForm)
       this.$refs.PreviewServiceComponent.openModal()
     },
+    collectFormDris(schema, collected = []) {
+      const dris = []
+      dris.push(schema.form.DRI)
+      schema.form.sections.forEach(section => {
+        section.row.controls.forEach(control => {
+          if (control.type === "reference") {
+            dris.push(...this.collectFormDris(control.referenceSchema))
+          }
+        })
+      })
+      return [...collected, ...dris]
+    },
     applyService(event) {
       this.dialogContext = "service"
       this.confirmLabel = "Apply"
       this.rejectLabel = ""
       this.currentApplicationService = event
+      const formDris = this.collectFormDris(event.serviceForm.schema)
       const schemaDri = event.service.service_schema.oca_schema_dri
-      this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
+      this.$_adminApi_getCurrentData({ schemaDris: formDris })
         .then(r => {
           let input = null
-          const schemaFillings = r.data.result[schemaDri]
-          if (schemaFillings.length > 0) {
+          const schemaFillings = r.data.result
+          if (Object.keys(schemaFillings).length > 0) {
             // take item that holds our data
-            input = schemaFillings.find(x => x.content && x.content.p).content.p
+            input = schemaFillings
           }
 
           this.collectForms(event.serviceForm, [[{ readonly: false, input }], []])
