@@ -4,17 +4,15 @@
       <div class="text-h6">{{title}}</div>
     </q-card-section>
 
-    <q-card-section class="q-pt-none">
-      <div class="row">
-        <div class="col-12 col-md-7">
+    <q-card-section>
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-8">
           <oca-schema-search
             label="Service:"
             :ocaRepoHost="ocaRepoHost"
             @schemaSelected="serviceSchemaSelected"
           />
         </div>
-
-        <div class="col-12 col-md-1" />
 
         <div class="col-12 col-md-4">
           <consent-select

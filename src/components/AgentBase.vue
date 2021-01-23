@@ -11,6 +11,10 @@
           icon="menu"
         />
 
+        <q-toolbar-title shrink>
+          {{connection.label}}
+        </q-toolbar-title>
+
         <q-space />
 
         <q-btn flat no-caps no-wrap class="q-ml-xs" v-if="$q.screen.gt.xs">
@@ -291,12 +295,12 @@ export default {
         { icon: 'help', text: 'Help', path: '/help' }
       ],
       buttons1: [
-        { text: 'About', path: '/about' }
+        // { text: 'About', path: '/about' }
       ],
       buttons2: [
-        { text: 'Terms', path: '/about' },
-        { text: 'Privacy', path: '/about' },
-        { text: 'Policy & Safety', path: '/about' }
+        // { text: 'Terms', path: '/about' },
+        // { text: 'Privacy', path: '/about' },
+        // { text: 'Policy & Safety', path: '/about' }
       ]
     }
   },

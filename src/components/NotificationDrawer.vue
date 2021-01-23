@@ -5,15 +5,15 @@
     bordered
     content-class="bg-grey-2"
     v-model="isDrawerOpen"
+    width="350"
   >
     <q-scroll-area class="fit">
       <q-list>
-        <q-item class="text-h6">
-          Verification requests
-          <custom-spinner
-            class="q-ml-md"
-            :show="isRefreshing"
-          />
+        <q-item class="text-h5">Verification requests</q-item>
+        <q-separator />
+
+        <q-item v-if="isRefreshing">
+          <q-spinner size="xl" />
         </q-item>
         <q-separator />
 
