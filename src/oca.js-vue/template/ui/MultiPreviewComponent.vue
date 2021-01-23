@@ -92,7 +92,7 @@
                     formData.sections.forEach(section => {
                       const control = section.row.controls.find(c => c.attrName == attrName)
                       if (control) {
-                        this.fillForm(control.referenceSchema.form, input)
+                        this.fillForm(control.referenceSchema.form, content)
                       }
                     })
                   }
