@@ -107,6 +107,7 @@ export default {
       this.consent.form_alternatives = formAlternatives
     },
     openCreateConsentForm() {
+      this.establishListeners()
       try {
         const schemaDri = this.consent.oca_schema_dri
         this.$_adminApi_getCurrentData({ schemaDris: [schemaDri] })
@@ -156,11 +157,14 @@ export default {
         this.consentData.sending = false
         this.$noty.error(`Error occurred`, { timeout: 1000 })
       })
+    },
+    establishListeners() {
+      ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.sendConsentData)
     }
   },
   mounted() {
-    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.sendConsentData)
+    this.establishListeners()
   },
 }
 </script>

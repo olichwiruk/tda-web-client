@@ -341,6 +341,13 @@ export default {
           item.connection = null;
         }
         return item;
+      }).sort((a, b) => {
+        if (a.content.issuanceDate < b.content.issuanceDate) {
+          return 1
+        } else if (a.content.issuanceDate > b.content.issuanceDate) {
+          return -1
+        }
+        return 0
       });
     },
     ocaRepoUrl: function() {

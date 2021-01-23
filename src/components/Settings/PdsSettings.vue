@@ -53,6 +53,9 @@ export default {
     connectPlugin(data) {
       const settings = {}
       const pluginName = this.previewPluginName
+      if (data.api_url && data.api_url.includes("https://data-vault.eu")) {
+        delete data.scope
+      }
       settings[this.previewPluginName] = data
 
       axios.post(`${this.acapyApiUrl}/pds/settings`, { "settings": settings })
@@ -70,14 +73,18 @@ export default {
       this.previewPluginName = null
     },
     previewPluginConfig(event) {
+      this.establishListeners()
       this.previewPluginName = event.pluginName
       this.pluginAlternatives = event.plugin.formAlternatives
       this.$refs.PluginConfigPreviewComponent.openModal(event.plugin.form)
     },
+    establishListeners() {
+      ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.connectPlugin)
+    }
   },
   mounted() {
-    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.connectPlugin)
+    this.establishListeners()
   }
 }
 </script>

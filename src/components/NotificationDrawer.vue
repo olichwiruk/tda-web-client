@@ -136,10 +136,7 @@ export default Vue.extend({
     this.refreshRequests();
   },
   mounted() {
-    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmHandler)
-    ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectHandler)
+    this.establishListeners()
   },
   mixins: [
     adminApi,
@@ -293,6 +290,7 @@ export default Vue.extend({
         return matching[0];
     },
     showPresentation(presentation) {
+      this.establishListeners()
       const presExId = presentation.presentation_exchange_id
       this.previewedPresExId = presExId
       this.form = this.credentialsSchema[presExId]
@@ -431,6 +429,12 @@ export default Vue.extend({
         })
       })
       return langBranches
+    },
+    establishListeners() {
+      ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmHandler)
+      ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectHandler)
     },
     async sendCredential(request: any) {
       const matching = this.getMatchingCredential(request);
