@@ -73,14 +73,18 @@ export default {
       this.previewPluginName = null
     },
     previewPluginConfig(event) {
+      this.establishListeners()
       this.previewPluginName = event.pluginName
       this.pluginAlternatives = event.plugin.formAlternatives
       this.$refs.PluginConfigPreviewComponent.openModal(event.plugin.form)
     },
+    establishListeners() {
+      ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.connectPlugin)
+    }
   },
   mounted() {
-    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.connectPlugin)
+    this.establishListeners()
   }
 }
 </script>

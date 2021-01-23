@@ -297,13 +297,17 @@ export default {
     this.refreshApplications();
   },
   mounted() {
-    ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmHandler)
-    ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
-    ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
+    this.establishListeners()
   },
   methods: {
     ...mapActions('WsMessages', ['delete_message']),
+
+    establishListeners() {
+      ocaEventBus.$off(EventHandlerConstant.SAVE_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.SAVE_PREVIEW, this.confirmHandler)
+      ocaEventBus.$off(EventHandlerConstant.REJECT_PREVIEW)
+      ocaEventBus.$on(EventHandlerConstant.REJECT_PREVIEW, this.rejectApplicationHandler)
+    },
     async refreshServices() {
       this.isCreateServiceDialogVisible = false;
       this.isRefreshingService = true;
@@ -450,6 +454,7 @@ export default {
       return [...collected, ...dris]
     },
     applyService(event) {
+      this.establishListeners()
       this.dialogContext = "service"
       this.confirmLabel = "Apply"
       this.rejectLabel = ""
@@ -478,6 +483,7 @@ export default {
         })
     },
     previewApplication(application, options = {}) {
+      this.establishListeners()
       this.dialogContext = "application"
       this.currentApplication = application
       this.previewLabel = 'Application'
