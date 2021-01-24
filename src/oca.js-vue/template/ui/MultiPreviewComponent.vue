@@ -84,15 +84,22 @@
             fillForm(formData, input) {
               let payload = null
               if (Array.isArray(Object.values(input)[0])) {
-                if (!input[formData.DRI][0]) { return }
-                const content = JSON.parse(input[formData.DRI][0].content)
-                payload = content[`DRI:${formData.DRI}`].p
+                if (!input[formData.DRI][0]) {
+                  formData.sections.forEach(section => {
+                    const control = section.row.controls.find(c => c.type == "reference")
+                    if (control) {
+                      this.fillForm(control.referenceSchema.form, input)
+                    }
+                  })
+                  return
+                }
+                payload = input[formData.DRI][0].content
                 Object.entries(payload).forEach(([attrName, value]) => {
                   if (typeof value === "string" && value.startsWith('DRI:')) {
                     formData.sections.forEach(section => {
                       const control = section.row.controls.find(c => c.attrName == attrName)
                       if (control) {
-                        this.fillForm(control.referenceSchema.form, content)
+                        this.fillForm(control.referenceSchema.form, input)
                       }
                     })
                   }
