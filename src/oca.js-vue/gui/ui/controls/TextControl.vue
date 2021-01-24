@@ -20,14 +20,18 @@
                  :dense=true
                  :readonly="this.control.readonly"
                  :name="control.fieldName"
-                 v-model="control.value" />
+                 v-model="control.value">
 
-          <div class="input-group-append" v-if="control.isPII">
-            <span class="input-group-text clickable" @click="triggerShow">
-              <font-awesome-icon :icon="icon"></font-awesome-icon>
-            </span>
-          </div>
-          <slot name="errors"/>
+          <template v-slot:append>
+            <div class="input-group-append" v-if="control.isPII">
+              <span class="input-group-text clickable" @click="triggerShow">
+                <font-awesome-icon :icon="icon"></font-awesome-icon>
+              </span>
+            </div>
+          </template>
+        </q-input>
+
+        <slot name="errors"/>
     </div>
 
     <slot name="information"/>

@@ -3,7 +3,7 @@
         <div class="row checkBoxControl" v-if="labelPosition === 'left'">
             <slot name="label"/>
 
-            <div class="col-md-8 text-center">
+            <div class="text-center">
                 <input type="checkbox"
                        :disabled="this.control.readonly"
                        :name="control.fieldName"
