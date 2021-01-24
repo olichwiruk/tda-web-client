@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md q-gutter-md col">
     <div class="row">
-      <div class="bg-white text-grey-8 col">
+      <div class="text-grey-8 col">
         <q-toolbar>
           <div class="row wrap">
             <q-input

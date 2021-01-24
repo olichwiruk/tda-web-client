@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf" class="bg-grey-1">
-    <q-header elevated class="bg-white text-blue-2 q-py-xs" height-hint="58">
+    <q-header elevated class="text-white q-py-xs" height-hint="58">
       <q-toolbar>
         <q-btn
           flat
@@ -26,7 +26,7 @@
         <q-space />
 
         <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn round dense flat color="blue" icon="message" v-if="$q.screen.gt.sm">
+          <q-btn round dense flat color="white" icon="message" v-if="$q.screen.gt.sm">
             <q-tooltip>Messages</q-tooltip>
           </q-btn>
 
@@ -34,7 +34,7 @@
             round
             dense
             flat
-            color="blue"
+            color="white"
             icon="notifications"
             @click="isRightDrawerOpen = !isRightDrawerOpen"
           >
@@ -48,7 +48,6 @@
             </q-badge>
             <q-tooltip>Notifications</q-tooltip>
           </q-btn>
-          
           <q-btn round flat>
             <q-avatar size="26px">
               <img src="https://cdn.quasar.dev/img/boy-avatar.png">
@@ -58,7 +57,6 @@
         </div>
       </q-toolbar>
     </q-header>
-          
     <notification-drawer
       :isOpen="isRightDrawerOpen"
       @toggleDrawer="(val) => isRightDrawerOpen = val"
@@ -69,16 +67,16 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
-      content-class="bg-grey-2"
+      content-class="bg-blue-2"
       :width="240"
     >
       <q-scroll-area class="fit">
         <q-list padding>
-          <q-item v-for="link in links1" :key="link.text" :to="link.path" v-ripple clickable>
+          <q-item v-for="link in links1" :key="link.text" :to="link.path" v-ripple clickable >
             <q-item-section avatar>
-              <q-icon color="blue" :name="link.icon" />
+              <q-icon color="white" :name="link.icon" />
             </q-item-section>
-            <q-item-section>
+            <q-item-section class="text-white">
               <q-item-label>{{ link.text }}</q-item-label>
             </q-item-section>
           </q-item>
@@ -87,9 +85,9 @@
 
           <q-item v-for="link in links2" :to="link.path" :key="link.text" v-ripple clickable>
             <q-item-section avatar>
-              <q-icon color="blue" :name="link.icon" />
+              <q-icon color="white" :name="link.icon" />
             </q-item-section>
-            <q-item-section>
+            <q-item-section class="text-white">
               <q-item-label>{{ link.text }}</q-item-label>
             </q-item-section>
           </q-item>
@@ -98,9 +96,9 @@
 
           <q-item v-for="link in links4" :to="link.path" :key="link.text" v-ripple clickable>
             <q-item-section avatar>
-              <q-icon color="blue" :name="link.icon" />
+              <q-icon color="white" :name="link.icon" />
             </q-item-section>
-            <q-item-section>
+            <q-item-section class="text-white">
               <q-item-label>{{ link.text }}</q-item-label>
             </q-item-section>
           </q-item>
