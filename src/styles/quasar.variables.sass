@@ -1,11 +1,11 @@
 // It's highly recommended to change the default colors
 // to match your app's branding.
 
-$primary   : #15809C
+$primary   : #016A97
 $secondary : #1DA1C0
 $accent    : #9C27B0
 
-$dark      : #1D1D1D
+$dark      : #575756
 
 $positive  : #21BA45
 $negative  : #C10015
@@ -24,7 +24,20 @@ $text-weights: (thin: 100, light: 300, regular: 400, medium: 400, bold: 700, bol
 $button-font-weight: 400 
 
 $light-blue : #1DA1C0 !default
-$blue : #15809C !default
-$blue-2 : #232E4A !default
+$blue-2 : #016A97 !default
+$grey-1: #F7F7F7
+
+.q-header
+  background-image: linear-gradient(to left, #07C9BE, #016A97)
+
+.q-router-link--exact-active
+  background-color: $grey-1
+  .q-icon
+    color: #07C9BE !important
+  .q-item__label
+    color: $dark !important
+
+body
+  color: $dark
 
 @import '~quasar-variables-styl'

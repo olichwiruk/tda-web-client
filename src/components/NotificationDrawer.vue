@@ -3,7 +3,7 @@
     side="right"
     show-if-above
     bordered
-    content-class="bg-grey-2"
+    content-class="bg-white"
     v-model="isDrawerOpen"
     :width="350"
   >
