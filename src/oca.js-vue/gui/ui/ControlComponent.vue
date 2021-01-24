@@ -63,6 +63,10 @@
 </script>
 
 <style scoped>
+    .controlItem {
+      padding: 5px 0 5px 0;
+    }
+
     .information {
       text-align: justify;
       font-style: italic;

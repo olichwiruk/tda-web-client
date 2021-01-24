@@ -8,6 +8,7 @@
                     :rejectProcessing="rejectProcessing">
     <template v-slot:header>
       <select
+        style="margin-left: 10px;"
         class="form-control col-md-3"
         v-model="selectedLang">
         <option v-for="alt in alternatives">{{alt.language}}</option>

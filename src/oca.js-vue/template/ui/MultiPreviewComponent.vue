@@ -156,6 +156,7 @@
 
 <style lang="scss" scoped>
   .form-preview {
+    padding: 5px;
     border-left: 1px solid #dee2e6;
 
     &:first-child {

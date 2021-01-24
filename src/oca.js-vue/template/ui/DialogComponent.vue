@@ -1,9 +1,12 @@
 <template>
   <div class="q-pa-md q-gutter-sm">
       <q-dialog v-model="showModal" persistent>
-        <q-card>
+        <q-card :class="{ large: size == 'lg', xlarge: size == 'xl' }">
           <q-toolbar>
-            <q-toolbar-title><span class="text-weight-bold">{{headerLabel}}</span></q-toolbar-title>
+            <q-toolbar-title>
+              <span class="text-weight-bold">{{ headerLabel }}</span>
+              <slot name="header" />
+            </q-toolbar-title>
 
             <q-btn flat round dense icon="close" v-close-popup />
           </q-toolbar>
@@ -62,4 +65,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+.large {
+  width: 600px;
+  max-width: 80vw;
+}
+
+.xlarge {
+  width: 900px;
+  max-width: 80vw;
+}
+
 </style>
