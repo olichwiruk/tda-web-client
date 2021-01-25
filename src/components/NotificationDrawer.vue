@@ -277,9 +277,9 @@ export default Vue.extend({
       const matching = this.credentials.filter(cred => {
         return request.list_of_matching_credentials.includes(cred.dri)
       }).sort((a, b) => {
-        if (a.credential.issuanceDate > b.credential.issuanceDate) {
+        if (a.timestamp > b.timestamp) {
           return -1
-        } else if (b.credential.issuanceDate > a.credential.issuanceDate) {
+        } else if (b.timestamp > a.timestamp) {
           return 1
         }
         return 0
