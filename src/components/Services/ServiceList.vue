@@ -19,24 +19,40 @@
         :key="service.label + index"
         clickable
       >
+        <q-item-section avatar>
+
+          <q-avatar
+            :color="getPolicyValidation(service).color"
+            icon="shield"
+            text-color="white"
+          >
+            <q-tooltip>{{getPolicyValidation(service).text}}</q-tooltip>
+          </q-avatar>
+        </q-item-section>
         <q-item-section @click="apply(service, group.connection_id)">
-          <div class="row items-center">{{service.label}}
-            <q-icon
-              v-if="showUsagePolicy"
-              class="q-ml-sm"
-              name="shield"
-              size="xs"
-              :color="getPolicyValidation(service).color"
-            >
-              <q-tooltip>{{getPolicyValidation(service).text}}</q-tooltip>
-            </q-icon>
-          </div>
+          {{service.label}}
         </q-item-section>
         <q-item-section side>
           <q-btn
             flat
-            @click="preview(service, group.connection_id)"
-          >Preview</q-btn>
+            round
+            icon="more_vert"
+          >
+            <q-menu>
+              <q-list>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="preview(service, group.connection_id)"
+                >
+                  <q-item-section side>
+                    <q-icon name="preview" />
+                  </q-item-section>
+                  <q-item-section>Preview</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
         </q-item-section>
       </q-item>
     </template>
@@ -201,7 +217,7 @@ export default {
 
       else if (policy_validation.code == 0)
         return {
-          color: 'green',
+          color: 'teal',
           text: 'Your usage policy matches with that provided by the service. Everything is good.',
         };
 
