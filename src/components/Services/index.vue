@@ -33,7 +33,7 @@
             </template>
           </q-banner>
 
-          <q-list v-if="showEmptyMessage">
+          <q-list v-if="showServicesEmptyMessage">
             <q-item>No services available at the moment.</q-item>
           </q-list>
           <template v-else>
@@ -70,22 +70,28 @@
             </template>
           </q-banner>
 
-          <application-list
-            title="Pending applications:"
-            :list="pending_applications"
-            type="pending"
-            label='From:'
-            @applications-refresh="refreshApplications"
-            @application-preview="previewApplication($event, { self: false, readonly: true })"
-          />
-          <application-list
-            title="Submitted applications:"
-            :list="submitted_applications"
-            type="submitted"
-            label='To:'
-            @applications-refresh="refreshApplications"
-            @application-preview="previewApplication($event, { self: true, readonly: true })"
-          />
+
+          <q-list v-if="showApplicationsEmptyMessage">
+            <q-item>No applications to show here.</q-item>
+          </q-list>
+          <template>
+            <application-list
+              title="Pending applications:"
+              :list="pending_applications"
+              type="pending"
+              label='From:'
+              @applications-refresh="refreshApplications"
+              @application-preview="previewApplication($event, { self: false, readonly: true })"
+            />
+            <application-list
+              title="Submitted applications:"
+              :list="submitted_applications"
+              type="submitted"
+              label='To:'
+              @applications-refresh="refreshApplications"
+              @application-preview="previewApplication($event, { self: true, readonly: true })"
+            />
+          </template>
         </q-card>
       </div>
     </div>
@@ -212,8 +218,17 @@ export default {
         ...this.otherServices,
       ];
     },
-    showEmptyMessage() {
+    showServicesEmptyMessage() {
       return this.allServices.filter(group => group.services.length > 0) == 0;
+    },
+    allApplications() {
+      return [
+        ...this.pending_applications,
+        ...this.submitted_applications,
+      ];
+    },
+    showApplicationsEmptyMessage() {
+      return this.allApplications.length == 0;
     }
   },
   watch: {
