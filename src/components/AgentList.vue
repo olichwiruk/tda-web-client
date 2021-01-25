@@ -19,8 +19,8 @@
           <header class="text-h4 text-center q-pa-lg">Trusted Digital Assistant</header>
           <q-linear-progress indeterminate />
           <div class="q-pa-lg space-between">
-            <q-img class="q-ma-md" :src="hcfImageUrl" />
-            <q-img class="q-ma-md" :src="oydImageUrl" />
+            <q-img class="q-ma-md logo-image" :src="oydImageUrl" />
+            <q-img class="q-ma-md logo-image" :src="hcfImageUrl" />
           </div>
         </q-card>
       </q-page>
@@ -420,5 +420,11 @@ export default {
 }
 .agent-card .el-card__body {
   padding: 0 1em;
+}
+</style>
+
+<style scoped>
+.logo-image {
+  max-width: 150px;
 }
 </style>
