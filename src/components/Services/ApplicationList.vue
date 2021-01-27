@@ -12,10 +12,12 @@
       >
         <q-item-section avatar>
           <q-avatar
-            :color="applicationColor"
+            :color="applicationColor(application)"
             :icon="applicationIcon"
             text-color="white"
-          />
+          >
+            <q-tooltip v-if="type == 'pending'">{{getPolicyValidation(application).text}}</q-tooltip>
+          </q-avatar>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ application.connection ? application.connection.their_label : '' }}</q-item-label>
@@ -55,15 +57,9 @@ export default {
     ocaRepoUrl: function() {
       return this.$session.get('ocaRepoUrl')
     },
-    applicationColor: function() {
-      if (this.type === 'pending')
-        return 'orange';
-
-      return 'teal';
-    },
     applicationIcon: function() {
       if (this.type === 'pending')
-        return 'pending_actions';
+        return 'shield';
 
       return 'done';
     }
@@ -172,6 +168,35 @@ export default {
         })
       })
       return langBranches
+    },
+    applicationColor: function(application) {
+      if (this.type === 'pending')
+        return this.getPolicyValidation(application).color;
+
+      return 'teal';
+    },
+    getPolicyValidation(application) {
+      const policy_validation_str = application.usage_policies_match
+
+      if (!policy_validation_str)
+        return {
+          color: 'grey',
+          text: 'Usage policies could not be matched yet.',
+        };
+      else {
+        const policy_validation = JSON.parse(policy_validation_str)
+        if (policy_validation.code == 0)
+          return {
+            color: 'teal',
+            text: 'Applicant usage policy matches with that provided by the service. Everything is good.',
+          };
+
+        else
+          return {
+            color: 'red',
+            text: 'Applicant usage policy does not match with that provided by the service.',
+          }
+      }
     },
     async preview(application) {
       this.$emit('application-preview',
