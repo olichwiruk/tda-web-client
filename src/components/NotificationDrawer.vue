@@ -26,17 +26,24 @@
           v-for="req of receivedRequests"
           :key="req.thread_id"
         >
-          <q-item-section
-            side
-            v-if="!hasMatchingCredential(req)"
-          >
-            <q-icon
-              name="warning"
-              size="sm"
-              color="red"
-            >
-              <q-tooltip>We could not find a matching credential.</q-tooltip>
-            </q-icon>
+          <q-item-section side>
+            <div v-if="!hasMatchingCredential(req)">
+              <q-icon
+                name="warning"
+                size="md"
+                color="red"
+              >
+                <q-tooltip>We could not find a matching credential.</q-tooltip>
+              </q-icon>
+            </div>
+            <div v-else>
+              <q-avatar
+                color="teal"
+                size="md"
+                icon="shield"
+                text-color="white"
+              />
+            </div>
           </q-item-section>
 
           <q-item-section>
