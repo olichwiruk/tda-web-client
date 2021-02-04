@@ -64,92 +64,88 @@
     <!--   @refreshRequests="(req) => pendingRequests = req" -->
     <!--   /> -->
 
-      <q-drawer
-        v-model="leftDrawerOpen"
-        show-if-above
-        bordered
-        content-class="bg-blue-2"
-        :width="240"
-        >
-        <q-scroll-area class="fit">
-          <q-list padding>
-            <div v-for='(modulesBlock, i) in modules' :key='i'>
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      bordered
+      class="bg-blue-2"
+      :width="240"
+      >
+      <q-scroll-area class="fit">
+        <q-list padding>
+          <div v-for='(modulesBlock, i) in modules' :key='i'>
 
-              <q-item v-for="module in modulesBlock" :key="module.title" :to="module.path" v-ripple clickable >
-                <q-item-section avatar>
-                  <q-icon color="white" :name="module.icon" />
-                </q-item-section>
-                <q-item-section class="text-white">
-                  <q-item-label>{{ module.title }}</q-item-label>
-                </q-item-section>
-              </q-item>
+            <q-item v-for="module in modulesBlock" :key="module.title" :to="module.path" v-ripple clickable >
+              <q-item-section avatar>
+                <q-icon color="white" :name="module.icon" />
+              </q-item-section>
+              <q-item-section class="text-white">
+                <q-item-label>{{ module.title }}</q-item-label>
+              </q-item-section>
+            </q-item>
 
-              <q-separator class="q-my-md" />
+            <q-separator class="q-my-md" />
 
-            </div>
-          </q-list>
-        </q-scroll-area>
-      </q-drawer>
+          </div>
+        </q-list>
+      </q-scroll-area>
+    </q-drawer>
 
-      <q-page-container>
-        <router-view />
-      </q-page-container>
+    <q-page-container>
+      <router-view />
+    </q-page-container>
   </q-layout>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from '@vue/composition-api'
+import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
   name: 'MainLayout',
-  components: { },
   setup () {
     const leftDrawerOpen = ref(false)
     const agentId = '1'
     const basePath = `/agent/${agentId}`
 
-    return { leftDrawerOpen, basePath }
-  },
-  data () {
-    return {
-      connection: { label: 'loading...' },
-      modules: [
-        [
-          {
-            title: 'My Documents',
-            icon: 'subscriptions',
-            path: `${this.basePath}/my-credentials`
-          },
-          {
-            title: 'Address Book',
-            icon: 'contacts',
-            path: `${this.basePath}/connections`
-          }
-        ],
-        [
-          {
-            title: 'Services',
-            icon: 'store',
-            path: `${this.basePath}/services`
-          },
-          {
-            title: 'Consent management',
-            icon: 'health_and_safety',
-            path: `${this.basePath}/consents`
-          }
-        ],
-        [
-          {
-            title: 'Settings',
-            icon: 'settings',
-            path: `/${this.basePath}/settings`
-          },
-          {
-            title: 'Help', icon: 'help', path: '/help'
-          }
-        ]
+    const connection = ref({ label: 'loading...' })
+    const modules = ref([
+      [
+        {
+          title: 'My Documents',
+          icon: 'subscriptions',
+          path: `${basePath}/my-credentials`
+        },
+        {
+          title: 'Address Book',
+          icon: 'contacts',
+          path: `${basePath}/connections`
+        }
+      ],
+      [
+        {
+          title: 'Services',
+          icon: 'store',
+          path: `${basePath}/services`
+        },
+        {
+          title: 'Consent management',
+          icon: 'health_and_safety',
+          path: `${basePath}/consents`
+        }
+      ],
+      [
+        {
+          title: 'Settings',
+          icon: 'settings',
+          path: `/${basePath}/settings`
+        },
+        {
+          title: 'Help', icon: 'help', path: '/help'
+        }
       ]
-    }
+    ])
+
+    return { leftDrawerOpen, connection, modules }
   }
 })
 </script>
