@@ -1,4 +1,5 @@
-const { resolve } = require('path');
+// eslint-disable-next-line
+const { resolve } = require('path')
 module.exports = {
   // https://eslint.org/docs/user-guide/configuring#configuration-cascading-and-hierarchy
   // This option interrupts the configuration hierarchy at this file
@@ -17,11 +18,14 @@ module.exports = {
     project: resolve(__dirname, './tsconfig.json'),
     tsconfigRootDir: __dirname,
     ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
-    sourceType: 'module' // Allows for the use of imports
+    sourceType: 'module', // Allows for the use of imports
+    createDefaultProgram: true
   },
 
   env: {
-    browser: true
+    browser: true,
+    jest: true,
+    mocha: true
   },
 
   // Rules order is important, please avoid shuffling them
@@ -38,9 +42,10 @@ module.exports = {
     // Uncomment any of the lines below to choose desired strictness,
     // but leave only one uncommented!
     // See https://eslint.vuejs.org/rules/#available-rules
-    'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
-    // 'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
+    // 'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
+    'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
+    'plugin:mocha/recommended',
 
     'standard'
 
@@ -52,7 +57,7 @@ module.exports = {
 
     // https://eslint.vuejs.org/user-guide/#why-doesn-t-it-work-on-vue-file
     // required to lint *.vue files
-    'vue',
+    'vue'
 
   ],
 
@@ -97,5 +102,14 @@ module.exports = {
 
     // allow debugger during development only
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
-  }
+  },
+
+  overrides: [
+    {
+      files: ['./tests/**/*.ts'],
+      rules: {
+        'no-unused-expressions': 'off'
+      }
+    }
+  ]
 }
