@@ -1,0 +1,6 @@
+.quasar
+.vscode
+node_modules
+dist
+
+Session.vim
