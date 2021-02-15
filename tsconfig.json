@@ -1,11 +1,25 @@
 {
   "extends": "@quasar/app/tsconfig-preset",
   "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "target": "ES2017",
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+    "noErrorTruncation": true,
     "baseUrl": ".",
-    "module": "commonjs",
     "types": [
       "quasar",
       "jest"
     ]
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }
