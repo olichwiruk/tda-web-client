@@ -45,7 +45,6 @@ module.exports = {
     // 'plugin:vue/vue3-essential', // Priority A: Essential (Error Prevention)
     'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
-    'plugin:mocha/recommended',
 
     'standard'
 
@@ -107,6 +106,9 @@ module.exports = {
   overrides: [
     {
       files: ['./tests/**/*.ts'],
+      extends: [
+        'plugin:mocha/recommended'
+      ],
       rules: {
         'no-unused-expressions': 'off'
       }
