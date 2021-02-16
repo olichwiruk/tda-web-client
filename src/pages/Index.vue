@@ -12,13 +12,18 @@
 <script lang="ts">
 import { Todo, Meta } from 'components/models'
 import ExampleComponent from 'components/CompositionComponent.vue'
-import { defineComponent, ref } from 'vue'
 
-export default defineComponent({
-  name: 'PageIndex',
-  components: { ExampleComponent },
-  setup () {
-    const todos = ref<Todo[]>([
+import { ref } from 'vue'
+import { Vue, Options, setup } from 'vue-class-component'
+
+@Options({
+  components: {
+    ExampleComponent
+  }
+})
+export default class PageIndex extends Vue {
+  todos = setup(() => {
+    return ref<Todo[]>([
       {
         id: 1,
         content: 'ct1'
@@ -40,10 +45,12 @@ export default defineComponent({
         content: 'ct5'
       }
     ])
-    const meta = ref<Meta>({
+  })
+
+  meta = setup(() => {
+    return ref<Meta>({
       totalCount: 1200
     })
-    return { todos, meta }
-  }
-})
+  })
+}
 </script>

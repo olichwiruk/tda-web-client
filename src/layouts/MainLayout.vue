@@ -134,17 +134,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
+import { Vue, setup } from 'vue-class-component'
 
-export default defineComponent({
-  name: 'MainLayout',
-  setup () {
-    const leftDrawerOpen = ref(false)
+export default class MainLayout extends Vue {
+  leftDrawerOpen = false
+  connection = { label: 'loading...' }
+
+  modules = setup(() => {
     const agentId = '1'
     const basePath = `/agent/${agentId}`
 
-    const connection = ref({ label: 'loading...' })
-    const modules = ref([
+    return ref([
       [
         {
           title: 'My Documents',
@@ -180,8 +181,6 @@ export default defineComponent({
         }
       ]
     ])
-
-    return { leftDrawerOpen, connection, modules }
-  }
-})
+  })
+}
 </script>

@@ -26,9 +26,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { Vue } from 'vue-class-component'
 
-export default defineComponent({
-  name: 'Error404'
-})
+export default class Error404 extends Vue {}
 </script>
