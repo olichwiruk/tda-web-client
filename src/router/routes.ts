@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('pages/Login.vue')
   },
   {
-    path: '/agent/:id',
+    path: '/agent',
     name: 'agent',
     props: true,
     component: () => import('layouts/MainLayout.vue'),

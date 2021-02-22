@@ -136,14 +136,22 @@
 <script lang="ts">
 import { ref } from 'vue'
 import { Vue, setup } from 'vue-class-component'
+import { connectionFromStore } from '../connection_detail'
+import Storage from '../storage'
 
 export default class MainLayout extends Vue {
   leftDrawerOpen = false
   connection = { label: 'loading...' }
 
+  created () {
+    const agentConnection = Storage.get(Storage.Record.AgentConnection)
+    if (agentConnection) {
+      this.connection = connectionFromStore(JSON.parse(agentConnection))
+    }
+  }
+
   modules = setup(() => {
-    const agentId = '1'
-    const basePath = `/agent/${agentId}`
+    const basePath = '/agent'
 
     return ref([
       [
@@ -174,7 +182,7 @@ export default class MainLayout extends Vue {
         {
           title: 'Settings',
           icon: 'settings',
-          path: `/${basePath}/settings`
+          path: `${basePath}/settings`
         },
         {
           title: 'Help', icon: 'help', path: '/help'
