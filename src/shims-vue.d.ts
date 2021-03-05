@@ -8,3 +8,9 @@ declare module '*.png' {
    const value: string
    export = value
 }
+
+declare const config: {
+  env: {
+    VUE_APP_OCA_REPO_URL: string
+  }
+}

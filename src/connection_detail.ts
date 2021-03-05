@@ -1,6 +1,10 @@
 import * as DIDComm from 'pack-unpack'
+import sodium from 'libsodium-wrappers'
 import * as bs58 from 'bs58'
+import { v4 as uuid } from 'uuid'
+import axios from 'axios'
 import { Dictionary } from './types'
+import { emitter } from './boot/mitt'
 
 type Service = {
   id: string
@@ -45,6 +49,60 @@ class ConnectionDetail {
     return true
   }
 
+  async sendMessage (msg: Dictionary) {
+    if (!('@id' in msg)) {
+      msg['@id'] = uuid().toString()
+    }
+    if (!('~transport' in msg)) {
+      msg['~transport'] = { return_route: 'all' }
+    }
+    console.log(msg)
+
+    const packedMsg = await this.packMessage(msg)
+
+    axios.post(this.service.serviceEndpoint, packedMsg)
+      .then(async parsedBody => {
+        console.log(parsedBody)
+        if (!parsedBody.data) {
+          console.log('No response for post; continuing.')
+          return
+        }
+        this.processInbound(await this.unpackMessage(parsedBody.data))
+      })
+      .catch(function (err) {
+        console.error('Error while sending message:', err)
+      })
+  }
+
+  async packMessage (msg: Dictionary) {
+    await this.didcomm.Ready
+    const keyPair: sodium.KeyPair = {
+      keyType: 'curve25519',
+      privateKey: this.myKey.privateKey,
+      publicKey: this.myKey.publicKey
+    }
+    return await this.didcomm.packMessage(
+      JSON.stringify(msg),
+      [bs58.decode(this.service.recipientKeys[0])],
+      keyPair
+    )
+  }
+
+  async unpackMessage (packedMsg: string): Promise<Dictionary> {
+    await this.didcomm.Ready
+    const keyPair: sodium.KeyPair = {
+      keyType: 'curve25519',
+      privateKey: this.myKey.privateKey,
+      publicKey: this.myKey.publicKey
+    }
+    const unpackedResponse = await this.didcomm.unpackMessage(packedMsg, keyPair)
+    return JSON.parse(unpackedResponse.message) as Dictionary
+  }
+
+  processInbound (msg: Dictionary) {
+    emitter.emit('message-received', msg)
+  }
+
   toStore () {
     return {
       label: this.label,
@@ -69,7 +127,7 @@ const newConnection = (label: string, didDoc: Dictionary, myKeyB58: DIDKeyB58): 
   )
 }
 
-const connectionFromStore = (obj: Dictionary) => {
+const connectionFromStore = (obj: Dictionary): ConnectionDetail => {
   return newConnection(
     obj.label,
     obj.didDoc,

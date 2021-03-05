@@ -1,8 +1,10 @@
 import { store } from 'quasar/wrappers'
 import { createStore } from 'vuex'
 
-// import example from './module-example';
-// import { ExampleStateInterface } from './module-example/state';
+import agentCommunication from './agent-communication'
+import { AgentCommunicationStateInterface } from './agent-communication/state'
+import wsMessages from './ws-messages'
+import { WsMessagesStateInterface } from './ws-messages/state'
 
 /*
  * If not building with SSR mode, you can
@@ -10,16 +12,15 @@ import { createStore } from 'vuex'
  */
 
 export interface StateInterface {
-  // Define your own store structure, using submodules if needed
-  // example: ExampleStateInterface;
-  // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
-  example: unknown;
+  agentCommunication: AgentCommunicationStateInterface;
+  wsMessages: WsMessagesStateInterface;
 }
 
 export default store(function () {
   const Store = createStore({
     modules: {
-      // example
+      agentCommunication,
+      wsMessages
     },
 
     // enable strict mode (adds overhead!)

@@ -29,7 +29,9 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli/boot-files
     boot: [
-      'axios'
+      'axios',
+      'mitt',
+      'notify'
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
@@ -41,7 +43,7 @@ module.exports = configure(function (/* ctx */) {
     extras: [
       // 'ionicons-v4',
       // 'mdi-v5',
-      // 'fontawesome-v5',
+      'fontawesome-v5',
       // 'eva-icons',
       // 'themify',
       // 'line-awesome',
@@ -88,7 +90,11 @@ module.exports = configure(function (/* ctx */) {
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
     framework: {
-      config: {},
+      // Quasar plugins
+      plugins: [
+        'Notify'
+      ],
+      config: { }
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -99,9 +105,6 @@ module.exports = configure(function (/* ctx */) {
       //
       // components: [],
       // directives: [],
-
-      // Quasar plugins
-      plugins: []
     },
 
     // animations: 'all', // --- includes all animations

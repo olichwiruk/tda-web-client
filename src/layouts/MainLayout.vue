@@ -53,24 +53,24 @@
             <q-tooltip>Messages</q-tooltip>
           </q-btn>
 
-          <!-- <q-btn -->
-          <!--   round -->
-          <!--   dense -->
-          <!--   flat -->
-          <!--   color="white" -->
-          <!--   icon="notifications" -->
-          <!--   @click="isRightDrawerOpen = !isRightDrawerOpen" -->
-          <!--   > -->
-          <!--   <q-badge -->
-          <!--     v-if="pendingRequests.length > 0" -->
-          <!--     color="red" -->
-          <!--     text-color="white" -->
-          <!--     floating -->
-          <!--     > -->
-          <!--     {{pendingRequests.length}} -->
-          <!--   </q-badge> -->
-          <!--     <q-tooltip>Notifications</q-tooltip> -->
-          <!-- </q-btn> -->
+          <q-btn
+            round
+            dense
+            flat
+            color="white"
+            icon="notifications"
+            @click="isRightDrawerOpen = !isRightDrawerOpen"
+          >
+            <q-badge
+              v-if="pendingRequests.length > 0"
+              color="red"
+              text-color="white"
+              floating
+            >
+              {{ pendingRequests.length }}
+            </q-badge>
+            <q-tooltip>Notifications</q-tooltip>
+          </q-btn>
           <q-btn
             round
             flat
@@ -84,11 +84,11 @@
       </q-toolbar>
     </q-header>
 
-    <!-- <notification-drawer -->
-    <!--   :isOpen="isRightDrawerOpen" -->
-    <!--   @toggleDrawer="(val) => isRightDrawerOpen = val" -->
-    <!--   @refreshRequests="(req) => pendingRequests = req" -->
-    <!--   /> -->
+    <notification-drawer
+      :is-open="isRightDrawerOpen"
+      @toggleDrawer="(val) => isRightDrawerOpen = val"
+      @refreshRequests="(req) => pendingRequests = req"
+    />
 
     <q-drawer
       v-model="leftDrawerOpen"
@@ -135,18 +135,37 @@
 
 <script lang="ts">
 import { ref } from 'vue'
-import { Vue, setup } from 'vue-class-component'
-import { connectionFromStore } from '../connection_detail'
+import { Vue, Options, setup } from 'vue-class-component'
+import { connectionFromStore, ConnectionDetail } from '../connection_detail'
 import Storage from '../storage'
+import { emitter } from '../boot/mitt'
+import { useStore } from 'vuex'
+import NotificationDrawer from '../js/components/NotificationDrawer.vue'
 
+@Options({
+  components: { NotificationDrawer }
+})
 export default class MainLayout extends Vue {
   leftDrawerOpen = false
-  connection = { label: 'loading...' }
+  isRightDrawerOpen = false
+  pendingRequests = []
+  connection = { label: 'loading...' } as ConnectionDetail
+  store = useStore()
 
-  created () {
+  async created () {
+    if (!emitter.all.get('message-received')) {
+      emitter.on('message-received', (message) => {
+        this.store.dispatch('agentCommunication/resolve', message)
+          .catch((e) => console.error(e))
+      })
+    }
+
     const agentConnection = Storage.get(Storage.Record.AgentConnection)
     if (agentConnection) {
       this.connection = connectionFromStore(JSON.parse(agentConnection))
+      await this.connection.sendMessage({
+        '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-get-list'
+      })
     }
   }
 
@@ -186,6 +205,13 @@ export default class MainLayout extends Vue {
         },
         {
           title: 'Help', icon: 'help', path: '/help'
+        }
+      ],
+      [
+        {
+          title: 'Logout',
+          icon: 'logout',
+          path: `${basePath}/logout`
         }
       ]
     ])

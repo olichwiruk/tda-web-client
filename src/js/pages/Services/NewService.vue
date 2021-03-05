@@ -1,0 +1,133 @@
+<template>
+  <q-card style="min-width: 50vw">
+    <q-card-section>
+      <div class="text-h6">{{title}}</div>
+    </q-card-section>
+
+    <q-card-section>
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-8">
+          <oca-schema-search
+            label="Service:"
+            :ocaRepoHost="ocaRepoHost"
+            @schemaSelected="serviceSchemaSelected"
+          />
+        </div>
+
+        <div class="col-12 col-md-4">
+          <consent-select
+            label="Consent:"
+            @consentSelected="consentSelected"
+          />
+        </div>
+      </div>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn
+        flat
+        label="Cancel"
+        color="primary"
+        @click="cancel"
+      />
+      <q-btn
+        :disable="!dataFilled"
+        flat
+        label="Submit"
+        color="primary"
+        @click="submit"
+      />
+    </q-card-actions>
+
+  </q-card>
+</template>
+
+<script>
+import axios from 'axios'
+import OcaSchemaSearch from './NewService/OcaSchemaSearch'
+import ConsentSelect from './NewService/ConsentSelect'
+import Storage from '../../../storage'
+
+export default {
+  name: 'new-service',
+  props: ['title'],
+  components: {
+    OcaSchemaSearch,
+    ConsentSelect
+  },
+  data () {
+    return {
+      label: null,
+      service: {
+        oca_schema_dri: null,
+        oca_schema_namespace: null
+      },
+      consent: {
+        id: null
+      }
+    }
+  },
+  computed: {
+    ocaRepoHost: function() {
+      return Storage.get(Storage.Record.OcaRepoUrl)
+    },
+    acapyApiUrl: function() {
+      return Storage.get(Storage.Record.AdminApiUrl)
+    },
+    dataFilled: function() {
+      return this.label != null &&
+        this.service.oca_schema_dri != null &&
+        this.consent.id != null
+    }
+  },
+  methods: {
+    serviceSchemaSelected({ namespace, DRI, schemaName }) {
+      this.label = schemaName
+      this.service.oca_schema_dri = DRI
+      this.service.oca_schema_namespace = namespace
+    },
+    consentSelected(consent) {
+      this.consent.id = consent.consent_id
+    },
+    resetServiceData() {
+      this.label = null
+      this.service = {
+        oca_schema_dri: null,
+        oca_schema_namespace: null
+      }
+      this.consent = {
+        id: null
+      }
+    },
+    submit() {
+      axios.post(`${this.acapyApiUrl}/verifiable-services/add`, {
+        label: this.label,
+        consent_id: this.consent.id,
+        service_schema: this.service,
+      }).then(r => {
+        if (r.status === 200) {
+          this.$notify.success('Service created!')
+
+          this.$emit('services-refresh')
+          this.resetServiceData();
+        }
+      }).catch(e => {
+        console.error(e)
+        this.$notify.error('Error occuerrd')
+      })
+    },
+    cancel() {
+      this.$emit('services-refresh');
+    }
+  },
+}
+</script>
+
+
+<style scoped>
+.content {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px 0px;
+}
+</style>

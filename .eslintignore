@@ -5,3 +5,7 @@
 /.quasar
 /node_modules
 /src-ssr
+/src/js
+/src/boot
+/src/types.ts
+/public
