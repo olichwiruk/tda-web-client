@@ -159,11 +159,16 @@ export default class Login extends Vue {
   }
 
   async storeSettings (invite: Invitation) {
-    const temp = invite.serviceEndpoint.split('.')
-    temp[0] = temp[0].concat('-api')
-    const acapyApiUrl = temp.join('.')
-
+    let acapyApiUrl = ''
+    if (this.routeParams.get('agent_api')) {
+      acapyApiUrl = this.routeParams.get('agent_api') as string
+    } else {
+      const temp = invite.serviceEndpoint.split('.')
+      temp[0] = temp[0].concat('-api')
+      acapyApiUrl = temp.join('.')
+    }
     Storage.set(Storage.Record.AdminApiUrl, acapyApiUrl)
+
     // eslint-disable-next-line no-undef
     Storage.set(Storage.Record.OcaRepoUrl, config.env.VUE_APP_OCA_REPO_URL)
     const agentWsUrl = ((
