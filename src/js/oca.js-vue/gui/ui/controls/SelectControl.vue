@@ -3,16 +3,16 @@
     <select2-control v-if="!control.isMultiple"
                      v-model="control.value"
                      :isValid="isValid"
-                     :label="this.control.label"
-                     :disabled="this.control.readonly"
+                     :label="control.label"
+                     :disabled="control.readonly"
                      :options="dataSource">
       <template v-slot:errors><slot name="errors"/></template>
     </select2-control>
     <select2-multiple-control v-else
                               v-model="control.value"
                               :isValid="isValid"
-                              :label="this.control.label"
-                              :disabled="this.control.readonly"
+                              :label="control.label"
+                              :disabled="control.readonly"
                               :options="dataSource">
       <template v-slot:errors><slot name="errors"/></template>
     </select2-multiple-control>
@@ -45,7 +45,10 @@ import Select2MultipleControl from "../../../../oca.js-vue/third_party_controls/
 
 export default {
   name: "SelectControl",
-  components: {Select2MultipleControl, Select2Control},
+  components: {
+    Select2MultipleControl,
+    Select2Control
+  },
   props:['control', 'isValid', 'labelPosition'],
   data: () => ({
     dataSource: [],
@@ -53,30 +56,28 @@ export default {
   created() {
     // request for ajax source
     if (this.control.isAjax) {
+      /*
       let self = this;
       $.getJSON(this.control.ajaxDataUrl)
         .done(data => {
           if (_.isArray(data)) {
             self.dataSource = data;
           } else {
-            /*
             eventBus.$emit(
               EventHandlerConstant.ERROR,
               `Control data error: ${this.control.label}.`
             )
-            */
             console.error(`Data for select control of ${this.control.label} is wrong format!`);
           }
         })
         .fail(err => {
-          /*
           eventBus.$emit(
             EventHandlerConstant.ERROR,
             `Failed to load data for control: ${this.control.label}.`
           )
-          */
           console.error("Request for Select Data Source Failed: ", err);
         });
+          */
     } else {
       this.dataSource = this.control.dataOptions.map(o => ({
         value: o.id,
@@ -101,7 +102,7 @@ export default {
     }
 
     // after hook
-    Hooks.Control.afterInit.run(this.control, $(this.$el).find("select.form-control"));
+    // Hooks.Control.afterInit.run(this.control, $(this.$el).find("select.form-control"));
   }
 }
 </script>

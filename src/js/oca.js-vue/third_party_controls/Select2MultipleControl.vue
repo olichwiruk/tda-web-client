@@ -20,7 +20,6 @@
             };
         },
         model: {
-            event: 'change',
             prop: 'value'
         },
         props: {
@@ -52,7 +51,7 @@
         },
         watch: {
             selected(val) {
-              this.$emit('change', val.map(v => `${v.value}`));
+              this.$emit('update:modelValue', val.map(v => `${v.value}`).sort());
             },
             options(val) {
                 this.setOption(val);
@@ -82,7 +81,9 @@
             }
         },
         mounted() {
-          this.selected = this.options.filter(o => this.value.includes(`${o.value}`))
+          if (this.value) {
+            this.selected = this.options.filter(o => this.value.includes(`${o.value}`))
+          }
           /*
             this.select2 = $(this.$el)
                 .find('select')

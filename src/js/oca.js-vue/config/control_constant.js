@@ -11,7 +11,7 @@ import GUITextControl from '../../oca.js-vue/gui/ui/controls/TextControl';
 import GUINumberControl from '../../oca.js-vue/gui/ui/controls/NumberControl';
 import GUIDatePickerControl from '../../oca.js-vue/gui/ui/controls/DatePickerControl';
 import GUITimePickerControl from '../../oca.js-vue/gui/ui/controls/TimePickerControl';
-// import GUISelectControl from '../../oca.js-vue/gui/ui/controls/SelectControl';
+import GUISelectControl from '../../oca.js-vue/gui/ui/controls/SelectControl';
 import GUICheckboxControl from '../../oca.js-vue/gui/ui/controls/CheckboxControl';
 import GUIReferenceControl from '../../oca.js-vue/gui/ui/controls/ReferenceControl';
 
@@ -85,7 +85,7 @@ const CONTROL_TYPES = {
         label: "Select Option",
         icon: faDatabase,
         source: {
-            // gui: GUISelectControl,
+            gui: GUISelectControl,
             // template: TEMPLATESelectControl,
             // config: SIDEBARSelectControl
         }

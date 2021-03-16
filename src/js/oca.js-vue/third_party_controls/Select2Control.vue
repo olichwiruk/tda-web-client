@@ -16,7 +16,6 @@ export default {
     };
   },
   model: {
-    event: 'change',
     prop: 'value'
   },
   props: {
@@ -48,7 +47,9 @@ export default {
   },
   watch: {
     selected(val) {
-      this.$emit('change', `${val.value}`);
+      if (val) {
+        this.$emit('update:modelValue', `${val.value}`);
+      }
     },
     options(val) {
       this.setOption(val);

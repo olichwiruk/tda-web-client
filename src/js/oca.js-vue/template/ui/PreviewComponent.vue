@@ -51,7 +51,6 @@ export default {
   }),
   methods: {
     openModal(formData, formInput = null) {
-      console.log(formInput);
       if(this.$parent.language) {
         this.selectedLang = this.$parent.language
       } else if(this.alternatives && this.alternatives.length) {
@@ -123,14 +122,12 @@ export default {
       })
     },
     saveForm() {
-      console.log(this.$refs)
       const formRef = this.$refs.FormBuilderGui
       // TODO: no validation at the moment as this seems to be broken according to Michal
       // const isValid = formRef.validateValues()
       const isValid = true;
       if(!isValid) { return }
 
-      console.log(formRef)
       const serializedData = serializeFormData(formRef)
       this.$emitter.emit('oca-form.save_preview', serializedData)
     },
