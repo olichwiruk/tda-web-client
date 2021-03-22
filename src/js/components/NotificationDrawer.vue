@@ -38,7 +38,7 @@
             </div>
             <div v-else>
               <q-avatar
-                color="teal"
+                :color="getPolicyValidationColor(req)"
                 size="md"
                 icon="shield"
                 text-color="white"
@@ -272,6 +272,12 @@ export default {
     getSubtitle(request) {
       // \u00a0 is nonbreaking space -> it helps reducing flickering
       return this.credentialsLabel[request.presentation_exchange_id] || '\u00a0';
+    },
+    getPolicyValidationColor(request) {
+      if (!request.usage_policies_match) { return 'red' }
+      const isPolicyMatching = JSON.parse(request.usage_policies_match).code === 0
+      if (!isPolicyMatching) { return 'red' }
+      return 'teal'
     },
     hasMatchingCredential(request) {
       return request.list_of_matching_credentials.length > 0;
