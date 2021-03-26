@@ -172,27 +172,25 @@ export default {
       return 'teal';
     },
     getPolicyValidation(application) {
-      const policy_validation_str = application.usage_policies_match
+      const policy_matches = application.usage_policies_match
 
-      if (!policy_validation_str)
+      if (policy_matches === true)
+        return {
+          color: 'teal',
+          text: 'Applicant usage policy matches with that provided by the service. Everything is good.',
+        };
+
+      else if (policy_matches === false)
+        return {
+          color: 'red',
+          text: 'Applicant usage policy does not match with that provided by the service.',
+        }
+
+      else
         return {
           color: 'grey',
           text: 'Usage policies could not be matched yet.',
         };
-      else {
-        const policy_validation = JSON.parse(policy_validation_str)
-        if (policy_validation.code == 0)
-          return {
-            color: 'teal',
-            text: 'Applicant usage policy matches with that provided by the service. Everything is good.',
-          };
-
-        else
-          return {
-            color: 'red',
-            text: 'Applicant usage policy does not match with that provided by the service.',
-          }
-      }
     },
     async preview(application) {
       this.$emit('application-preview',

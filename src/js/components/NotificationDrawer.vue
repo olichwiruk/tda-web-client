@@ -274,10 +274,10 @@ export default {
       return this.credentialsLabel[request.presentation_exchange_id] || '\u00a0';
     },
     getPolicyValidationColor(request) {
-      if (!request.usage_policies_match) { return 'red' }
-      const isPolicyMatching = JSON.parse(request.usage_policies_match).code === 0
-      if (!isPolicyMatching) { return 'red' }
-      return 'teal'
+      const isPolicyMatching = request.usage_policies_match
+      if (isPolicyMatching === true) { return 'teal' }
+      else if (isPolicyMatching === false) { return 'red'}
+      else { return 'grey' }
     },
     hasMatchingCredential(request) {
       return request.list_of_matching_credentials.length > 0;

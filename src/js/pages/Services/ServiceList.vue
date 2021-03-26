@@ -203,25 +203,25 @@ export default {
       })
     },
     getPolicyValidation(service) {
-      const policy_validation = service.policy_validation
+      const policy_matches = service.policy_matches
 
-      if (!policy_validation)
-        return {
-          color: 'grey',
-          text: 'Usage policies could not be matched yet.',
-        };
-
-      else if (policy_validation.code == 0)
+      if (policy_matches === true)
         return {
           color: 'teal',
           text: 'Your usage policy matches with that provided by the service. Everything is good.',
         };
 
-      else
+      else if (policy_matches === false)
         return {
           color: 'red',
           text: 'Your usage policy does not match with that provided by the service. However, you can still proceed with using this service.',
         }
+
+      else
+        return {
+          color: 'grey',
+          text: 'Usage policies could not be matched yet.',
+        };
     },
   },
 }

@@ -246,13 +246,13 @@ export default {
     servicePolicyValidationMessages: {
       handler: function () {
         this.servicePolicyValidationMessages.forEach(message => {
-          var [service_id, policy_validation] = Object.entries(message.content)[0]
+          var [service_id, policy_matches] = Object.entries(message.content)[0]
 
           for (const serviceGroup of this.otherServices) {
             const found = serviceGroup.services.find(s => s.service_id == service_id);
 
             if (found) {
-              found.policy_validation = JSON.parse(policy_validation);
+              found.policy_matches = policy_matches;
               // i think due to vue's reactivity system and the nested object, it does not get there was an update
               // therfore we have to force an update in order for the ui to change
               this.$refs.otherServices.$forceUpdate();
@@ -502,7 +502,7 @@ export default {
       this.dialogContext = null
     },
     applyOnService(userData) {
-      const { policy_validation, ...service } = this.currentApplicationService.service
+      const { policy_matches, ...service } = this.currentApplicationService.service
       const { consent_id, data: consent_data, usage_policy, ...consent_schema } = this.currentApplicationService.service.consent_schema
       service.consent_schema = consent_schema
       this.$_adminApi_applyOnService({
