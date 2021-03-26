@@ -15,9 +15,6 @@ export default {
       selected: null
     };
   },
-  model: {
-    prop: 'value'
-  },
   props: {
     placeholder: {
       type: String,
@@ -43,7 +40,7 @@ export default {
       type: Boolean,
       default: true
     },
-    value: null
+    modelValue: null
   },
   watch: {
     selected(val) {
@@ -66,14 +63,14 @@ export default {
         ...this.settings,
         data: val
       });
-      this.setValue(this.value);
+      this.setValue(this.modelValue);
     },
     setValue(val) {
-      // this.value = `${val}`;
+      // this.modelValue = `${val}`;
     }
   },
   mounted() {
-    this.selected = this.options.find(o => o.value == this.value)
+    this.selected = this.options.find(o => o.value == this.modelValue)
     /*
     this.select2 = $(this.$el)
       .find('select')

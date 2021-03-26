@@ -19,9 +19,6 @@
                 selected: null
             };
         },
-        model: {
-            prop: 'value'
-        },
         props: {
             placeholder: {
                 type: String,
@@ -47,7 +44,7 @@
                 type: Boolean,
                 default: true
             },
-            value: null
+            modelValue: null
         },
         watch: {
             selected(val) {
@@ -68,7 +65,7 @@
                     ...this.settings,
                     data: val
                 });
-                this.setValue(this.value);
+                this.setValue(this.modelValue);
             },
             setValue(val) {
               /*
@@ -81,8 +78,8 @@
             }
         },
         mounted() {
-          if (this.value) {
-            this.selected = this.options.filter(o => this.value.includes(`${o.value}`))
+          if (this.modelValue) {
+            this.selected = this.options.filter(o => this.modelValue.includes(`${o.value}`))
           }
           /*
             this.select2 = $(this.$el)
