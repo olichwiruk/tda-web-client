@@ -82,7 +82,7 @@
             },
             fillForm(formData, input) {
               let payload = null
-              if (Array.isArray(Object.values(input)[0])) {
+              if (Array.isArray(Object.values(input)[0] && input[formData.DRI])) {
                 if (!input[formData.DRI][0]) {
                   formData.sections.forEach(section => {
                     const control = section.row.controls.find(c => c.type == "reference")

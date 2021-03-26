@@ -81,7 +81,7 @@ export default {
     fillForm(formData, input) {
       let payload
 
-      if (Array.isArray(Object.values(input)[0])) {
+      if (Array.isArray(Object.values(input)[0]) && input[formData.DRI]) {
         if (!input[formData.DRI][0]) { return }
         const content = JSON.parse(input[formData.DRI][0].content)
         payload = content[`DRI:${formData.DRI}`].p

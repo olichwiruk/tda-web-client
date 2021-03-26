@@ -118,7 +118,7 @@ export default {
               // backend sometimes delivers other schema DRIs than the requested one
               // therefore we have to check again for the correct DRI
               // TODO: this has to be fixed on the backend
-              const item = schemaFillings.filter(s => typeof s.content === "object").find(s => s.oca_schema_dri == schemaDri);
+              const item = schemaFillings[0] //.filter(s => typeof s.content === "object").find(s => s.oca_schema_dri == schemaDri);
 
               if (item)
                 input = item.content
