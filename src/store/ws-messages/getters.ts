@@ -26,6 +26,28 @@ const getters: GetterTree<WsMessagesStateInterface, StateInterface> = {
     return messages.filter(message => {
       return message.topic === '/topic/verifiable-services/issue-state-update/'
     })
+  },
+  credentialReceivedMessages ({ messages }) {
+    return messages.filter(message => {
+      return message.topic === '/topic/verifiable-services/credential-received/'
+    })
+  },
+
+  connectionMessages ({ messages }) {
+    return messages.filter(message => {
+      return message.topic === '/topic/connections/'
+    })
+  },
+
+  presentProofMessages ({ messages }) {
+    return messages.filter(message => {
+      return message.topic === '/topic/present_proof/'
+    })
+  },
+  pdsPayloadMessages ({ messages }) {
+    return messages.filter(message => {
+      return message.topic === '/topic/pds/payload/'
+    })
   }
 }
 

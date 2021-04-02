@@ -189,11 +189,11 @@ export default {
     presentProofMessages: {
       handler: function () {
         this.presentProofMessages.forEach(msg => {
+          this.refreshRequests();
           this.deleteMessage(msg.uuid)
         });
-
-        this.refreshRequests();
-      }
+      },
+      deep: true
     },
     pdsPayloadMessages: {
       handler: function() {
@@ -201,11 +201,15 @@ export default {
           this.schemaPayload[msg.content.dri] = JSON.parse(msg.content.payload)
           this.deleteMessage(msg.uuid)
         })
-      }
+      },
+      deep: true
     },
   },
   computed: {
-    ...mapState('wsMessages', ['messages']),
+    ...mapGetters('wsMessages', [
+      'presentProofMessages',
+      'pdsPayloadMessages'
+    ]),
     ...mapGetters('agentCommunication', ['activeConnections']),
 
     receivedRequests() {
@@ -228,16 +232,6 @@ export default {
     },
     ocaRepoUrl () {
       return Storage.get(Storage.Record.OcaRepoUrl)
-    },
-    presentProofMessages () {
-      return this.messages.filter((message) => {
-        return message.topic == '/topic/present_proof/'
-      })
-    },
-    pdsPayloadMessages() {
-      return this.messages.filter(message => {
-        return message.topic == '/topic/pds/payload/'
-      })
     },
   },
   methods: {

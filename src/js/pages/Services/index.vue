@@ -167,7 +167,8 @@ export default {
       'serviceListMessages',
       'servicePolicyValidationMessages',
       'incomingApplicationMessages',
-      'applicationStateUpdateMessages'
+      'applicationStateUpdateMessages',
+      'credentialReceivedMessages'
     ]),
     acapyApiUrl: function () {
       return Storage.get(Storage.Record.AdminApiUrl)
@@ -228,6 +229,15 @@ export default {
     applicationStateUpdateMessages: {
       handler: function () {
         this.applicationStateUpdateMessages.forEach(message => {
+          this.refreshApplications();
+          this.deleteMessage(message.uuid)
+        })
+      },
+      deep: true
+    },
+    credentialReceivedMessages: {
+      handler: function () {
+        this.credentialReceivedMessages.forEach(message => {
           this.refreshApplications();
           this.deleteMessage(message.uuid)
         })

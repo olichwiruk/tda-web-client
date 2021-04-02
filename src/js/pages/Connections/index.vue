@@ -229,6 +229,7 @@ export default {
   computed: {
     ...mapState('agentCommunication', ['invitationUrl', 'messages']),
     ...mapGetters('agentCommunication', ['activeConnections']),
+    ...mapGetters('wsMessages', ['connectionMessages']),
     canShare() {
       return !!navigator.canShare
     }
@@ -246,10 +247,20 @@ export default {
         })
       },
       deep: true
+    },
+    connectionMessages: {
+      handler: function () {
+        this.connectionMessages.forEach(message => {
+          this.fetchConnections()
+          this.deleteMessage(message.uuid)
+        })
+      },
+      deep: true
     }
   },
   methods: {
     ...mapActions('agentCommunication', ['removeMessage']),
+    ...mapActions('wsMessages', ['deleteMessage']),
     fetchConnections: function() {
       connection.sendMessage({
         '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-get-list'
