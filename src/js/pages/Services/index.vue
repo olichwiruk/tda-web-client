@@ -81,7 +81,7 @@
               type="pending"
               label='From:'
               @applications-refresh="refreshApplications"
-              @application-preview="previewApplication($event, { self: false, readonly: true })"
+              @application-preview="previewApplication($event, { self: false, readonly: false })"
             />
             <application-list
               title="Submitted applications:"
@@ -473,12 +473,12 @@ export default {
       this.collectForms(application)
       this.$refs.PreviewServiceComponent.openModal()
     },
-    examineApplication(decision) {
+    examineApplication(decision, userData = {}) {
       if (decision == 'accept') { this.confirmProcessing = true }
       else if (decision == 'reject') { this.rejectProcessing = true }
 
       axios.post(`${this.acapyApiUrl}/verifiable-services/process-application`, {
-        decision: decision, issue_id: this.currentApplication.issue_id
+        decision: decision, issue_id: this.currentApplication.issue_id, data: userData
       }).then(r => {
         if (r.status === 200) {
           if (typeof r.data === 'string' && r.data.startsWith('-1:')) {
@@ -506,7 +506,7 @@ export default {
       if (this.dialogContext === "service") {
         this.applyOnService(userData)
       } else if (this.dialogContext === "application") {
-        this.confirmApplicationHandler()
+        this.confirmApplicationHandler(userData)
       }
 
       this.dialogContext = null
@@ -538,8 +538,8 @@ export default {
         this.$refs.PreviewServiceComponent.closeModal();
       })
     },
-    confirmApplicationHandler() {
-      this.examineApplication('accept')
+    confirmApplicationHandler(userData) {
+      this.examineApplication('accept', userData)
     },
     rejectApplicationHandler() {
       this.examineApplication('reject')
