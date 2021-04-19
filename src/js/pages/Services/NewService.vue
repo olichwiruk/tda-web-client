@@ -12,6 +12,11 @@
             :ocaRepoHost="ocaRepoHost"
             @schemaSelected="serviceSchemaSelected"
           />
+          <oca-schema-search
+            label="Certificate:"
+            :ocaRepoHost="ocaRepoHost"
+            @schemaSelected="certificateSchemaSelected"
+          />
         </div>
 
         <div class="col-12 col-md-4">
@@ -62,6 +67,10 @@ export default {
         oca_schema_dri: null,
         oca_schema_namespace: null
       },
+      certificate: {
+        oca_schema_dri: null,
+        oca_schema_namespace: null
+      },
       consent: {
         id: null
       }
@@ -77,14 +86,19 @@ export default {
     dataFilled: function() {
       return this.label != null &&
         this.service.oca_schema_dri != null &&
+        this.certificate.oca_schema_dri != null &&
         this.consent.id != null
     }
   },
   methods: {
-    serviceSchemaSelected({ namespace, DRI, schemaName }) {
-      this.label = schemaName
+    serviceSchemaSelected({ namespace, DRI }) {
       this.service.oca_schema_dri = DRI
       this.service.oca_schema_namespace = namespace
+    },
+    certificateSchemaSelected({ namespace, DRI, schemaName }) {
+      this.label = schemaName
+      this.certificate.oca_schema_dri = DRI
+      this.certificate.oca_schema_namespace = namespace
     },
     consentSelected(consent) {
       this.consent.id = consent.consent_id
@@ -104,6 +118,7 @@ export default {
         label: this.label,
         consent_id: this.consent.id,
         service_schema: this.service,
+        certificate_schema: this.certificate
       }).then(r => {
         if (r.status === 200) {
           this.$notify.success('Service created!')

@@ -198,7 +198,7 @@ export default {
     pdsPayloadMessages: {
       handler: function() {
         this.pdsPayloadMessages.forEach(msg => {
-          this.schemaPayload[msg.content.dri] = JSON.parse(msg.content.payload)
+          this.schemaPayload[msg.content.dri] = JSON.parse(msg.content.payload.replaceAll("'", "\""))
           this.deleteMessage(msg.uuid)
         })
       },
