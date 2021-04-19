@@ -56,6 +56,15 @@
                 )">
                   Preview
                 </q-btn>
+                <q-btn flat color="warning"
+                  v-if="schemaInput[credential.dri] && schemaInput[credential.dri].associatedReportID"
+                  @click="preview(
+                  reportSchema[credential.dri],
+                  reportInput[credential.dri],
+                  reportSchemaAlt[credential.dri]
+                )">
+                  Preview Report
+                </q-btn>
               </q-card-actions>
             </template>
             <template v-slot:back>
@@ -148,6 +157,9 @@ export default {
       credentialsSchema: {},
       credentialsSchemaAlt: {},
       schemaInput: {},
+      reportSchema: {},
+      reportSchemaAlt: {},
+      reportInput: {},
       form: null,
       alternatives: null
     }
@@ -240,6 +252,26 @@ export default {
           this.schemaInput[credentialEl.dri] = credential.credentialSubject.oca_data
         } else if(credential.credentialSubject.oca_data_dri) {
           this.schemaInput[credentialEl.dri] = (await axios.get(`${this.acapyApiUrl}/pds/${credential.credentialSubject.oca_data_dri}`)).data.payload
+        }
+
+        if (this.schemaInput[credentialEl.dri].associatedReportID) {
+          const reportID = this.schemaInput[credentialEl.dri].associatedReportID
+          const inputChunk = (await axios.get(`${this.acapyApiUrl}/verifiable-services/report/${reportID}`)).data
+          this.reportInput[credentialEl.dri] = Object.values(inputChunk)[0].p
+          const reportSchemaDRI = Object.keys(inputChunk)[0].split('DRI:')[1]
+          const reportBranch = (await axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${reportSchemaDRI}`)).data
+          const reportLangBranches = this.splitBranchPerLang(reportBranch)
+
+          this.reportSchemaAlt[credentialEl.dri] = await Promise.all(
+            reportLangBranches.map(async langBranch => ({
+              language: langBranch.lang,
+              form: (await renderForm(
+                [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+                serviceSchema.oca_schema_dri
+              )).form
+            }))
+          )
+          this.reportSchema[credentialEl.dri] = this.reportSchemaAlt[credentialEl.dri][0].form
         }
       }
     },
