@@ -310,6 +310,7 @@ export default {
     },
     */
     credentials: function() {
+      this.tab = Array(this.credentials.length).fill("scan"),
       this.credentials.forEach(async (credential) => {
         await this.generatePreview(credential)
       })
