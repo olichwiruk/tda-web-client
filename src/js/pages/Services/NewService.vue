@@ -62,11 +62,12 @@ export default {
   },
   data () {
     return {
-      label: null,
+      serviceLabel: null,
       service: {
         oca_schema_dri: null,
         oca_schema_namespace: null
       },
+      certificateLabel: null,
       certificate: {
         oca_schema_dri: null,
         oca_schema_namespace: null
@@ -84,19 +85,18 @@ export default {
       return Storage.get(Storage.Record.AdminApiUrl)
     },
     dataFilled: function() {
-      return this.label != null &&
-        this.service.oca_schema_dri != null &&
-        this.certificate.oca_schema_dri != null &&
-        this.consent.id != null
+      return this.consent.id != null &&
+        this.service.oca_schema_dri != null
     }
   },
   methods: {
-    serviceSchemaSelected({ namespace, DRI }) {
+    serviceSchemaSelected({ namespace, DRI, schemaName }) {
+      this.serviceLabel = schemaName
       this.service.oca_schema_dri = DRI
       this.service.oca_schema_namespace = namespace
     },
     certificateSchemaSelected({ namespace, DRI, schemaName }) {
-      this.label = schemaName
+      this.certificateLabel = schemaName
       this.certificate.oca_schema_dri = DRI
       this.certificate.oca_schema_namespace = namespace
     },
@@ -104,8 +104,13 @@ export default {
       this.consent.id = consent.consent_id
     },
     resetServiceData() {
-      this.label = null
+      this.serviceLabel = null
       this.service = {
+        oca_schema_dri: null,
+        oca_schema_namespace: null
+      }
+      this.certificateLabel = null
+      this.certificate = {
         oca_schema_dri: null,
         oca_schema_namespace: null
       }
@@ -114,12 +119,18 @@ export default {
       }
     },
     submit() {
-      axios.post(`${this.acapyApiUrl}/verifiable-services/add`, {
-        label: this.label,
+      let body = {
+        label: this.certificateLabel,
         consent_id: this.consent.id,
         service_schema: this.service,
         certificate_schema: this.certificate
-      }).then(r => {
+      }
+      if (!this.certificate.oca_schema_dri) {
+        body['label'] = this.serviceLabel
+        delete body['certificate_schema']
+      }
+      axios.post(`${this.acapyApiUrl}/verifiable-services/add`, body)
+        .then(r => {
         if (r.status === 200) {
           this.$notify.success('Service created!')
 
