@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts">
-import { Todo, Meta } from 'components/models'
-import ExampleComponent from 'components/CompositionComponent.vue'
+import { Todo, Meta } from '@/components/models'
+import ExampleComponent from '@/components/CompositionComponent.vue'
 
 import { ref } from 'vue'
 import { Vue, Options, setup } from 'vue-class-component'

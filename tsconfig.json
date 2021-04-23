@@ -16,7 +16,12 @@
     "types": [
       "quasar",
       "jest"
-    ]
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*"
