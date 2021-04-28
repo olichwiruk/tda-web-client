@@ -5,33 +5,22 @@
         bordered
         padding
       >
-        asd
-        <!-- <pds-settings title="Personal Data Storage" /> -->
-        <!-- <controller-settings title="Controller Configuration" /> -->
+        <controller-settings title="Controller Configuration" />
       </q-list>
     </div>
   </q-page>
 </template>
 
-<script>
-/*
-import PdsSettings from '@/modules/settings/page/PdsSettings'
-import ControllerSettings from '@/modules/settings/page/ControllerSettings'
-*/
+<script lang="ts">
+import { Vue, Options } from 'vue-property-decorator'
 
-export default {
-  name: 'Settings',
+import ControllerSettingsComponent from './ControllerSettings.vue'
+
+@Options({
   components: {
-    /*
-    PdsSettings,
-    ControllerSettings
-    */
-  },
-  data () {
-    return {
-    }
-  },
-  methods: {
+    ControllerSettings: ControllerSettingsComponent
   }
+})
+export default class Settings extends Vue {
 }
 </script>

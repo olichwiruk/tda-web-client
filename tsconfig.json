@@ -12,6 +12,8 @@
     "alwaysStrict": true,
     "strictNullChecks": true,
     "noErrorTruncation": true,
+    "useDefineForClassFields": true,
+    "strictPropertyInitialization": false,
     "baseUrl": ".",
     "types": [
       "quasar",

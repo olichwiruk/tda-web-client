@@ -8,4 +8,5 @@
 /src/js
 /src/boot
 /src/types.ts
+/src/modules/IUseCase.ts
 /public
