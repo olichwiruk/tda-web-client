@@ -1,35 +1,21 @@
-type IConfiguration = {
-  apiUrl: string
-  clientId: string
-  clientSecret: string
-  scope: string
-}
-
-export class Configuration {
-  apiUrl: string
-  clientId: string
-  clientSecret: string
-  scope: string
-
-  constructor (
-    { apiUrl, clientId, clientSecret, scope }: IConfiguration
-  ) {
-    this.apiUrl = apiUrl
-    this.clientId = clientId
-    this.clientSecret = clientSecret
-    this.scope = scope
-  }
+const labelDict : Record<string, string | undefined> = {
+  local: 'Local',
+  data_vault: 'Data Vault',
+  own_your_data: 'Own Your Data'
 }
 
 export default class {
+  label: string
+  type: string
   name: string
   active: boolean
-  configuration: Configuration
 
-  constructor (name: string, config: IConfiguration) {
+  constructor ({ type, name, active = false }: { type: string, name: string, active?: boolean }) {
+    this.type = type
     this.name = name
-    this.active = false
-    this.configuration = new Configuration(config)
+    this.active = active
+
+    this.label = labelDict[type] ? labelDict[type] as string : type
   }
 
   activate () {

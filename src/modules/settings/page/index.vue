@@ -5,6 +5,7 @@
         bordered
         padding
       >
+        <pds-settings title="PDS" />
         <controller-settings title="Controller Configuration" />
       </q-list>
     </div>
@@ -14,10 +15,12 @@
 <script lang="ts">
 import { Vue, Options } from 'vue-property-decorator'
 
+import PDSSettingsComponent from './PdsSettings.vue'
 import ControllerSettingsComponent from './ControllerSettings.vue'
 
 @Options({
   components: {
+    PdsSettings: PDSSettingsComponent,
     ControllerSettings: ControllerSettingsComponent
   }
 })
