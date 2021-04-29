@@ -1,10 +1,10 @@
 import { injectable } from 'inversify'
-import PDS from '@/modules/settings/entities/PDS'
 import axios from 'axios'
 import { Dictionary } from '@/types'
+import { PDS } from '@/modules/settings/entities'
 
 @injectable()
-export default class {
+export class PDSRepo {
   async getActive ({ apiUrl }: { apiUrl: string }): Promise<PDS> {
     const response = (await axios.get(`${apiUrl}/pds`)).data as Dictionary
     const [type, name]: string[] = (response.active as string).split(', ')

@@ -4,7 +4,7 @@ const labelDict : Record<string, string | undefined> = {
   own_your_data: 'Own Your Data'
 }
 
-export default class {
+export class PDS {
   label: string
   type: string
   name: string

@@ -1,3 +1,3 @@
-export type IUseCase = {
+export type UseCase = {
   call(params?: any): void
 }

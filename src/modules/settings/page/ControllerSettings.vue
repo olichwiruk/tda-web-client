@@ -40,11 +40,14 @@
 <script lang="ts">
 import { Vue, Prop, Watch } from 'vue-property-decorator'
 import { $inject as inject } from '@vanroeybe/vue-inversify-plugin'
-import SI from '@/modules/settings/Identifiers'
 import { Nullable } from '@/types'
-import ControllerSettings from '@/modules/settings/entities/ControllerSettings'
-import FetchControllerSettings from '@/modules/settings/usecases/FetchControllerSettings'
-import SaveControllerSettings from '@/modules/settings/usecases/SaveControllerSettings'
+import SI from '@/modules/settings/Identifiers'
+
+import { ControllerSettings } from '@/modules/settings/entities'
+import {
+  FetchControllerSettings,
+  SaveControllerSettings
+} from '@/modules/settings/usecases'
 
 export default class ControllerSettingsComponent extends Vue {
   @Prop() title: string

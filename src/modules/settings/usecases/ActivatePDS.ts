@@ -1,12 +1,14 @@
 import { injectable, inject } from 'inversify'
-import PDSRepo from '@/modules/settings/repositories/PDSRepo'
-import ControllerSettingsRepo from '@/modules/settings/repositories/ControllerSettingsRepo'
-import PDS from '@/modules/settings/entities/PDS'
+import { UseCase } from '@/modules/UseCase'
 import SI from '@/modules/settings/Identifiers'
-import { IUseCase } from '@/modules/IUseCase'
+import { PDS } from '@/modules/settings/entities'
+import {
+  ControllerSettingsRepo,
+  PDSRepo
+} from '@/modules/settings/repositories'
 
 @injectable()
-export default class implements IUseCase {
+export class ActivatePDS implements UseCase {
   pdsRepo: PDSRepo
   controllerSettingsRepo: ControllerSettingsRepo
 

@@ -32,14 +32,17 @@
 </template>
 
 <script lang="ts">
-import { $inject as inject } from '@vanroeybe/vue-inversify-plugin'
 import { Vue } from 'vue-property-decorator'
-import SI from '@/modules/settings/Identifiers'
-import ActivatePDS from '@/modules/settings/usecases/ActivatePDS'
-import FetchActivePDS from '@/modules/settings/usecases/FetchActivePDS'
-import FetchPDSList from '@/modules/settings/usecases/FetchPDSList'
+import { $inject as inject } from '@vanroeybe/vue-inversify-plugin'
 import { Nullable } from '@/types'
-import PDS from '@/modules/settings/entities/PDS'
+import SI from '@/modules/settings/Identifiers'
+
+import {
+  ActivatePDS,
+  FetchActivePDS,
+  FetchPDSList
+} from '@/modules/settings/usecases'
+import { PDS } from '@/modules/settings/entities'
 
 export default class CurrentPDSComponent extends Vue {
   @inject(SI.SETTINGS.USE_CASE.ACTIVATE_PDS)

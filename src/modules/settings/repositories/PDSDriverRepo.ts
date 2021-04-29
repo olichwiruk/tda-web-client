@@ -1,9 +1,11 @@
 import axios from 'axios'
-import ControllerSettings from '@/modules/settings/entities/ControllerSettings'
-import PDSPlugin from '@/modules/settings/entities/PDSPlugin'
 import { Dictionary } from '@/types'
+import {
+  ControllerSettings,
+  PDSDriver
+} from '@/modules/settings/entities'
 
-export default class {
+export class PDSDriverRepo {
   controllerSettings: ControllerSettings
 
   constructor (controllerSettings: ControllerSettings) {
@@ -11,12 +13,12 @@ export default class {
   }
 
   async all () {
-    const results: PDSPlugin[] = []
+    const results: PDSDriver[] = []
     const response = (
       await axios.get(`${this.controllerSettings.acapyApiUrl}/pds`)
     ).data as Dictionary
     Object.entries(response.types).forEach(([type, value]) => {
-      const pdsPlugin = new PDSPlugin(type, (value as Record<string, string>).oca_schema_dri)
+      const pdsPlugin = new PDSDriver(type, (value as Record<string, string>).oca_schema_dri)
       results.push(pdsPlugin)
     })
 

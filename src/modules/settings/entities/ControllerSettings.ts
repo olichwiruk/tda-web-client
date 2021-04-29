@@ -4,7 +4,7 @@ type IControllerSettings = {
   ocaRepoUrl: string
 }
 
-export default class ControllerSettings {
+export class ControllerSettings {
   acapyApiUrl: string
   websocketUrl: string
   ocaRepoUrl: string

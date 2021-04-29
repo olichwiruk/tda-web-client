@@ -1,9 +1,9 @@
 import { injectable } from 'inversify'
-import ControllerSettings from '@/modules/settings/entities/ControllerSettings'
 import Storage from '@/storage'
+import { ControllerSettings } from '@/modules/settings/entities'
 
 @injectable()
-export default class {
+export class ControllerSettingsRepo {
   save (controllerSettings: ControllerSettings) {
     Storage.set(Storage.Record.AdminApiUrl, controllerSettings.acapyApiUrl)
     Storage.set(Storage.Record.WebsocketUrl, controllerSettings.websocketUrl)

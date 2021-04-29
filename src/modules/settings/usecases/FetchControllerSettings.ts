@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify'
-import ControllerSettingsRepo from '@/modules/settings/repositories/ControllerSettingsRepo'
+import { UseCase } from '@/modules/UseCase'
 import SI from '@/modules/settings/Identifiers'
-import { IUseCase } from '@/modules/IUseCase'
+import { ControllerSettingsRepo } from '@/modules/settings/repositories'
 
 @injectable()
-export default class implements IUseCase {
+export class FetchControllerSettings implements UseCase {
   controllerSettingsRepo: ControllerSettingsRepo
 
   constructor (
