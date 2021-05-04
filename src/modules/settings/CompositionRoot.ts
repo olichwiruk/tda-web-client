@@ -3,6 +3,7 @@ import SI from '@/modules/settings/Identifiers'
 import { UseCase } from '@/modules/UseCase'
 import {
   ControllerSettingsRepo,
+  PDSDriverRepo,
   PDSRepo
 } from '@/modules/settings/repositories'
 import {
@@ -10,7 +11,8 @@ import {
   SaveControllerSettings,
   ActivatePDS,
   FetchActivePDS,
-  FetchPDSList
+  FetchPDSList,
+  FetchPDSDriverList
 } from '@/modules/settings/usecases'
 
 const container: Container = new Container()
@@ -32,5 +34,10 @@ container.bind<UseCase>(SI.SETTINGS.USE_CASE.FETCH_PDS_LIST)
 
 container.bind<UseCase>(SI.SETTINGS.USE_CASE.ACTIVATE_PDS)
   .to(ActivatePDS)
+
+container.bind<PDSDriverRepo>(SI.SETTINGS.REPOSITORY.PDS_DRIVER_REPO)
+  .to(PDSDriverRepo)
+container.bind<UseCase>(SI.SETTINGS.USE_CASE.FETCH_PDS_DRIVER_LIST)
+  .to(FetchPDSDriverList)
 
 export default container

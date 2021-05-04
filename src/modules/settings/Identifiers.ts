@@ -15,11 +15,17 @@ const SERVICE_IDENTIFIER = {
       ).toString(),
       ACTIVATE_PDS: Symbol(
         'settings.use_cases.activate_pds'
+      ).toString(),
+      FETCH_PDS_DRIVER_LIST: Symbol(
+        'settings.use_cases.fetch_pds_driver_list'
       ).toString()
     },
     REPOSITORY: {
       CONTROLLER_SETTINGS_REPO: Symbol(
         'settings.repositories.controller_settings_repo'
+      ).toString(),
+      PDS_DRIVER_REPO: Symbol(
+        'settings.repositories.pds_driver_repo'
       ).toString(),
       PDS_REPO: Symbol(
         'settings.repositories.pds_repo'
