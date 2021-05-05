@@ -116,18 +116,21 @@
       </q-list>
     </q-scroll-area>
 
-    <preview-component ref="PreviewComponent" :readonly="true" :reviewable="true"
-      :form="form" :alternatives="alternatives"
+    <multi-preview-component
+      ref="PreviewPresentationComponent" label="Presentation"
+      :readonly="true" :reviewable="true"
+      :forms="forms" :alternatives="alternatives"
+      :key="forms.flat().map(f => f.formData._uniqueId).join('-')"
       confirmLabel="Confirm" :confirmProcessing="confirmProcessing"
       rejectLabel="Reject" :rejectProcessing="rejectProcessing">
-    </preview-component>
+    </multi-preview-component>
   </q-drawer>
 </template>
 
 <script>
 import adminApi from '../admin_api';
 import axios from 'axios';
-import { renderForm, PreviewComponent } from '../oca.js-vue';
+import { renderForm, MultiPreviewComponent } from '../oca.js-vue';
 import { mapActions, mapState, mapGetters } from 'vuex';
 //import CustomSpinner from './Spinner/CustomSpinner.vue';
 import Storage from '../../storage'
@@ -135,12 +138,13 @@ import Storage from '../../storage'
 export default {
   components: {
     //CustomSpinner,
-    PreviewComponent,
+    MultiPreviewComponent,
   },
   created() {
     this.refreshRequests();
   },
-  mounted() {
+  async mounted() {
+    await this.generateVerificaitonMetaPreview()
     this.establishListeners()
   },
   mixins: [
@@ -158,6 +162,10 @@ export default {
 
       presExId: null,
       form: {},
+      forms: [
+        [{ class: "col-md-7", readonly: true, formData: {} }],
+        [{ class: "col-md-5", readonly: false, formData: {} }]
+      ],
       alternatives: [],
       confirmProcessing: false,
       rejectProcessing: false,
@@ -292,24 +300,59 @@ export default {
         // always returns the first matching credential if possible
         return matching[0];
     },
+    collectForms(presentation, options = [[], []]) {
+      Object.assign(this.forms[0][0],
+        {
+          label: presentation.schema.form.label,
+          formData: presentation.schema.form,
+          alternatives: presentation.schema.formAlternatives,
+          input: null
+        }, options[0][0])
+      if (presentation.schema.answers) {
+        Object.assign(this.forms[0][0], { input: presentation.schema.answers })
+      }
+      Object.assign(this.forms[1][0],
+        {
+          label: presentation.meta.form.label,
+          formData: presentation.meta.form,
+          alternatives: presentation.meta.formAlternatives,
+          input: presentation.meta.answers
+        }, options[1][0])
+    },
     showPresentation(presentation) {
+      console.log(presentation)
       this.establishListeners()
       const presExId = presentation.presentation_exchange_id
       this.previewedPresExId = presExId
       this.form = this.credentialsSchema[presExId]
       this.alternatives = this.credentialsSchemaAlt[presExId]
 
-      let input
-      if (this.schemaPayloadDri[presExId]) {
-        input = this.schemaPayload[this.schemaPayloadDri[presExId]]
+      const pres = {
+        schema: {
+          form: this.credentialsSchema[presExId],
+          formAlternatives: this.credentialsSchemaAlt[presExId]
+        },
+        meta: {
+          form: this.credentialsSchema['verification-meta'],
+          formAlternatives: this.credentialsSchemaAlt['verification-meta']
+        }
       }
+      if (this.schemaPayloadDri[presExId]) {
+        pres.schema.answers = this.schemaPayload[this.schemaPayloadDri[presExId]]
+      }
+      this.collectForms(pres)
 
-      this.$refs.PreviewComponent.openModal(this.form, input);
+      this.$refs.PreviewPresentationComponent.openModal()
     },
-    async confirmHandler() {
+    async confirmHandler(e) {
+      const signerIndex = Object.values(e[1])[0].p.signer
+      const schema = this.credentialsSchema['verification-meta']
+      const signerName = schema.translations[0].data.controls[0].dataOptions
+        .find(o => o.id == signerIndex).text
       const params = {
         exchange_record_id: this.previewedPresExId,
-        status: true
+        status: true,
+        issuer_name: signerName
       };
 
       try {
@@ -323,9 +366,14 @@ export default {
       }
     },
     async rejectHandler() {
+      const signerIndex = Object.values(e[1])[0].p.signer
+      const schema = this.credentialsSchema['verification-meta']
+      const signerName = schema.translations[0].data.controls[0].dataOptions
+        .find(o => o.id == signerIndex).text
       const params = {
         exchange_record_id: this.previewedPresExId,
-        status: false
+        status: false,
+        issuer_name: signerName
       };
 
       try {
@@ -342,6 +390,27 @@ export default {
     },
 
     /***************************************************/
+    async generateVerificaitonMetaPreview () {
+      const key = 'verification-meta'
+      const schemaDRI = 'gEQ1qg8Xc7oq3xVZHuss2iayJRWoyoNH4y8ZXp7nQbEF'
+
+      const r = await axios.get(`${this.ocaRepoUrl}/api/v3/schemas/${schemaDRI}`)
+      const branch = r.data
+      this.credentialsSchemaAlt[key] = []
+      const langBranches = this.splitBranchPerLang(branch)
+
+      this.credentialsSchemaAlt[key] = await Promise.all(
+        langBranches.map(async (langBranch) => ({
+          language: langBranch.lang,
+          form: (await renderForm(
+            [langBranch.branch.schema_base, ...langBranch.branch.overlays],
+            schemaDRI
+          )).form
+        }))
+      );
+      this.credentialsSchema[key] = this.credentialsSchemaAlt[key][0].form
+      this.credentialsLabel[key] = this.credentialsSchema[key].label
+    },
 
     async generatePreview (requestEl) {
       if (!requestEl) { return }
@@ -423,8 +492,8 @@ export default {
       return langBranches
     },
     establishListeners() {
-      this.$emitter.all.delete('oca-form.save_preview')
-      this.$emitter.on('oca-form.save_preview', this.confirmHandler)
+      this.$emitter.all.delete('oca-form.save_preview.all')
+      this.$emitter.on('oca-form.save_preview.all', this.confirmHandler)
       this.$emitter.all.delete('oca-form.reject_preview')
       this.$emitter.on('oca-form.reject_preview', this.rejectHandler)
     },

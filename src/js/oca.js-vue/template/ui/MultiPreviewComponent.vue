@@ -143,6 +143,7 @@
                 })
                 if(savedForms.some(f => !f.isValid)) { return }
                 this.$emitter.emit('oca-form.save_preview', savedForms[0].serializedData)
+                this.$emitter.emit('oca-form.save_preview.all', savedForms.map(f => f.serializedData))
             },
             rejectForm() {
                 this.$emitter.emit('oca-form.reject_preview', {})

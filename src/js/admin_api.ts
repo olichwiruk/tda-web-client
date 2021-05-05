@@ -196,13 +196,17 @@ function sendPresentation(apiUrl: string, params: sendPresentationParams) {
 export type acknowledgePresentationParams = {
   exchange_record_id: string;
   status: boolean;
+  issuer_name?: string;
 }
 
 function acknowledgePresentation(apiUrl: string, params: acknowledgePresentationParams) {
   const url = new URL(`${apiUrl}/present-proof/acknowledge`);
   url.searchParams.append('exchange_record_id', params.exchange_record_id);
   url.searchParams.append('status', params.status ? 'true': 'false');
-  
+  if (params.issuer_name) {
+    url.searchParams.append('issuer_name', params.issuer_name);
+  }
+
   return axios.post(url.toString());
 }
 
