@@ -1,0 +1,4 @@
+[submodule "agent-api-spec"]
+	path = agent-api-spec
+	url = https://github.com/THCLab/agent-api-spec
+	branch = main
