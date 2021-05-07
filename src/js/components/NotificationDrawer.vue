@@ -320,7 +320,6 @@ export default {
         }, options[1][0])
     },
     showPresentation(presentation) {
-      console.log(presentation)
       this.establishListeners()
       const presExId = presentation.presentation_exchange_id
       this.previewedPresExId = presExId
@@ -365,7 +364,7 @@ export default {
         this.notify.error('Could not accept presentation.')
       }
     },
-    async rejectHandler() {
+    async rejectHandler(e) {
       const signerIndex = Object.values(e[1])[0].p.signer
       const schema = this.credentialsSchema['verification-meta']
       const signerName = schema.translations[0].data.controls[0].dataOptions
@@ -494,8 +493,8 @@ export default {
     establishListeners() {
       this.$emitter.all.delete('oca-form.save_preview.all')
       this.$emitter.on('oca-form.save_preview.all', this.confirmHandler)
-      this.$emitter.all.delete('oca-form.reject_preview')
-      this.$emitter.on('oca-form.reject_preview', this.rejectHandler)
+      this.$emitter.all.delete('oca-form.reject_preview.all')
+      this.$emitter.on('oca-form.reject_preview.all', this.rejectHandler)
     },
     async sendCredential(request) {
       const matching = this.getMatchingCredential(request);

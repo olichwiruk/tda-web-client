@@ -146,7 +146,20 @@
                 this.$emitter.emit('oca-form.save_preview.all', savedForms.map(f => f.serializedData))
             },
             rejectForm() {
-                this.$emitter.emit('oca-form.reject_preview', {})
+                const savedForms = []
+                const refKeys = Object.keys(this.$refs).filter(key => (
+                  key.includes('FormBuilderGui')
+                ))
+                refKeys.forEach(key => {
+                  const form = this.$refs[key]
+                  const isValid = true // form.validateValues()
+
+                  const serializedData = serializeFormData(form)
+                  savedForms.push({ isValid, serializedData })
+                })
+                if(savedForms.some(f => !f.isValid)) { return }
+                this.$emitter.emit('oca-form.reject_preview', savedForms[0].serializedData)
+                this.$emitter.emit('oca-form.reject_preview.all', savedForms.map(f => f.serializedData))
             },
             closeModal() {
                 this.dialogModal.closeModal();
