@@ -41,7 +41,7 @@ export class SaveForms implements UseCase {
         const form = await this.renderOcaForm(schema)
         this.formRepo.save(form)
       } catch (e) {
-        console.log(e)
+        console.error(e)
       }
     })
   }
