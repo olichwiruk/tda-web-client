@@ -15,10 +15,16 @@ import { HttpClient, RequestParams, ContentType } from "./<%~ config.fileNames.h
 import { <%~ dataContracts.join(", ") %> } from "./<%~ config.fileNames.dataContracts %>"
 <% } %>
 
+import { injectable, inject } from 'inversify'
+import { Identifiers as SI_API } from '@/modules/common/api'
+
+@injectable()
 export class <%= apiClassName %><SecurityDataType = unknown><% if (!config.singleHttpClient) { %> extends HttpClient<SecurityDataType> <% } %> {
 
 <% if(config.singleHttpClient) { %>
-  constructor (private http: HttpClient<SecurityDataType>) {}
+  constructor (
+    @inject(SI_API.COMMON.API.HTTP_CLIENT) private http: HttpClient<SecurityDataType>
+  ) {}
 <% } %>
 
     <% routes.forEach((route) => { %>
